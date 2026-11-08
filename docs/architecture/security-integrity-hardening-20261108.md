@@ -58,6 +58,7 @@ La comprobación previa de producción del 08/11/2026 encontró cero infraccione
 en 33 reglas; no acredita estados futuros. Antes de desplegar se debe repetir el
 preflight, conservar respaldo y aplicar con migrate deploy durante una ventana
 que tolere los locks de validación. El bloqueo puede esperar a transacciones
-activas; conviene establecer lock_timeout y abortar/reprogramar si se excede la
-ventana. Un rollback de aplicación no debe borrar el historial ni retirar
+activas; la migración limita lock_timeout a 10 segundos y statement_timeout a
+60 segundos para abortar/reprogramar si se excede la ventana.
+Un rollback de aplicación no debe borrar el historial ni retirar
 silenciosamente las restricciones. Este parche no autoriza despliegue por sí solo.

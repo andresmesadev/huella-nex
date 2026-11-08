@@ -1,6 +1,8 @@
 -- Additive security hardening. Existing legacy NULL scopes are preserved.
 -- Preflight and DDL share one transaction; no historical data is rewritten.
 BEGIN;
+SET LOCAL lock_timeout='10s';
+SET LOCAL statement_timeout='60s';
 LOCK TABLE "Appointment", "ClientSession", "ClientVerificationCode", "Commission", "FinancialPeriod", "MedicalRecord", "Pet", "Service", "ServiceCategory", "Settlement", "Staff", "StaffAvailability", "Tenant", "Transaction", "TransactionItem", "User" IN SHARE ROW EXCLUSIVE MODE;
 DO $preflight$
 BEGIN
