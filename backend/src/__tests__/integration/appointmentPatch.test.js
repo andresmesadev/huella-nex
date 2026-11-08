@@ -1,6 +1,6 @@
 const express = require("express");
 // These adapter tests isolate business behavior; access policy has its own matrix.
-jest.mock("../../services/business-config.service", () => ({ ...jest.requireActual("../../services/business-config.service"), getActiveModules: async () => ["veterinary", "grooming", "retail"] }));
+jest.mock("../../services/business-config.service", () => ({ ...jest.requireActual("../../services/business-config.service"), getActiveModules: jest.fn().mockResolvedValue(["veterinary", "grooming", "retail"]) }));
 const request = require("supertest");
 
 // Mock prisma before requiring routes
@@ -43,11 +43,12 @@ jest.mock("../../lib/prisma", () => {
 const prisma = require("../../lib/prisma");
 const dashboardRoutes = require("../../routes/dashboard.routes");
 
-function buildApp(tenant) {
+function buildApp(tenant, actor) {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
     req.tenant = tenant;
+    req.actor = actor;
     next();
   });
   app.use("/api/dashboard", dashboardRoutes);
@@ -78,6 +79,7 @@ const BASE_APPT = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  require("../../services/business-config.service").getActiveModules.mockResolvedValue(["veterinary", "grooming", "retail"]);
   let conditionalData = {};
   prisma.appointment.updateMany.mockImplementation(async ({ data }) => {
     conditionalData = data;
@@ -370,6 +372,82 @@ describe("PATCH /api/dashboard/appointments/:id — staff/service tenant isolati
       .send({ serviceId: "svc-1" });
 
     expect(res.status).toBe(200);
+  });
+});
+
+describe("PATCH /api/dashboard/appointments/:id — closed service integrity", () => {
+  const originalService = { id: "svc-original", tenantId: TENANT_A, name: "Consulta original", category: { name: "veterinary" } };
+  const replacementService = { id: "svc-grooming", tenantId: TENANT_A, name: "Baño", basePrice: 65000, category: { name: "grooming" } };
+  const original = { ...BASE_APPT, serviceId: originalService.id, service: originalService, status: "completed", finalPrice: null };
+  const tenant = { isSuperAdmin: false, tenantId: TENANT_A };
+  const receptionist = { type: "receptionist", staffId: "reception-1" };
+
+  beforeEach(() => {
+    prisma.appointment.findFirst.mockResolvedValue({ ...original });
+    prisma.service.findFirst.mockResolvedValue(replacementService);
+  });
+
+  const closedCases = ["completed", "cancelled", "no_show"].flatMap(status =>
+    ["receptionist", "admin"].flatMap(role =>
+      ["svc-grooming", "svc-original", null, "", false, 0].map(serviceId => [status, role, serviceId])
+    )
+  );
+  test.each(closedCases)("rejects service input for %s as %s: %p", async (status, role, serviceId) => {
+    const appointment = { ...original, status };
+    prisma.appointment.findFirst.mockResolvedValue(appointment);
+    const response = await request(buildApp(tenant, { ...receptionist, type: role }))
+      .patch("/api/dashboard/appointments/appt-1").send({ serviceId });
+    expect(response.status).toBe(422);
+    expect(response.body.error).toBe("No se puede cambiar el servicio de una cita cerrada.");
+    expect(prisma.service.findFirst).not.toHaveBeenCalled();
+    expect(prisma.appointment.updateMany).not.toHaveBeenCalled();
+    expect(prisma.appointment.update).not.toHaveBeenCalled();
+    expect(appointment.serviceId).toBe(originalService.id);
+    if (status === "completed") {
+      expect(require("../../services/domain/price-resolver.service").isDeferredAppointmentPrice(appointment)).toBe(true);
+    }
+  });
+
+  test.each(["pending", "confirmed", "arrived", "in_progress"].flatMap(status =>
+    ["svc-grooming", null].map(serviceId => [status, serviceId])
+  ))("preserves open %s service assignment or clear: %p", async (status, serviceId) => {
+    prisma.appointment.findFirst.mockResolvedValue({ ...original, status });
+    const response = await request(buildApp(tenant, receptionist))
+      .patch("/api/dashboard/appointments/appt-1").send({ serviceId });
+    expect(response.status).toBe(200);
+    expect(prisma.appointment.updateMany).toHaveBeenCalledWith({
+      where: { id: original.id, tenantId: TENANT_A, status, staffId: null, serviceId: originalService.id, date: original.date },
+      data: { serviceId },
+    });
+  });
+
+  test("preserves the foreign-service rejection for an open appointment", async () => {
+    prisma.appointment.findFirst.mockResolvedValue({ ...original, status: "confirmed" });
+    prisma.service.findFirst.mockResolvedValue(null);
+    const response = await request(buildApp(tenant, receptionist))
+      .patch("/api/dashboard/appointments/appt-1").send({ serviceId: "foreign" });
+    expect(response.status).toBe(404);
+    expect(prisma.appointment.updateMany).not.toHaveBeenCalled();
+  });
+
+  test("preserves disabled-module rejection for an open appointment", async () => {
+    require("../../services/business-config.service").getActiveModules.mockResolvedValue(["veterinary"]);
+    prisma.appointment.findFirst.mockResolvedValue({ ...original, status: "confirmed" });
+    const response = await request(buildApp(tenant, receptionist))
+      .patch("/api/dashboard/appointments/appt-1").send({ serviceId: replacementService.id });
+    expect(response.status).toBe(403);
+    expect(prisma.appointment.updateMany).not.toHaveBeenCalled();
+  });
+
+  test("conflicts if the appointment closes after the initial read", async () => {
+    prisma.appointment.findFirst.mockResolvedValue({ ...original, status: "confirmed" });
+    prisma.appointment.updateMany.mockResolvedValue({ count: 0 });
+    const response = await request(buildApp(tenant, receptionist))
+      .patch("/api/dashboard/appointments/appt-1").send({ serviceId: replacementService.id });
+    expect(response.status).toBe(409);
+    expect(prisma.appointment.updateMany.mock.calls[0][0].where).toMatchObject({ status: "confirmed", serviceId: originalService.id, staffId: null });
+    expect(prisma.appointment.findUnique).not.toHaveBeenCalled();
+    expect(prisma.appointment.update).not.toHaveBeenCalled();
   });
 });
 

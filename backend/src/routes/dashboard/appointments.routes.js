@@ -639,6 +639,7 @@ router.patch("/appointments/:id", async (req, res) => {
 
     // Service must belong to same tenant
     if (serviceId !== undefined) {
+      if (['completed', 'cancelled', 'no_show'].includes(existing.status)) return res.status(422).json({ error: 'No se puede cambiar el servicio de una cita cerrada.' });
       if (serviceId) {
         const service = await prisma.service.findFirst({
           where: tenantId ? { id: serviceId, tenantId } : { id: serviceId },
