@@ -2,7 +2,7 @@
  * Gestión de Cita (Ecosistema, Portal del Cliente): verifica
  * GET /api/public/appointments y POST /api/public/appointments/:id/cancel
  * — apiKeyAuth + clientAuth + scopes, verificación cruzada, ownership
- * obligatorio, reutilización de isAllowedTransition/syncCancelToCalendar,
+ * obligatorio, reutilización de isAllowedTransition,
  * y forma pública mínima de la respuesta.
  */
 const express = require("express");
@@ -33,11 +33,10 @@ jest.mock("../../services/appointment.service", () => ({
   createAppointment: jest.fn(),
   buildAppointmentDateTime: jest.fn(),
   getUserAppointments: jest.fn(),
-  syncCancelToCalendar: jest.fn(),
 }));
 
 const prisma = require("../../lib/prisma");
-const { getUserAppointments, syncCancelToCalendar } = require("../../services/appointment.service");
+const { getUserAppointments } = require("../../services/appointment.service");
 const { apiKeyAuth } = require("../../middleware/apiKeyAuth");
 const publicApiRoutes = require("../../routes/public-api.routes");
 
@@ -185,7 +184,7 @@ describe("POST /api/public/appointments/:id/cancel", () => {
     expect(prisma.appointment.update).not.toHaveBeenCalled();
   });
 
-  test("200 cancela una cita propia en estado 'confirmed', sincroniza calendario y responde forma pública mínima", async () => {
+  test("200 cancela una cita propia en estado 'confirmed' y responde forma pública mínima", async () => {
     prisma.apiKey.findUnique.mockResolvedValue(KEY_TENANT_A);
     prisma.clientSession.findUnique.mockResolvedValue(SESSION_TENANT_A);
     prisma.appointment.findFirst.mockResolvedValue({ id: "appt-1", status: "confirmed", userId: "user-1", tenantId: "tenant-a" });
@@ -210,7 +209,6 @@ describe("POST /api/public/appointments/:id/cancel", () => {
       where: { id: "appt-1" },
       data: { status: "cancelled" },
     });
-    expect(syncCancelToCalendar).toHaveBeenCalledWith(expect.objectContaining({ id: "appt-1", status: "cancelled" }));
     expect(Object.keys(res.body).sort()).toEqual(["date", "id", "petName", "petType", "status"].sort());
   });
 

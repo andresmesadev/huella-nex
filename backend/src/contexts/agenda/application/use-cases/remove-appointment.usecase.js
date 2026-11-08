@@ -19,7 +19,7 @@ function createRemoveAppointmentUseCase({ repository, unitOfWork, clock = () => 
         throw new AppointmentRemovalError('Esta cita tiene atención o registros asociados. No se puede eliminar; conserva su historial y revisa la corrección con administración.');
       }
       const removal = await repository.removeWithAudit(appointment, { actor, reason: reason.trim(), removedAt: clock() }, ctx);
-      return { id: appointmentId, removed: true, removalId: removal.id, calendarAppointment: appointment };
+      return { id: appointmentId, removed: true, removalId: removal.id };
     });
   };
 }

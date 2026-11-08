@@ -52,7 +52,7 @@ Cualquier propuesta que contradiga esos documentos debe justificarse explícitam
 
 - Backend: Node.js, Express 5, Prisma, PostgreSQL (Docker local y VPS), pgvector
 - Frontend: Next.js 16, TypeScript, Tailwind, shadcn/ui
-- Integraciones: OpenAI API, WhatsApp Cloud API, Google Calendar, Stripe
+- Integraciones: OpenAI API, WhatsApp Cloud API, Stripe
 - Estructura: `backend/`, `frontend/`, `prisma/`, `scripts/`, `docs/`
 
 ## Comandos

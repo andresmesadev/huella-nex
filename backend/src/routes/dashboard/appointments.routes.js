@@ -451,9 +451,7 @@ router.delete('/appointments/:id', async (req, res) => {
     const snapshot = actorSnapshot(req.actor, 'removal');
     const result = await removeAppointment({ tenantId, appointmentId: req.params.id, reason: req.body?.reason,
       actor: { id: snapshot.removalActorId, name: snapshot.removalActorName, role: req.access.role } });
-    if (result.calendarAppointment) require('../../services/appointment.service').syncCancelToCalendar(result.calendarAppointment);
-    const { calendarAppointment, ...receipt } = result;
-    return res.json(receipt);
+    return res.json(result);
   } catch (error) {
     if (error.code === 'APPOINTMENT_REMOVAL') return res.status(error.status).json({ error: error.message, code: error.code });
     console.error('[Dashboard] Remove appointment error:', error.code || error.name);

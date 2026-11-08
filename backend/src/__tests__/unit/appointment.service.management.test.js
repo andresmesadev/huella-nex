@@ -1,6 +1,5 @@
 jest.mock("../../lib/prisma", () => ({ appointment: { findFirst: jest.fn(), updateMany: jest.fn() }, $transaction: jest.fn() }));
 jest.mock("../../services/availability-db.service", () => ({ isSlotAvailable: jest.fn() }));
-jest.mock("../../services/google-calendar.service", () => ({ createCalendarEvent: jest.fn(), cancelCalendarEvent: jest.fn() }));
 jest.mock("../../services/reminder.service", () => ({ resetGroomingReminderForPet: jest.fn() }));
 const prisma = require("../../lib/prisma");
 const availability = require("../../services/availability-db.service");

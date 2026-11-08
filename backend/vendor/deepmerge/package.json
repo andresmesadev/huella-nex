@@ -1,0 +1,10 @@
+{
+  "name": "@huella-nex/deepmerge-patched",
+  "version": "4.3.1-huella.1",
+  "private": true,
+  "description": "Local deepmerge 4.3.1 security patch for Jest configuration only",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "MIT",
+  "files": ["index.js", "index.d.ts", "LICENSE", "README.md"]
+}

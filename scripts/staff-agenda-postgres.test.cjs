@@ -6,8 +6,6 @@ require('../backend/node_modules/dotenv').config({ path: path.join(__dirname, '.
 const prisma = require('../backend/src/lib/prisma');
 const express = require('../backend/node_modules/express');
 const request = require('../backend/node_modules/supertest');
-// La prueba usa rutas/BD reales; no debe crear eventos externos de Calendar.
-require('../backend/src/services/google-calendar.service').createCalendarEvent = async () => null;
 const { staffWindowReason, weeklyRows } = require('../backend/src/contexts/staff/domain/rules/staff-window.rules');
 const { withStaffLock, assertStaffAssignment } = require('../backend/src/services/staff-scheduling.service');
 const { buildAppointmentDateTime } = require('../backend/src/services/appointment.service');

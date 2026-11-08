@@ -337,14 +337,16 @@ Compose; `DATABASE_URL` apunta al servicio `db`.
 | `PORT` | ✅ (`3000`) | — |
 | `NODE_ENV` | `production` | `production` |
 | `SENTRY_DSN` | opcional | — |
-| `GOOGLE_CALENDAR_ID` | opcional | — |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | opcional | — |
-| `GOOGLE_PRIVATE_KEY` | opcional | — |
 | `NEXT_PUBLIC_API_URL` | — | ✅ URL pública del backend |
 | `API_URL` | — | URL interna del backend (SSR) |
 | `NEXTAUTH_SECRET` | — | ✅ |
 | `NEXTAUTH_URL` | — | ✅ URL pública del dashboard |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | — | ✅ |
+
+La agenda de citas funciona en PostgreSQL. La integración con Google Calendar
+se retiró; no requiere credenciales de Google ni sincroniza eventos externos.
+El campo histórico `Appointment.googleEventId` se conserva por compatibilidad,
+sin uso operativo y sin una migración de borrado.
 
 Despliegue: `scripts/deploy.sh` en el host, sin instalar Node ni npm en la VPS.
 Para inspeccionar migraciones sin modificar la base, usa

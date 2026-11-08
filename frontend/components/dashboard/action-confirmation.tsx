@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertDialog } from "radix-ui";
+import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { Button } from "@/components/ui/button";
 
 type Confirmation = { description: string; title?: string; confirmLabel?: string; destructive?: boolean };

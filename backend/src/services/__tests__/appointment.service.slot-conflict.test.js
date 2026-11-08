@@ -9,10 +9,6 @@ jest.mock("../../lib/prisma", () => ({
   $queryRaw: jest.fn(),
   user: { findUnique: jest.fn() },
 }));
-jest.mock("../google-calendar.service", () => ({
-  createCalendarEvent: jest.fn(),
-  cancelCalendarEvent: jest.fn(),
-}));
 jest.mock("../pet.service", () => ({
   findPetByNameAndOwner: jest.fn().mockRejectedValue(new Error("no pet")),
 }));

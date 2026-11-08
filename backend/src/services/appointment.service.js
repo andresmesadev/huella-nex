@@ -1,10 +1,6 @@
 const prisma = require("../lib/prisma");
 const logger = require("../lib/logger");
 const { findPetByNameAndOwner, findOrCreatePet } = require("./pet.service");
-const {
-  createCalendarEvent,
-  cancelCalendarEvent,
-} = require("./google-calendar.service");
 const { resetGroomingReminderForPet } = require("./reminder.service");
 const availabilityDb = require("./availability-db.service");
 const { reservationSlotMinutes } = require("../lib/reservation-slot");
@@ -79,54 +75,6 @@ const mapSessionServiceType = (requestedService) => {
 };
 
 const ACTIVE_APPOINTMENT_STATUSES = ["pending", "confirmed"];
-
-const syncAppointmentToCalendar = (appointment) => {
-  void (async () => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: appointment.userId },
-        select: { phone: true },
-      });
-
-      const eventId = await createCalendarEvent({
-        ...appointment,
-        userPhone: user?.phone ?? null,
-      });
-
-      if (!eventId) {
-        return;
-      }
-
-      await prisma.appointment.update({
-        where: { id: appointment.id },
-        data: { googleEventId: eventId },
-      });
-
-      logger.info(
-        "[AppointmentService] Google Calendar synced:",
-        appointment.id
-      );
-    } catch (error) {
-      logger.error(
-        "[AppointmentService] Google Calendar sync error:",
-        error.message
-      );
-    }
-  })();
-};
-
-const syncCancelToCalendar = (appointment) => {
-  if (!appointment?.googleEventId) {
-    return;
-  }
-
-  void cancelCalendarEvent(appointment.googleEventId).catch((error) => {
-    logger.error(
-      "[AppointmentService] Google Calendar cancel error:",
-      error.message
-    );
-  });
-};
 
 /**
  * Mapea serviceType de DB al valor de sesión/OpenAI.
@@ -265,8 +213,6 @@ const cancelAppointment = async (userId, appointmentId, tenantId) => {
     const changed = appointment.transportMode && appointment.transportMode !== 'none' ? await prisma.$transaction(cancel) : await cancel(prisma);
     if (!changed.count) return null;
     const cancelled = { ...appointment, status: "cancelled" };
-
-    syncCancelToCalendar(cancelled);
 
     logger.info("[AppointmentService] Appointment cancelled:", cancelled.id);
     return cancelled;
@@ -423,10 +369,6 @@ const createAppointment = async (data) => {
       await resetGroomingReminderForPet(petId);
     }
 
-    if (String(appointment.status).trim().toLowerCase() === "confirmed") {
-      syncAppointmentToCalendar(appointment);
-    }
-
     return appointment;
   } catch (error) {
     if (isDuplicatePetAppointment(error)) logger.info('[AppointmentService] Duplicate pet/service/day prevented');
@@ -471,12 +413,10 @@ const rescheduleAppointment = async ({ userId, tenantId, appointmentId, date }) 
     }, select: { id: true } });
     if (conflict) throw new SlotAlreadyBookedError({ tenantId, availabilityBucket: bucket, date });
     if (current.transportMode && current.transportMode !== 'none' && (current.transportSharedWithId || await tx.appointment.count({ where: { tenantId, transportSharedWithId: appointmentId, status: { notIn: ['cancelled', 'no_show'] } } }))) throw new (require('./grooming-transport.service').TransportError)('Revisa los traslados compartidos con el equipo antes de reprogramar.');
-    return tx.appointment.update({ where: { ...owned, date: current.date }, data: { date, googleEventId: null,
+    return tx.appointment.update({ where: { ...owned, date: current.date }, data: { date,
       ...(current.transportMode && current.transportMode !== 'none' ? { transportPrice: null, transportPriceSource: null } : {}),
     } });
   }).catch(error => { if (isDuplicatePetAppointment(error)) throw new DuplicatePetAppointmentError(); throw error; });
-  syncCancelToCalendar(original);
-  if (moved.status === "confirmed") syncAppointmentToCalendar(moved);
   return moved;
 };
 
@@ -598,5 +538,4 @@ module.exports = {
   findAppointmentsByUser,
   checkAppointmentConflict,
   cancelAppointment,
-  syncCancelToCalendar,
 };

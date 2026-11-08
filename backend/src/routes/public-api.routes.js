@@ -39,7 +39,6 @@ const {
   createAppointment,
   buildAppointmentDateTime,
   getUserAppointments,
-  syncCancelToCalendar,
 } = require("../services/appointment.service");
 const { SlotAlreadyBookedError } = require("../services/errors/slot-already-booked.error");
 const { isAllowedTransition } = require("../services/appointment-status.service");
@@ -288,9 +287,7 @@ router.get("/appointments", clientAuth, requireScope("read:appointments"), async
 /**
  * POST /api/public/appointments/:id/cancel
  * Ownership obligatorio vía (id, userId, tenantId) en una sola consulta.
- * Reutiliza isAllowedTransition (appointment-status.service.js) y
- * syncCancelToCalendar (appointment.service.js, recién exportada) sin
- * duplicar ninguna de las dos.
+ * Reutiliza isAllowedTransition (appointment-status.service.js).
  */
 router.post("/appointments/:id/cancel", clientAuth, requireScope("write:appointments"), async (req, res) => {
   try {
@@ -314,7 +311,6 @@ router.post("/appointments/:id/cancel", clientAuth, requireScope("write:appointm
       where: { id: appointment.id },
       data: { status: "cancelled" },
     });
-    syncCancelToCalendar(cancelled);
 
     res.json(toPublicAppointment(cancelled));
   } catch (error) {

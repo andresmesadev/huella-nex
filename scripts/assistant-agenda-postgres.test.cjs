@@ -8,9 +8,6 @@ require('../backend/node_modules/dotenv').config({ path: path.join(__dirname, '.
 const db = new URL(process.env.DATABASE_URL);
 assert(['localhost', '127.0.0.1', '[::1]'].includes(db.hostname) && db.pathname === '/mateos_dev');
 const prisma = require('../backend/src/lib/prisma');
-const calendar = require('../backend/src/services/google-calendar.service');
-calendar.createCalendarEvent = async () => null;
-calendar.cancelCalendarEvent = async () => null;
 const { createAppointment, rescheduleAppointment, cancelAppointment, buildAppointmentDateTime } = require('../backend/src/services/appointment.service');
 
 test('Asistente: reservas y reprogramaciones concurrentes con PostgreSQL real', async t => {

@@ -1,6 +1,5 @@
 /**
  * Disponibilidad basada en PostgreSQL (Appointment).
- * Preparado para sincronización futura con Google Calendar (eventos externos).
  *
  * Entregable 6.2 (Fase 6) — Agenda Multi-Establecimiento: segundo consumidor
  * real de la misma regla de negocio que `availability.service.js` (ampliación
