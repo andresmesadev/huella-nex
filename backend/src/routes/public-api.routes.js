@@ -29,6 +29,7 @@ const { resolveStaffAvailability } = require("../contexts/staff");
 const { ReferencedServiceNotFoundError } = require("../contexts/staff/domain/errors");
 const { clientAuthRequestCodeRateLimit, clientAuthVerifyCodeRateLimit } = require("../middleware/rateLimit");
 const {
+  isSlotAvailable,
   suggestAvailableVetSlots,
   findNextAvailableGroomingSlot,
 } = require("../services/availability-db.service");
@@ -150,7 +151,7 @@ router.post("/availability/slots", requireScope("read:availability"), async (req
       return res.status(400).json({ error: "serviceId es requerido" });
     }
 
-    const { categoryName } = await getServiceCategory({ serviceId, tenantId });
+    const { categoryName } = await getServiceCategory({ serviceId, tenantId, requireBookable: true });
     const bucket = CATEGORY_TO_AVAILABILITY_BUCKET[categoryName] ?? null;
 
     if (!bucket) {
@@ -209,7 +210,7 @@ router.post("/appointments", clientAuth, requireScope("write:appointments"), asy
       return res.status(400).json({ error: "petType es requerido" });
     }
 
-    const { categoryName } = await getServiceCategory({ serviceId, tenantId });
+    const { categoryName } = await getServiceCategory({ serviceId, tenantId, requireBookable: true });
     const bucket = CATEGORY_TO_AVAILABILITY_BUCKET[categoryName] ?? null;
     if (!bucket) {
       return res.status(422).json({ error: "Este servicio no admite reserva de horario" });
@@ -222,6 +223,7 @@ router.post("/appointments", clientAuth, requireScope("write:appointments"), asy
       return res.status(400).json({ error: "dateKey y hour deben ser válidos" });
     }
 
+    if (!await isSlotAvailable({ dateKey, hour: Number(hour), serviceType: bucket, tenantId })) return res.status(409).json({ error: 'El horario solicitado no está disponible' });
     const appointment = await createAppointment({
       userId,
       tenantId,

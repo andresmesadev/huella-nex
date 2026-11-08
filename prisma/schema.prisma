@@ -425,6 +425,9 @@ model OperatorAudit {
   @@index([tenantId, ownerPrincipalKey, createdAt, id], map: "OAU_owner_idx")
 }
 
+// SQL-only integrity guards (NULL-safe tenant references, immutable history and
+// numeric/temporal CHECKs): migration 20261108070000_security_integrity_guards.
+// Nullable legacy/global scopes are intentional; prisma db push cannot install these guards.
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]

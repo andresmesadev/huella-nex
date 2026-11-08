@@ -25,6 +25,7 @@ jest.mock("../../contexts/staff", () => ({
 jest.mock("../../services/availability-db.service", () => ({
   suggestAvailableVetSlots: jest.fn(),
   findNextAvailableGroomingSlot: jest.fn(),
+  isSlotAvailable: jest.fn().mockResolvedValue(true),
 }));
 
 jest.mock("../../services/appointment.service", () => ({
@@ -47,12 +48,12 @@ function buildApp() {
   return app;
 }
 
-const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: ["write:appointments"], revokedAt: null };
+const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: ["write:appointments"], revokedAt: null, tenant: { active: true } };
 const SESSION_TENANT_A = {
   id: "s1",
   tenantId: "tenant-a",
   userId: "user-1",
-  revokedAt: null,
+  revokedAt: null, tenant: { active: true },
   expiresAt: new Date(Date.now() + 10000),
 };
 
@@ -258,4 +259,12 @@ describe("POST /api/public/appointments — validación y flujo", () => {
     expect(res.status).toBe(201);
     expect(Object.keys(res.body).sort()).toEqual(["date", "id", "petName", "petType", "status"].sort());
   });
+});
+
+test('rejects an unavailable public slot before persistence', async () => {
+  prisma.apiKey.findUnique.mockResolvedValue(KEY_TENANT_A); prisma.clientSession.findUnique.mockResolvedValue(SESSION_TENANT_A);
+  getServiceCategory.mockResolvedValue({categoryName:'veterinary'});
+  require('../../services/availability-db.service').isSlotAvailable.mockResolvedValueOnce(false);
+  const response=await request(buildApp()).post('/api/public/appointments').set('Authorization','Bearer key').set('X-Client-Token','session').send(VALID_BODY);
+  expect(response.status).toBe(409); expect(createAppointment).not.toHaveBeenCalled();
 });

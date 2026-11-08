@@ -1,3 +1,4 @@
+const { redactAppointmentPrices } = require('./appointment-price-projection');
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../lib/prisma");
@@ -70,7 +71,7 @@ const VETERINARY_APPOINTMENT_FILTER = {
 
 function mapForActor(req, row) {
   const mapped = mapAppointmentRow(row);
-  return (req.access ? !req.access.capabilities.cash && !req.access.capabilities.appointmentPrice : req.actor?.type === "vet") ? { ...mapped, hasResolvedPrice: mapped.finalPrice != null, finalPrice: null, priceResolution: null, transport: { ...mapped.transport, price: null } } : mapped;
+  return (req.access ? !req.access.capabilities.cash && !req.access.capabilities.appointmentPrice : req.actor?.type === "vet") ? redactAppointmentPrices(mapped) : mapped;
 }
 
 async function resolveVetAppointment(id, tenantId) {

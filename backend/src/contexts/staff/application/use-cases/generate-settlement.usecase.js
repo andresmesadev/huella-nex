@@ -29,7 +29,7 @@ function createGenerateSettlementUseCase({ staffRepository, commissionRepository
       throw new SettlementAlreadyExistsError(staffId, periodStart, periodEnd);
     }
 
-    const commissions = await commissionRepository.listByStaffAndPeriod(staffId, periodStart, periodEnd, ctx);
+    const commissions = await commissionRepository.listByStaffAndPeriod(staffId, periodStart, periodEnd, ctx, staff.tenantId);
     if (commissions.length === 0) {
       throw new NoCommissionsForPeriodError(staffId, periodStart, periodEnd);
     }
@@ -39,7 +39,7 @@ function createGenerateSettlementUseCase({ staffRepository, commissionRepository
     let settlement;
     try {
       settlement = await settlementRepository.create({
-        tenantId: tenantId ?? null,
+        tenantId: staff.tenantId ?? null,
         staffId,
         periodStart: new Date(periodStart),
         periodEnd: new Date(periodEnd),

@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { dashboardBackendUrl } from "@/lib/dashboard-proxy-path.cjs";
 import { type NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = (
@@ -69,9 +70,9 @@ async function handler(
     isSuperAdmin && !tenantId && req.nextUrl.searchParams.get("viewAllTenants") === "1";
 
   // Build backend URL, forwarding non-tenantId/non-viewAllTenants query params
-  const backendUrl = new URL(
-    `${BACKEND_URL}/api/dashboard/${path.join("/")}`
-  );
+  let backendUrl: URL;
+  try { backendUrl = dashboardBackendUrl(BACKEND_URL, path); }
+  catch { return NextResponse.json({ error: "Ruta no válida" }, { status: 400 }); }
   req.nextUrl.searchParams.forEach((value, key) => {
     if (key !== "tenantId" && key !== "viewAllTenants") backendUrl.searchParams.append(key, value);
   });

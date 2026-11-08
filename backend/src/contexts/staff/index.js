@@ -88,6 +88,7 @@ const { PrismaDailyCloseReader } = require("./infrastructure/persistence/prisma-
 const { createVoidCommissionUseCase } = require("./application/use-cases");
 
 const voidCommission = createVoidCommissionUseCase({
+  staffRepository,
   commissionRepository,
   settlementCoverageReader: new PrismaSettlementCoverageReader(),
   dailyCloseReader: new PrismaDailyCloseReader(),

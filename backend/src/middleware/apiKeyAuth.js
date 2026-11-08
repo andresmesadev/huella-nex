@@ -35,12 +35,14 @@ async function apiKeyAuth(req, res, next) {
   }
 
   const keyHash = hashApiKey(rawKey);
-  const apiKey = await prisma.apiKey.findUnique({ where: { keyHash } });
+  const apiKey = await prisma.apiKey.findUnique({ where: { keyHash }, include: { tenant: { select: { active: true } } } });
 
   if (!apiKey || apiKey.revokedAt) {
     logger.info("[ApiKeyAuth] Rechazado — key inválida o revocada", { path: req.originalUrl });
     return res.status(401).json({ error: "API key inválida o revocada" });
   }
+
+  if (!apiKey.tenant?.active) return res.status(402).json({ error: 'Establecimiento inactivo' });
 
   await prisma.apiKey.update({
     where: { id: apiKey.id },

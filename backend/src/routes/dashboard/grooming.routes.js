@@ -1,3 +1,4 @@
+const { redactAppointmentPrices } = require('./appointment-price-projection');
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../lib/prisma");
@@ -19,7 +20,7 @@ const mapVisit = (row) => ({
 function mapForViewer(row, req) {
   const mapped = mapVisit(row);
   return req.access && !req.access.capabilities.cash && !req.access.capabilities.appointmentPrice
-    ? { ...mapped, hasResolvedPrice: mapped.finalPrice != null, finalPrice: null, priceResolution: null, transport: { ...mapped.transport, price: null } }
+    ? redactAppointmentPrices(mapped)
     : mapped;
 }
 

@@ -32,7 +32,7 @@ function buildApp() {
   return app;
 }
 
-const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: [], revokedAt: null };
+const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: [], revokedAt: null, tenant: { active: true } };
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -141,7 +141,7 @@ describe("POST /api/public/auth/logout", () => {
     id: "session-1",
     tenantId: "tenant-a",
     userId: "user-1",
-    revokedAt: null,
+    revokedAt: null, tenant: { active: true },
     expiresAt: new Date(Date.now() + 10000),
   };
 

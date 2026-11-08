@@ -65,7 +65,8 @@ test("Equipo: ficha, horario con minutos, permisos, acceso y aislamiento en Post
     assert.equal(await prisma.staffAvailability.count({ where: { staffId: id } }), 0, "ADR 011: reset removes only weekly base");
     console.log("PASS: altas y cambios reales; horario 09:15–15:10 y reset; validación antes de escribir; permisos por rol; acceso revocado; sin hashes expuestos; aislamiento entre establecimientos.");
   } finally {
-    await prisma.$transaction(async tx => {
+    const retainedHistory = await prisma.domainEvent.count({ where: { tenantId: { in: created } } });
+    if (!retainedHistory) await prisma.$transaction(async tx => {
       const scope = { tenantId: { in: created } };
       assert.equal(await tx.eventDelivery.count({ where: { domainEvent: scope } }), 0);
       assert.equal(await tx.automationExecution.count({ where: { domainEvent: scope } }), 0);
@@ -75,6 +76,6 @@ test("Equipo: ficha, horario con minutos, permisos, acceso y aislamiento en Post
       await tx.tenant.deleteMany({ where: { id: { in: created } } });
     });
     await prisma.$disconnect();
-    console.log("PASS: establecimientos e integrantes temporales eliminados.");
+    console.log(retainedHistory ? "Synthetic history retained until disposable database teardown." : "PASS: establecimientos e integrantes temporales eliminados.");
   }
 });

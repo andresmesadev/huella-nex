@@ -96,8 +96,8 @@ async function changeAvailability(staffId, tenantId, data) {
     }
     const commands = context.availabilityCommands(tx, { publish: async (name, payload) => { events.push([name, payload]); } });
     return data.type === 'unplanned_absence'
-      ? commands.recordUnplannedAbsence({ staffId, tenantId, ...data.range })
-      : commands.updateAvailability({ staffId, tenantId, ...data });
+      ? commands.recordUnplannedAbsence({ startAt: data.range?.startAt, endAt: data.range?.endAt, reason: data.range?.reason, staffId, tenantId })
+      : commands.updateAvailability({ ...data, staffId, tenantId });
   });
   for (const [name, payload] of events) await context.publishAvailabilityEvent(name, payload);
   return result;
@@ -121,7 +121,7 @@ async function staffReview(staffId, tenantId) {
 }
 async function correctAbsence(staffId, tenantId, data) {
   const context = require('../contexts/staff'), events = [];
-  const result = await withStaffLock(staffId, async tx => context.availabilityCommands(tx, { publish: async (name,payload) => events.push([name,payload]) }).correctAbsence({ staffId, tenantId, ...data }));
+  const result = await withStaffLock(staffId, async tx => context.availabilityCommands(tx, { publish: async (name,payload) => events.push([name,payload]) }).correctAbsence({ ...data, staffId, tenantId }));
   for (const [name,payload] of events) await context.publishAvailabilityEvent(name,payload);
   return result;
 }

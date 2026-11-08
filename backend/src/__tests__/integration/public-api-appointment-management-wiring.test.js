@@ -26,6 +26,7 @@ jest.mock("../../contexts/staff", () => ({
 jest.mock("../../services/availability-db.service", () => ({
   suggestAvailableVetSlots: jest.fn(),
   findNextAvailableGroomingSlot: jest.fn(),
+  isSlotAvailable: jest.fn().mockResolvedValue(true),
 }));
 
 jest.mock("../../services/appointment.service", () => ({
@@ -47,12 +48,12 @@ function buildApp() {
   return app;
 }
 
-const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: ["read:appointments", "write:appointments"], revokedAt: null };
+const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: ["read:appointments", "write:appointments"], revokedAt: null, tenant: { active: true } };
 const SESSION_TENANT_A = {
   id: "s1",
   tenantId: "tenant-a",
   userId: "user-1",
-  revokedAt: null,
+  revokedAt: null, tenant: { active: true },
   expiresAt: new Date(Date.now() + 10000),
 };
 

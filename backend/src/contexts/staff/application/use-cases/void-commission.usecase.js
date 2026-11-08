@@ -25,7 +25,7 @@ const {
  * @param {{ findByCivilDay(tenantId: ?string, at: Date): Promise<Object|null> }} deps.dailyCloseReader
  * @param {{ publish(name: string, payload: Object): Promise<void> }} deps.eventPublisher
  */
-function createVoidCommissionUseCase({ commissionRepository, settlementCoverageReader, dailyCloseReader, eventPublisher }) {
+function createVoidCommissionUseCase({ commissionRepository, settlementCoverageReader, dailyCloseReader, eventPublisher, staffRepository }) {
   return async function execute({ tenantId, commissionId, reason, replacement }, ctx) {
     if (!reason || !reason.trim()) {
       throw new InvalidCommissionInputError("reason es obligatorio para anular una comisión.");
@@ -53,6 +53,12 @@ function createVoidCommissionUseCase({ commissionRepository, settlementCoverageR
 
     let replacementData = null;
     if (replacement) {
+      const targetStaffId = replacement.staffId ?? commission.staffId ?? null;
+      if (targetStaffId && targetStaffId !== commission.staffId) {
+        const target = await staffRepository?.findById(targetStaffId, ctx);
+        if (!target || target.tenantId !== commission.tenantId || !target.active) throw new InvalidCommissionInputError('Profesional de reemplazo no válido.');
+        if (await settlementCoverageReader.findActiveCovering(targetStaffId, commission.completedAt, ctx)) throw new CommissionInActiveSettlementError(commissionId, 'replacement');
+      }
       const correctedPrice = Number(replacement.resolvedPrice);
       if (!Number.isFinite(correctedPrice) || correctedPrice < 0) {
         throw new InvalidCommissionInputError("resolvedPrice del reemplazo no puede ser nulo ni negativo.");

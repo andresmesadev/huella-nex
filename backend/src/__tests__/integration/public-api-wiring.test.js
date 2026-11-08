@@ -37,7 +37,7 @@ const KEY_TENANT_A = {
   id: "key-1",
   tenantId: "tenant-a",
   scopes: ["read:services", "read:availability"],
-  revokedAt: null,
+  revokedAt: null, tenant: { active: true },
 };
 
 beforeEach(() => {

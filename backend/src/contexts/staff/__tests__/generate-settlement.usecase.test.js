@@ -9,7 +9,7 @@ const { StaffNotFoundError, NoCommissionsForPeriodError, SettlementAlreadyExists
 
 function buildUseCase({ commissions = [] } = {}) {
   const staffRepository = createFakeStaffRepository([{ id: "s-1", tenantId: "t1", name: "Lina", active: true }]);
-  const commissionRepository = createFakeCommissionRepository(commissions);
+  const commissionRepository = createFakeCommissionRepository(commissions.map(c => ({ tenantId: "t1", ...c })));
   const settlementRepository = createFakeSettlementRepository();
   const eventPublisher = createFakeEventPublisher();
   const execute = createGenerateSettlementUseCase({ staffRepository, commissionRepository, settlementRepository, eventPublisher });
@@ -79,3 +79,5 @@ describe("GenerateSettlementUseCase", () => {
     ).rejects.toBeInstanceOf(StaffNotFoundError);
   });
 });
+
+test('settlement excludes foreign-tenant commissions linked to the same professional', async()=>{const {execute}=buildUseCase({commissions:[{tenantId:'t1',staffId:'s-1',staffShare:10,completedAt:new Date('2026-07-05')},{tenantId:'foreign',staffId:'s-1',staffShare:9000,completedAt:new Date('2026-07-05')}]});const {settlement}=await execute({tenantId:'t1',staffId:'s-1',periodStart:PERIOD_START,periodEnd:PERIOD_END});expect(settlement.totalAmount).toBe(10);expect(settlement.tenantId).toBe('t1');});

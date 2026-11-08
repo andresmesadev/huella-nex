@@ -29,7 +29,9 @@ test("catálogo real: editar precio base, conservar tarifa por mascota e histori
   const proxyContext = {
     exports: {}, URL, console, fetch, AbortSignal,
     process: { env: { API_URL: `http://127.0.0.1:${server.address().port}`, INTERNAL_API_SECRET: "fixture-only-token" } },
-    require: name => name === "@/auth" ? { auth: async () => ({ user: { tenantId: ids[0], isSuperAdmin: false } }) } : require("../frontend/node_modules/next/server"),
+    require: name => name === "@/auth" ? { auth: async () => ({ user: { tenantId: ids[0], isSuperAdmin: false } }) }
+      : name === "@/lib/dashboard-proxy-path.cjs" ? require("../frontend/lib/dashboard-proxy-path.cjs")
+      : require("../frontend/node_modules/next/server"),
   };
   const proxySource = fs.readFileSync(path.join(__dirname, "../frontend/app/api/proxy/dashboard/[...path]/route.ts"), "utf8");
   vm.runInNewContext(ts.transpileModule(proxySource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, proxyContext);
@@ -116,7 +118,8 @@ test("catálogo real: editar precio base, conservar tarifa por mascota e histori
     console.log("PASS: proxy Next real → Express → PostgreSQL: DELETE conserva confirmName y elimina; validación, permisos, aislamiento, tarifas, historia y concurrencia protegidos.");
   } finally {
     await new Promise(resolve => server.close(resolve));
-    await prisma.$transaction(async (tx) => {
+    const retainedHistory = await prisma.domainEvent.count({ where: { tenantId: { in: created } } });
+    if (!retainedHistory) await prisma.$transaction(async (tx) => {
       assert.equal(await tx.eventDelivery.count({ where: { domainEvent: { tenantId: { in: created } } } }), 0);
       assert.equal(await tx.automationExecution.count({ where: { domainEvent: { tenantId: { in: created } } } }), 0);
       await tx.domainEvent.deleteMany({ where: { tenantId: { in: created } } });
@@ -130,7 +133,8 @@ test("catálogo real: editar precio base, conservar tarifa por mascota e histori
       await tx.user.deleteMany({ where: { tenantId: { in: created } } });
       await tx.tenant.deleteMany({ where: { id: { in: created } } });
     });
-    assert.equal(await prisma.tenant.count({ where: { id: { in: ids } } }), 0);
+    if (!retainedHistory) assert.equal(await prisma.tenant.count({ where: { id: { in: ids } } }), 0);
+    else console.log("Synthetic history retained until disposable database teardown.");
     await prisma.$disconnect();
   }
 });

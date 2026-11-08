@@ -86,10 +86,10 @@ function createFakeCommissionRepository(initial = []) {
       rows.push(row);
       return row;
     },
-    async listByStaffAndPeriod(staffId, periodStart, periodEnd) {
+    async listByStaffAndPeriod(staffId, periodStart, periodEnd, _ctx, tenantId) {
       const start = new Date(periodStart).getTime();
       const end = new Date(periodEnd).getTime();
-      return rows.filter((r) => r.staffId === staffId && r.completedAt.getTime() >= start && r.completedAt.getTime() < end);
+      return rows.filter((r) => r.staffId === staffId && (r.tenantId ?? null) === (tenantId ?? null) && r.completedAt.getTime() >= start && r.completedAt.getTime() < end);
     },
   };
 }

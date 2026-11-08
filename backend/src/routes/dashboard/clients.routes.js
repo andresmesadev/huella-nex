@@ -640,7 +640,7 @@ router.patch("/clients/:id", async (req, res) => {
 
     const { name, phone, phoneAlt, email, address, neighborhood, notes } = req.body ?? {};
     if (!validNeighborhood(neighborhood)) return res.status(400).json({ error: 'El barrio debe ser un texto de hasta 200 caracteres.' });
-    if (req.access && !req.access.capabilities.administration && notes) return res.status(403).json({ error: "Tu perfil puede editar los datos de contacto." });
+    if (req.access && !req.access.capabilities.administration && Object.hasOwn(req.body ?? {}, "notes")) return res.status(403).json({ error: "Tu perfil puede editar los datos de contacto." });
     const updated = await updateClient(id, { name, phone, phoneAlt, email, address, neighborhood, notes });
     res.json(req.access && !req.access.capabilities.administration ? operationalClient(updated) : { id: updated.id, name: updated.name, phone: updated.phone, phoneAlt: updated.phoneAlt ?? null, email: updated.email, address: updated.address, neighborhood: updated.neighborhood ?? null, notes: updated.notes });
   } catch (error) {

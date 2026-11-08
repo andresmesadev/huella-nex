@@ -1,3 +1,4 @@
+const { redactAppointmentPrices } = require('./appointment-price-projection');
 const router = require("express").Router();
 const prisma = require("../../lib/prisma");
 const { createHash } = require("node:crypto");
@@ -86,7 +87,7 @@ router.get("/workspace", async (req, res) => {
     }) : [];
     const appointments = rows.filter(row => moduleAllowsAppointment(req.access, row) &&
       (!["vet", "groomer"].includes(req.access.role) || serviceModule(row) === (req.access.role === "vet" ? "veterinary" : "grooming")))
-      .map(row => { const mapped = mapAppointmentRow(row); return req.access.capabilities.cash || req.access.capabilities.appointmentPrice ? mapped : { ...mapped, finalPrice: null, priceResolution: null, transport: { ...mapped.transport, price: null } }; });
+      .map(row => { const mapped = mapAppointmentRow(row); return req.access.capabilities.cash || req.access.capabilities.appointmentPrice ? mapped : redactAppointmentPrices(mapped); });
     return res.json({ date, appointments, counts: {
       waiting: appointments.filter(a => a.status === "arrived").length,
       inProgress: appointments.filter(a => a.status === "in_progress").length,

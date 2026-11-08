@@ -9,7 +9,8 @@ const request = require('../backend/node_modules/supertest');
 
 test('PostgreSQL real: acuerdo particular, transporte excluido de comisión, cobro único, compartido y permisos', async () => {
   const url = new URL(process.env.DATABASE_URL);
-  const expectedPort = process.env.CI === 'true' ? '5432' : '5433';
+  const expectedPort = process.env.POSTGRES_TEST_PORT || (process.env.CI === 'true' ? '5432' : '5433');
+  assert(/^[0-9]{1,5}$/.test(expectedPort) && Number(expectedPort)>0 && Number(expectedPort)<=65535, 'Invalid explicit test port');
   assert(['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) && url.port === expectedPort && url.pathname === '/mateos_dev', 'Requires loopback mateos_dev on the local or CI test port');
   const ids = [randomUUID(), randomUUID()];
   const rollback = new Error('ROLLBACK_GROOMING_TRANSPORT_FIXTURES');

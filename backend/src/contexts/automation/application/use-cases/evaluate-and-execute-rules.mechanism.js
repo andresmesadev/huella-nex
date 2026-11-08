@@ -1,3 +1,6 @@
+const { AsyncLocalStorage } = require('node:async_hooks');
+const automationChain = new AsyncLocalStorage();
+const MAX_CHAIN_WORK = 32;
 const { matchesCondition } = require("../../domain/rules/condition-evaluation.rules");
 
 /**
@@ -60,7 +63,11 @@ function createEvaluateAndExecuteRulesMechanism({
         if (alreadySucceeded) continue;
 
         try {
-          const result = await actionExecutor.execute(rule.actionType, rule.actionConfig, eventPayload, domainEvent.tenantId);
+          const parent = automationChain.getStore();
+          const chain = parent || { work: { count: 0 }, ancestors: [] };
+          if (chain.ancestors.includes(rule.id) || chain.work.count >= MAX_CHAIN_WORK) throw new Error('AUTOMATION_CHAIN_LIMIT');
+          chain.work.count++;
+          const result = await automationChain.run({ work: chain.work, ancestors: [...chain.ancestors, rule.id] }, () => actionExecutor.execute(rule.actionType, rule.actionConfig, eventPayload, domainEvent.tenantId));
           await automationExecutionRepository.create(
             {
               automationRuleId: rule.id,

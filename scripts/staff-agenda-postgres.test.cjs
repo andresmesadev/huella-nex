@@ -14,6 +14,7 @@ const { buildAppointmentDateTime } = require('../backend/src/services/appointmen
 
 async function cleanup(ids) {
   const scope={tenantId:{in:ids}};
+  if (await prisma.domainEvent.count({where:scope})) { console.log("Synthetic history retained until disposable database teardown."); return; }
   await prisma.$transaction(async tx=>{
     const tenants=await tx.tenant.findMany({where:{id:{in:ids}}});
     assert(tenants.every(t=>t.slug==='staff-agenda-'+t.id && t.phone==='test-'+t.id && t.name==='Prueba de disponibilidad'));
@@ -229,7 +230,7 @@ test('Equipo + Agenda: reservas, ausencias, revisión, reasignación, concurrenc
     console.log('PASS: horario completo, slots filtrados, creación con profesional, ausencias programadas/imprevistas, revisión de citas, reasignación, retiro, reset sin perder ausencias, aislamiento y permisos; reserva concurrente bloqueada sin modificar citas existentes.');
   } catch(error) { console.error('TEST FAILED:',error.stack);throw error; } finally {
     await cleanup([tenantId,foreignId]);
-    await prisma.$disconnect();console.log('PASS: todas las filas de prueba eliminadas; datos del negocio conservados.');
+    await prisma.$disconnect();console.log('PASS: fixtures gestionados conservando el historial inmutable; datos del negocio intactos.');
   }
 });
 }

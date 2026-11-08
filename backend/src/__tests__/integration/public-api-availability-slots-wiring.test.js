@@ -23,6 +23,7 @@ jest.mock("../../contexts/staff", () => ({
 jest.mock("../../services/availability-db.service", () => ({
   suggestAvailableVetSlots: jest.fn(),
   findNextAvailableGroomingSlot: jest.fn(),
+  isSlotAvailable: jest.fn().mockResolvedValue(true),
 }));
 
 const prisma = require("../../lib/prisma");
@@ -39,7 +40,7 @@ function buildApp() {
   return app;
 }
 
-const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: ["read:availability"], revokedAt: null };
+const KEY_TENANT_A = { id: "key-1", tenantId: "tenant-a", scopes: ["read:availability"], revokedAt: null, tenant: { active: true } };
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -82,7 +83,7 @@ describe("POST /api/public/availability/slots", () => {
       .set("Authorization", "Bearer valida")
       .send({ serviceId: "svc-1", tenantId: "tenant-falsificado" });
 
-    expect(getServiceCategory).toHaveBeenCalledWith({ serviceId: "svc-1", tenantId: "tenant-a" });
+    expect(getServiceCategory).toHaveBeenCalledWith({ serviceId: "svc-1", tenantId: "tenant-a" , requireBookable: true });
     expect(suggestAvailableVetSlots).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "tenant-a" })
     );

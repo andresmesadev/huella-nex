@@ -1,5 +1,10 @@
 const express = require("express");
 const router = express.Router();
+router.use((req, res, next) => {
+  if (req.method === 'GET') return next();
+  if (!(req.tenant?.isSuperAdmin || req.headers['x-super-admin'] === 'true') || req.actor?.staffId) return res.status(403).json({ error: 'Se requiere administración de plataforma.' });
+  return next();
+});
 const prisma = require("../../lib/prisma");
 // Entregable 3.0 — Infraestructura de Eventos. Rutas de Administración y
 // Consulta únicamente: "Registrar/Reintentar Entrega de Evento" son

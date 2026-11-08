@@ -48,3 +48,11 @@ test('basic contact operators may edit neighborhood without receiving private no
   expect(response.status).toBe(200); expect(response.body.neighborhood).toBe('Barrio operativo');
   expect(response.body).not.toHaveProperty('notes'); expect(row.notes).toBe('Notas reservadas');
 });
+
+test.each(['', null, false])('basic operator cannot clear private notes with %p', async notes => {
+  const response = await request(app).patch('/clients/owner-a').set('x-test-basic','yes').send({notes});
+  expect(response.status).toBe(403); expect(row.notes).toBe('Notas reservadas'); expect(prisma.user.update).not.toHaveBeenCalled();
+});
+test('administrator can intentionally clear private notes', async () => {
+  expect((await request(app).patch('/clients/owner-a').send({notes:''})).status).toBe(200); expect(row.notes).toBe('');
+});

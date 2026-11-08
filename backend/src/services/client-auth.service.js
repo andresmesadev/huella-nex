@@ -54,6 +54,7 @@ async function requestVerificationCode({ tenantId, phone }) {
       phone: user.phone,
       content: `Tu código de verificación es ${code}. Vence en 10 minutos.`,
       origin: "sistema",
+      purpose: "client_authentication",
     });
   } catch (error) {
     logger.error("[ClientAuth] request-code: fallo al enviar el código por WhatsApp", { tenantId, error: error.message });

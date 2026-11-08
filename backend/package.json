@@ -1,6 +1,6 @@
 {
   "name": "mateos-pet-ai",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Huella Nex — gestión para negocios de mascotas",
   "main": "index.js",
   "scripts": {

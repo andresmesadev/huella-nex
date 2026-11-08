@@ -52,7 +52,7 @@ async function changePetServicePriceInTransaction(input, { tx, afterCommit }) {
 }
 const resolveServicePrice = createResolveServicePriceUseCase({ serviceRepository, priceRuleRepository, targetExistenceReader });
 const listAvailableServices = createListAvailableServicesUseCase({ serviceRepository, serviceCategoryReader, businessConfigReader });
-const getServiceCategory = createGetServiceCategoryUseCase({ serviceRepository, serviceCategoryReader });
+const getServiceCategory = createGetServiceCategoryUseCase({ serviceRepository, serviceCategoryReader, businessConfigReader });
 
 module.exports = {
   deleteRetiredService,

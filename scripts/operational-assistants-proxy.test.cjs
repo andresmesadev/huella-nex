@@ -15,6 +15,7 @@ function fixture({ env = {}, user = { email: 'owner@example.test', tenantId: 'te
   const context = { exports: {}, URL, AbortSignal, console,
     process: { env: { INTERNAL_API_SECRET: 'disposable-test-secret', API_URL: 'http://backend.example.test', ...env } },
     require: name => {
+      if (name === '@/lib/dashboard-proxy-path.cjs') return require('../frontend/lib/dashboard-proxy-path.cjs');
       if (name === '@/auth') return { auth: async () => user ? { user } : null };
       if (name === 'next/server') return { NextResponse };
       throw new Error('Unexpected import: ' + name);

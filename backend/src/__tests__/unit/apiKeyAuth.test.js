@@ -78,7 +78,7 @@ describe("apiKeyAuth middleware", () => {
       id: "k1",
       tenantId: "tenant-b",
       scopes: ["read:appointments"],
-      revokedAt: null,
+      revokedAt: null, tenant: { active: true },
     });
     const req = makeReq({ authorization: "Bearer valida" });
     const res = makeRes();
@@ -95,7 +95,7 @@ describe("apiKeyAuth middleware", () => {
       id: "k1",
       tenantId: "tenant-real",
       scopes: [],
-      revokedAt: null,
+      revokedAt: null, tenant: { active: true },
     });
     const req = makeReq({ authorization: "Bearer valida" });
     req.body = { tenantId: "tenant-falsificado" };
@@ -115,7 +115,7 @@ describe("apiKeyAuth middleware", () => {
       id: "k1",
       tenantId: "tenant-a",
       scopes: [],
-      revokedAt: null,
+      revokedAt: null, tenant: { active: true },
     });
     const req = makeReq({ authorization: "Bearer valida" });
     const res = makeRes();
@@ -134,7 +134,7 @@ describe("apiKeyAuth middleware", () => {
       id: "k1",
       tenantId: "tenant-c",
       scopes: [],
-      revokedAt: null,
+      revokedAt: null, tenant: { active: true },
     });
     const req = makeReq({ "x-api-key": "valida" });
     const res = makeRes();

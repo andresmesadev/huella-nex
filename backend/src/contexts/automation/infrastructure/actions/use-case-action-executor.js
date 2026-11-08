@@ -25,7 +25,7 @@ class UseCaseActionExecutor extends ActionExecutorPort {
       return this.executeEnviarMensaje(actionConfig, eventPayload, tenantId);
     }
     if (actionType === "asignar_tarea_empleado") {
-      return this.executeAsignarTareaEmpleado(actionConfig);
+      return this.executeAsignarTareaEmpleado(actionConfig, tenantId);
     }
     throw new Error(`Tipo de acción desconocido: "${actionType}".`);
   }
@@ -51,13 +51,15 @@ class UseCaseActionExecutor extends ActionExecutorPort {
     return { message };
   }
 
-  async executeAsignarTareaEmpleado(actionConfig) {
+  async executeAsignarTareaEmpleado(actionConfig, tenantId) {
+    if (!tenantId) throw new Error('Tenant requerido para asignar tareas.');
     if (!actionConfig?.digitalEmployeeId) {
       throw new Error('Acción "asignar_tarea_empleado": actionConfig.digitalEmployeeId es obligatorio.');
     }
 
     const { task } = await this.startAgentTask({
       digitalEmployeeId: actionConfig.digitalEmployeeId,
+      tenantId,
       origin: actionConfig.origin ?? "automatizacion",
     });
     return { task };

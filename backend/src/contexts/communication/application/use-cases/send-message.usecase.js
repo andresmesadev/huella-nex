@@ -81,6 +81,8 @@ function createSendMessageUseCase({
       throw new MessageDeliveryFailedError(`proveedor del canal "${channel.type}" no confirmó el envío`);
     }
 
+    // Authentication secrets must never enter shared transcripts or message events.
+    if (purpose === "client_authentication") return { message: null, delivered: true };
     let message;
     try { message = await messageRepository.create({
       conversationId: conversation.id,
