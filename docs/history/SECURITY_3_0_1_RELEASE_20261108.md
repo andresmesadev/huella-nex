@@ -18,11 +18,20 @@ No reescribe datos históricos ni modifica migraciones anteriores; aborta
 atómicamente si su preflight encuentra inconsistencias. Conserva categorías
 globales, ítems legacy y los contratos de anulación/reemplazo y periodos.
 
-Prevalidación: 239 suites / 2.162 tests backend; 59 tests PostgreSQL reales,
-incluidos 42 de integridad/upgrade; 8 del proxy; lint/build frontend y
+Prevalidación: 239 suites / 2.162 tests backend; batería PostgreSQL real,
+incluidas 43 pruebas de integridad/upgrade; 8 del proxy; lint/build frontend y
 Prisma validate/generate sin fallos. La instalación desde cero aplica las
 69 migraciones y Prisma diff no detecta diferencias. El preflight productivo
 de solo lectura encontró cero infracciones en 33 reglas.
+
+El CI detectó antes de publicar un fallo al aplicar la migración en un esquema
+aislado: se corrigió la calificación de objetos y se añadió una regresión con
+IDs iguales en dos esquemas. La migración aún no estaba aplicada en producción.
+También se actualizó únicamente follow-redirects a 1.16.3 dentro de su rango
+compatible, corrigiendo la alerta alta
+[GHSA-mrwp-f3q8-3g9p](https://github.com/advisories/GHSA-mrwp-f3q8-3g9p).
+La auditoría backend pasa el umbral high; conserva seis avisos moderados
+transitivos (no se presentan como resueltos).
 
 Antes de publicar: CI del commit concreto, respaldo cifrado verificado e imágenes
 anteriores conservadas. La aplicación puede volver a las imágenes anteriores

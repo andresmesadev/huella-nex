@@ -1,7 +1,7 @@
 -- Additive security hardening. Existing legacy NULL scopes are preserved.
 -- Preflight and DDL share one transaction; no historical data is rewritten.
 BEGIN;
-LOCK TABLE public."Appointment", public."ClientSession", public."ClientVerificationCode", public."Commission", public."FinancialPeriod", public."MedicalRecord", public."Pet", public."Service", public."ServiceCategory", public."Settlement", public."Staff", public."StaffAvailability", public."Tenant", public."Transaction", public."TransactionItem", public."User" IN SHARE ROW EXCLUSIVE MODE;
+LOCK TABLE "Appointment", "ClientSession", "ClientVerificationCode", "Commission", "FinancialPeriod", "MedicalRecord", "Pet", "Service", "ServiceCategory", "Settlement", "Staff", "StaffAvailability", "Tenant", "Transaction", "TransactionItem", "User" IN SHARE ROW EXCLUSIVE MODE;
 DO $preflight$
 BEGIN
   IF (SELECT count(*)::int AS violations FROM "Pet" c LEFT JOIN "User" p ON p.id=c."ownerId" WHERE c."ownerId" IS NOT NULL AND (p.id IS NULL OR (c."tenantId" IS DISTINCT FROM p."tenantId"))) <> 0 THEN RAISE EXCEPTION 'Security integrity preflight failed: scope:Pet.ownerId' USING ERRCODE='23514'; END IF;
@@ -39,24 +39,27 @@ BEGIN
   IF (SELECT count(*)::int AS violations FROM "StaffAvailability" WHERE ((type='base_schedule' AND weekday IS NOT NULL AND weekday BETWEEN 0 AND 6 AND "startTime" IS NOT NULL AND "endTime" IS NOT NULL AND "startTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' AND "endTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' AND "startTime" < "endTime" AND "startAt" IS NULL AND "endAt" IS NULL) OR (type IN ('planned_absence','unplanned_absence') AND weekday IS NULL AND "startTime" IS NULL AND "endTime" IS NULL AND "startAt" IS NOT NULL AND "endAt" IS NOT NULL AND isfinite("startAt") AND isfinite("endAt") AND "startAt" < "endAt")) IS NOT TRUE) <> 0 THEN RAISE EXCEPTION 'Security integrity preflight failed: security_availability_shape' USING ERRCODE='23514'; END IF;
 END $preflight$;
 
+-- Runtime references bind to the triggering table schema, including isolated test schemas.
 -- Locks on referenced rows and immutable scope identities prevent reparenting races.
-CREATE FUNCTION public.security_integrity_scope(table_name text, row_data jsonb)
+CREATE FUNCTION security_integrity_scope(table_name text, row_data jsonb, scope_schema text)
 RETURNS text LANGUAGE plpgsql AS $$
-DECLARE inherited_scope text;
+DECLARE parent_data jsonb; source_table text; source_id text;
 BEGIN
   IF table_name='MedicalRecord' THEN
-    SELECT "tenantId" INTO inherited_scope FROM public."Pet" WHERE id=row_data->>'petId' FOR SHARE;
-    IF NOT FOUND THEN RAISE EXCEPTION 'Missing clinical pet' USING ERRCODE='23503'; END IF;
-    RETURN inherited_scope;
+    source_table:='Pet'; source_id:=row_data->>'petId';
   ELSIF table_name='TransactionItem' THEN
-    SELECT "tenantId" INTO inherited_scope FROM public."Transaction" WHERE id=row_data->>'transactionId' FOR SHARE;
-    IF NOT FOUND THEN RAISE EXCEPTION 'Missing item transaction' USING ERRCODE='23503'; END IF;
-    RETURN coalesce(row_data->>'tenantId',inherited_scope);
+    source_table:='Transaction'; source_id:=row_data->>'transactionId';
+  ELSE
+    RETURN row_data->>'tenantId';
   END IF;
-  RETURN row_data->>'tenantId';
+  EXECUTE format('SELECT to_jsonb(p) FROM %I.%I p WHERE id=$1 FOR SHARE',scope_schema,source_table)
+    INTO parent_data USING source_id;
+  IF parent_data IS NULL THEN RAISE EXCEPTION 'Missing scope parent' USING ERRCODE='23503'; END IF;
+  IF table_name='MedicalRecord' THEN RETURN parent_data->>'tenantId'; END IF;
+  RETURN coalesce(row_data->>'tenantId',parent_data->>'tenantId');
 END $$;
 
-CREATE FUNCTION public.security_integrity_scope_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION security_integrity_scope_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE row_data jsonb:=to_jsonb(NEW); owner_scope text; parent_data jsonb;
   parent_scope text; reference jsonb; references_config jsonb:=TG_ARGV[0]::jsonb;
 BEGIN
@@ -67,13 +70,15 @@ BEGIN
       RAISE EXCEPTION 'Security scope identity cannot change' USING ERRCODE='23514',CONSTRAINT='security_scope_identity';
     END IF;
   END IF;
-  owner_scope:=public.security_integrity_scope(TG_TABLE_NAME,row_data);
+  EXECUTE format('SELECT %I.security_integrity_scope($1,$2,$3)',TG_TABLE_SCHEMA)
+    INTO owner_scope USING TG_TABLE_NAME,row_data,TG_TABLE_SCHEMA;
   FOR reference IN SELECT value FROM jsonb_array_elements(references_config) LOOP
     IF row_data->>(reference->>0) IS NULL THEN CONTINUE; END IF;
-    EXECUTE format('SELECT to_jsonb(p) FROM public.%I p WHERE id=$1 FOR SHARE',reference->>1)
+    EXECUTE format('SELECT to_jsonb(p) FROM %I.%I p WHERE id=$1 FOR SHARE',TG_TABLE_SCHEMA,reference->>1)
       INTO parent_data USING row_data->>(reference->>0);
     IF parent_data IS NULL THEN RAISE EXCEPTION 'Missing security scope reference' USING ERRCODE='23503'; END IF;
-    parent_scope:=public.security_integrity_scope(reference->>1,parent_data);
+    EXECUTE format('SELECT %I.security_integrity_scope($1,$2,$3)',TG_TABLE_SCHEMA)
+      INTO parent_scope USING reference->>1,parent_data,TG_TABLE_SCHEMA;
     IF owner_scope IS DISTINCT FROM parent_scope
       AND NOT (coalesce((reference->>2)::boolean,false) AND parent_scope IS NULL) THEN
       RAISE EXCEPTION 'Reference belongs to another establishment' USING ERRCODE='23514',CONSTRAINT='security_scope_reference';
@@ -81,22 +86,22 @@ BEGIN
   END LOOP;
   RETURN NEW;
 END $$;
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."Appointment" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["userId","User"],["petId","Pet"],["serviceId","Service"],["staffId","Staff"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."ClientSession" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["userId","User"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."ClientVerificationCode" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["userId","User"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."Commission" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["staffId","Staff"],["appointmentId","Appointment"],["transactionItemId","TransactionItem"],["serviceId","Service"],["replacesCommissionId","Commission"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."MedicalRecord" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["appointmentId","Appointment"],["staffId","Staff"],["createdByStaffId","Staff"],["updatedByStaffId","Staff"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."Pet" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["ownerId","User"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."Service" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["categoryId","ServiceCategory",true]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."ServiceCategory" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."Settlement" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["staffId","Staff"],["replacesSettlementId","Settlement"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."Staff" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."Transaction" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["userId","User"],["petId","Pet"],["appointmentId","Appointment"],["replacesTransactionId","Transaction"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."TransactionItem" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[["transactionId","Transaction"],["serviceId","Service"],["performedByStaffId","Staff"]]');
-CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON public."User" FOR EACH ROW EXECUTE FUNCTION public.security_integrity_scope_guard('[]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "Appointment" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["userId","User"],["petId","Pet"],["serviceId","Service"],["staffId","Staff"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "ClientSession" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["userId","User"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "ClientVerificationCode" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["userId","User"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "Commission" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["staffId","Staff"],["appointmentId","Appointment"],["transactionItemId","TransactionItem"],["serviceId","Service"],["replacesCommissionId","Commission"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "MedicalRecord" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["appointmentId","Appointment"],["staffId","Staff"],["createdByStaffId","Staff"],["updatedByStaffId","Staff"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "Pet" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["ownerId","User"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "Service" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["categoryId","ServiceCategory",true]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "ServiceCategory" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "Settlement" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["staffId","Staff"],["replacesSettlementId","Settlement"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "Staff" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "Transaction" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["userId","User"],["petId","Pet"],["appointmentId","Appointment"],["replacesTransactionId","Transaction"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "TransactionItem" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[["transactionId","Transaction"],["serviceId","Service"],["performedByStaffId","Staff"]]');
+CREATE TRIGGER security_scope_guard BEFORE INSERT OR UPDATE ON "User" FOR EACH ROW EXECUTE FUNCTION security_integrity_scope_guard('[]');
 
 -- Historical Commission payload is immutable. Only the sanctioned void transition is mutable.
-CREATE FUNCTION public.security_commission_history_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION security_commission_history_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
   IF TG_OP IN ('DELETE','TRUNCATE') THEN
     RAISE EXCEPTION 'Commission history is immutable' USING ERRCODE='23514',CONSTRAINT='security_commission_immutable';
@@ -108,25 +113,25 @@ BEGIN
   END IF;
   RETURN NEW;
 END $$;
-CREATE TRIGGER security_commission_history BEFORE UPDATE OR DELETE ON public."Commission" FOR EACH ROW EXECUTE FUNCTION public.security_commission_history_guard();
-CREATE TRIGGER security_commission_truncate BEFORE TRUNCATE ON public."Commission" FOR EACH STATEMENT EXECUTE FUNCTION public.security_commission_history_guard();
+CREATE TRIGGER security_commission_history BEFORE UPDATE OR DELETE ON "Commission" FOR EACH ROW EXECUTE FUNCTION security_commission_history_guard();
+CREATE TRIGGER security_commission_truncate BEFORE TRUNCATE ON "Commission" FOR EACH STATEMENT EXECUTE FUNCTION security_commission_history_guard();
 
-CREATE FUNCTION public.security_append_only_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION security_append_only_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
   IF TG_OP='UPDATE' AND NEW IS NOT DISTINCT FROM OLD THEN RETURN NEW; END IF;
   RAISE EXCEPTION 'Security history is append-only' USING ERRCODE='23514',CONSTRAINT='security_history_immutable';
 END $$;
-CREATE TRIGGER security_append_only BEFORE UPDATE OR DELETE ON public."MedicalRecordRevision" FOR EACH ROW EXECUTE FUNCTION public.security_append_only_guard();
-CREATE TRIGGER security_no_truncate BEFORE TRUNCATE ON public."MedicalRecordRevision" FOR EACH STATEMENT EXECUTE FUNCTION public.security_append_only_guard();
-CREATE TRIGGER security_append_only BEFORE UPDATE OR DELETE ON public."DomainEvent" FOR EACH ROW EXECUTE FUNCTION public.security_append_only_guard();
-CREATE TRIGGER security_no_truncate BEFORE TRUNCATE ON public."DomainEvent" FOR EACH STATEMENT EXECUTE FUNCTION public.security_append_only_guard();
-CREATE TRIGGER security_append_only BEFORE UPDATE OR DELETE ON public."WhatsAppConnectionEvent" FOR EACH ROW EXECUTE FUNCTION public.security_append_only_guard();
-CREATE TRIGGER security_no_truncate BEFORE TRUNCATE ON public."WhatsAppConnectionEvent" FOR EACH STATEMENT EXECUTE FUNCTION public.security_append_only_guard();
-ALTER TABLE public."Tenant" ADD CONSTRAINT "security_tenant_split" CHECK (("commissionSplitRate" BETWEEN 0 AND 1) IS TRUE);
-ALTER TABLE public."Commission" ADD CONSTRAINT "security_commission_values" CHECK (("splitRate" BETWEEN 0 AND 1 AND "resolvedPrice" BETWEEN 0 AND 99999999.99 AND "staffShare" BETWEEN 0 AND 99999999.99 AND "businessShare" BETWEEN 0 AND 99999999.99 AND "staffShare" + "businessShare" = "resolvedPrice") IS TRUE);
-ALTER TABLE public."Commission" ADD CONSTRAINT "security_commission_void_shape" CHECK (((status='active' AND "voidedAt" IS NULL AND "voidReason" IS NULL) OR (status='voided' AND "voidedAt" IS NOT NULL AND isfinite("voidedAt") AND "voidReason" IS NOT NULL AND length(btrim("voidReason"))>0)) IS TRUE);
-ALTER TABLE public."Settlement" ADD CONSTRAINT "security_settlement_period" CHECK ((isfinite("periodStart") AND isfinite("periodEnd") AND "periodStart" < "periodEnd") IS TRUE);
-ALTER TABLE public."FinancialPeriod" ADD CONSTRAINT "security_financial_period" CHECK ((isfinite("periodStart") AND isfinite("periodEnd") AND "periodStart" <= "periodEnd") IS TRUE);
-ALTER TABLE public."TransactionItem" ADD CONSTRAINT "security_item_values" CHECK ((quantity > 0 AND "unitPrice" BETWEEN 0 AND 99999999.99 AND total BETWEEN 0 AND 99999999.99 AND total = round(quantity::numeric * "unitPrice", 2)) IS TRUE);
-ALTER TABLE public."StaffAvailability" ADD CONSTRAINT "security_availability_shape" CHECK (((type='base_schedule' AND weekday IS NOT NULL AND weekday BETWEEN 0 AND 6 AND "startTime" IS NOT NULL AND "endTime" IS NOT NULL AND "startTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' AND "endTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' AND "startTime" < "endTime" AND "startAt" IS NULL AND "endAt" IS NULL) OR (type IN ('planned_absence','unplanned_absence') AND weekday IS NULL AND "startTime" IS NULL AND "endTime" IS NULL AND "startAt" IS NOT NULL AND "endAt" IS NOT NULL AND isfinite("startAt") AND isfinite("endAt") AND "startAt" < "endAt")) IS TRUE);
+CREATE TRIGGER security_append_only BEFORE UPDATE OR DELETE ON "MedicalRecordRevision" FOR EACH ROW EXECUTE FUNCTION security_append_only_guard();
+CREATE TRIGGER security_no_truncate BEFORE TRUNCATE ON "MedicalRecordRevision" FOR EACH STATEMENT EXECUTE FUNCTION security_append_only_guard();
+CREATE TRIGGER security_append_only BEFORE UPDATE OR DELETE ON "DomainEvent" FOR EACH ROW EXECUTE FUNCTION security_append_only_guard();
+CREATE TRIGGER security_no_truncate BEFORE TRUNCATE ON "DomainEvent" FOR EACH STATEMENT EXECUTE FUNCTION security_append_only_guard();
+CREATE TRIGGER security_append_only BEFORE UPDATE OR DELETE ON "WhatsAppConnectionEvent" FOR EACH ROW EXECUTE FUNCTION security_append_only_guard();
+CREATE TRIGGER security_no_truncate BEFORE TRUNCATE ON "WhatsAppConnectionEvent" FOR EACH STATEMENT EXECUTE FUNCTION security_append_only_guard();
+ALTER TABLE "Tenant" ADD CONSTRAINT "security_tenant_split" CHECK (("commissionSplitRate" BETWEEN 0 AND 1) IS TRUE);
+ALTER TABLE "Commission" ADD CONSTRAINT "security_commission_values" CHECK (("splitRate" BETWEEN 0 AND 1 AND "resolvedPrice" BETWEEN 0 AND 99999999.99 AND "staffShare" BETWEEN 0 AND 99999999.99 AND "businessShare" BETWEEN 0 AND 99999999.99 AND "staffShare" + "businessShare" = "resolvedPrice") IS TRUE);
+ALTER TABLE "Commission" ADD CONSTRAINT "security_commission_void_shape" CHECK (((status='active' AND "voidedAt" IS NULL AND "voidReason" IS NULL) OR (status='voided' AND "voidedAt" IS NOT NULL AND isfinite("voidedAt") AND "voidReason" IS NOT NULL AND length(btrim("voidReason"))>0)) IS TRUE);
+ALTER TABLE "Settlement" ADD CONSTRAINT "security_settlement_period" CHECK ((isfinite("periodStart") AND isfinite("periodEnd") AND "periodStart" < "periodEnd") IS TRUE);
+ALTER TABLE "FinancialPeriod" ADD CONSTRAINT "security_financial_period" CHECK ((isfinite("periodStart") AND isfinite("periodEnd") AND "periodStart" <= "periodEnd") IS TRUE);
+ALTER TABLE "TransactionItem" ADD CONSTRAINT "security_item_values" CHECK ((quantity > 0 AND "unitPrice" BETWEEN 0 AND 99999999.99 AND total BETWEEN 0 AND 99999999.99 AND total = round(quantity::numeric * "unitPrice", 2)) IS TRUE);
+ALTER TABLE "StaffAvailability" ADD CONSTRAINT "security_availability_shape" CHECK (((type='base_schedule' AND weekday IS NOT NULL AND weekday BETWEEN 0 AND 6 AND "startTime" IS NOT NULL AND "endTime" IS NOT NULL AND "startTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' AND "endTime" ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' AND "startTime" < "endTime" AND "startAt" IS NULL AND "endAt" IS NULL) OR (type IN ('planned_absence','unplanned_absence') AND weekday IS NULL AND "startTime" IS NULL AND "endTime" IS NULL AND "startAt" IS NOT NULL AND "endAt" IS NOT NULL AND isfinite("startAt") AND isfinite("endAt") AND "startAt" < "endAt")) IS TRUE);
 COMMIT;

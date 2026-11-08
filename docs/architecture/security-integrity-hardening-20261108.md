@@ -23,7 +23,11 @@ lectura están en `scripts/security-integrity-preflight.cjs`; requieren una URL
 explícita y nunca usan DATABASE_URL implícitamente.
 
 Los triggers comparan scopes con igualdad NULL-safe y bloquean los padres con
-FOR SHARE. Las identidades de scope no se reasignan: tenantId, el petId de un
+FOR SHARE. La migración instala sus objetos en el esquema seleccionado y las
+referencias en runtime se califican con TG_TABLE_SCHEMA, sin resolver padres por
+el search_path del cliente. Esto conserva los esquemas aislados del CI y evita
+confundir registros con IDs iguales de esquemas distintos.
+Las identidades de scope no se reasignan: tenantId, el petId de un
 registro clínico y el transactionId de un artículo son estables. Se permiten
 actualizaciones que repiten el mismo valor. Esto evita invalidar referencias
 desde un padre o mediante carreras, sin congelar el contenido clínico editable.

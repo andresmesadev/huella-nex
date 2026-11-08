@@ -90,7 +90,7 @@ test('Security integrity: real migrated PostgreSQL boundaries and compatibility'
  });
  }finally{try{await db.query('ROLLBACK');}catch{}await db.end();}});
 
-test('Forward migration aborts atomically on inconsistent history and preserves valid legacy data',async()=>{
+test('Forward migration aborts atomically on inconsistent history and preserves valid legacy data',async t=>{
  const fs=require('node:fs'),path=require('node:path');
  const admin=new Client({connectionString:url});await admin.connect();
  const database='huella_integrity_upgrade_'+randomUUID().replaceAll('-','');
@@ -111,12 +111,28 @@ test('Forward migration aborts atomically on inconsistent history and preserves 
     INSERT INTO "TransactionItem"(id,"transactionId",description,quantity,"unitPrice",total) VALUES ('legacy-item','old-sale','Legacy',1,100,100);`);
   const migration=fs.readFileSync(path.join(root,name,'migration.sql'),'utf8');
   await assert.rejects(upgrade.query(migration),{code:'23514'});await upgrade.query('ROLLBACK');
-  assert.equal((await upgrade.query("SELECT to_regprocedure('public.security_integrity_scope(text,jsonb)') AS guard")).rows[0].guard,null,'Failed upgrade must not install partial guards');
+  assert.equal((await upgrade.query("SELECT to_regprocedure('public.security_integrity_scope(text,jsonb,text)') AS guard")).rows[0].guard,null,'Failed upgrade must not install partial guards');
   // Repair only this deliberately invalid synthetic fixture, never real history.
   await upgrade.query(`UPDATE "Pet" SET "ownerId"='old-user-a' WHERE id='old-pet'`);
   const snapshot=async()=>JSON.stringify((await upgrade.query(`SELECT (SELECT json_agg(t ORDER BY id) FROM "Pet" t) AS pets,(SELECT json_agg(t ORDER BY id) FROM "TransactionItem" t) AS items`)).rows);
   const before=await snapshot();await upgrade.query(migration);assert.equal(await snapshot(),before);
   await assert.rejects(upgrade.query(`UPDATE "Pet" SET "ownerId"='old-user-b' WHERE id='old-pet'`),{code:'23514'});
+  await t.test('Migration and runtime guards remain inside an isolated schema with shadow IDs',async()=>{
+   await upgrade.query(`INSERT INTO "Staff"(id,"tenantId",name,role,"updatedAt") VALUES ('shadow-staff','old-a','Synthetic','vet',now())`);
+   const schema='integrity_schema_'+randomUUID().replaceAll('-','');
+   await upgrade.query('CREATE SCHEMA "'+schema+'"');
+   await upgrade.query('SET search_path="'+schema+'",public');
+   for(const m of fs.readdirSync(root).sort().filter(m=>m<=name && fs.existsSync(path.join(root,m,'migration.sql'))))await upgrade.query(fs.readFileSync(path.join(root,m,'migration.sql'),'utf8'));
+   await upgrade.query(`INSERT INTO "Tenant"(id,name,slug,"updatedAt") VALUES ('isolated-b','Synthetic isolated','isolated-b',now());
+     INSERT INTO "User"(id,"tenantId",phone) VALUES ('old-user-a','isolated-b','573111111110');
+     INSERT INTO "Pet"(id,"tenantId","ownerId",name,type) VALUES ('old-pet','isolated-b','old-user-a','Synthetic isolated','dog');
+     INSERT INTO "Staff"(id,"tenantId",name,role,"updatedAt") VALUES ('shadow-staff','isolated-b','Synthetic isolated','vet',now());
+     INSERT INTO "MedicalRecord"(id,"petId","staffId",type,title,"updatedAt") VALUES ('isolated-record','old-pet','shadow-staff','synthetic','Synthetic',now())`);
+   await assert.rejects(upgrade.query(`INSERT INTO "Pet"(id,"ownerId",name,type) VALUES ('wrong-null-scope','old-user-a','Synthetic','dog')`),{code:'23514'});
+   assert.equal((await upgrade.query(`SELECT "tenantId" FROM public."Pet" WHERE id='old-pet'`)).rows[0].tenantId,'old-a');
+   await upgrade.query('SET search_path=public');
+   await upgrade.query('DROP SCHEMA "'+schema+'" CASCADE');
+  });
  }finally{
   if(upgrade)await upgrade.end();
   // Exact UUID database created above; never drop the configured test database.
