@@ -100,5 +100,5 @@ test('nodemon minimatch keeps its CommonJS matching API and Windows paths', () =
   assert.equal(minimatch('src/app.js', '**/*.js'), true);
   assert.equal(minimatch('src/app.ts', '**/*.js'), false);
   assert.equal(minimatch('node_modules/pkg/index.js', '**/node_modules/**'), true);
-  assert.equal(minimatch('src\\app.js', 'src/*.js', { windowsPathsNoEscape: true }), true);
+  assert.equal(minimatch('src\\app.js', 'src/*.js', { platform: 'win32', windowsPathsNoEscape: true }), true);
 });
