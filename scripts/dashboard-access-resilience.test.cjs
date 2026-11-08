@@ -91,7 +91,7 @@ test('tenant changes never expose the previous tenant manifest for one render',a
 test('access proxy forwards Retry-After and marks permission responses no-store',async()=>{
   const context={exports:{},process:{env:{INTERNAL_API_SECRET:'fixture-only',API_URL:'http://fixture.invalid'}},URL,AbortSignal,Response,
     fetch:async()=>new Response('busy',{status:429,headers:{'Retry-After':'42'}}),
-    require:name=>name==='@/auth'?{auth:async()=>({user:{staffId:'fixture',tenantId:'tenant',sessionVersion:2}})}:name==='next/server'?{NextResponse}:(()=>{throw Error(name)})()};
+    require:name=>name==='@/auth'?{auth:async()=>({user:{staffId:'fixture',tenantId:'tenant',sessionVersion:2}})}:name==='@/lib/dashboard-proxy-path.cjs'?require('../frontend/lib/dashboard-proxy-path.cjs'):name==='next/server'?{NextResponse}:(()=>{throw Error(name)})()};
   vm.runInNewContext(compile('frontend/app/api/proxy/dashboard/[...path]/route.ts'),context);
   const response=await context.exports.GET({method:'GET',headers:new Headers(),nextUrl:new URL('https://fixture.invalid/api/proxy/dashboard/access'),signal:new AbortController().signal},{params:Promise.resolve({path:['access']})});
   assert.equal(response.status,429);assert.equal(response.headers.get('Retry-After'),'42');assert.equal(response.headers.get('Cache-Control'),'no-store');
