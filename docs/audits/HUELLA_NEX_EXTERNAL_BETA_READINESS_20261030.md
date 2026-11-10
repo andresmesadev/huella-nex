@@ -1,5 +1,11 @@
 # Huella Nex: preparación de producto y beta externa
 
+**Actualización del 06/11:** BETA-03 cerrado para el dashboard manual de 3.0.0,
+tras verificar la ventana finita de 48 horas, con contraste operacional y
+límites documentados en el [acta](../operations/STABILITY_48H_CLOSURE_20261106.md).
+BETA-02 y los demás criterios conservan sus alcances; no se abre la beta externa
+por este resultado.
+
 **Corte:** 30/10/2026, Colombia. **Tipo:** evaluación de preparación del
 producto comercial, no una publicación ni certificación jurídica o de seguridad.
 
@@ -164,7 +170,7 @@ no sustituyen la validación con otros negocios.
 | --- | --- | --- | --- |
 | BETA-01 | Cerrado para la publicación 3.0.0 del 30/10 | Lote publicado: versiones coherentes, CI aprobado, respaldo y migraciones verificados; lecturas autenticadas correctas. | Mantener la evidencia de esta versión y las capacidades comerciales pendientes desactivadas. No sustituye los demás criterios de admisión. |
 | BETA-02 | Antes de asumir custodia de otro negocio | Recuperación ante pérdida completa de VPS. Se retiró la copia del computador y no hay un destino externo automático nuevo documentado. | Elegir almacenamiento independiente gestionado desde la plataforma; probar copia cifrada, restauración y custodia de claves. No requiere Google ni un computador del cliente. |
-| BETA-03 | Antes de admisión externa | Acreditar estabilidad de la versión que se ofrecerá. La última revisión documental conserva el ítem 9 abierto por timeouts y dependencia OpenAI. | Revisar muestras actuales, causas y cobertura; acordar y cumplir la ventana de aceptación. Distinguir dashboard disponible de integración IA degradada. |
+| BETA-03 | Cerrado el 06/11 para dashboard manual 3.0.0 | 577 muestras correctas durante 48 horas del 30/10 al 01/11; cero huecos/cambios de versión, contenedores sin reinicios y contraste operacional. | Conservar alcance y evidencia del [acta](../operations/STABILITY_48H_CLOSURE_20261106.md); no equivale a disponibilidad absoluta entre muestras ni aceptación de WhatsApp/IA comercial. Revaluar ante cambios o incidentes nuevos. |
 | BETA-04 | Antes de incorporar un cliente externo | Condiciones y privacidad del software comercial. Los documentos aprobados del centro describen la operación de Mateos Pet. | Paquete específico para el negocio externo: prestador real, alcance, tratamiento/acceso a datos, proveedores, soporte, salida y constancia de aceptación. Revisar su adecuación antes de utilizarlo. |
 | BETA-05 | Antes de cobrar o prometer un plan | Oferta y costos finales. Precios y cupos aceptados son una base propuesta; Básico y Pro comparten operación y su diferencia de IA no está activa comercialmente. | Acordar la oferta de beta y qué incluye/excluye, coste total y límites; no presentar márgenes simulados como observados ni comprobantes operativos como facturación electrónica. |
 | BETA-06 | Procedimiento y ensayo técnico asistido preparados el 30/10 | Recuperación del administrador y copia operacional del negocio comprobadas en aislamiento. Alcance/exclusiones y límites en la revisión de soporte; no incluye entrega humana ni archivos originales de proveedores. | Aplicar la verificación real del solicitante, acordar alcance, medio protegido, conservación/terminación y registrar resolución o recepción cuando corresponda. No declarar una entrega más amplia que el paquete efectivamente preparado. |
@@ -176,10 +182,10 @@ no autoriza reactivarla ni contratar almacenamiento. Los respaldos del mismo
 servidor protegen ciertos errores y pérdidas lógicas, pero no acreditan
 recuperación si desaparece ese servidor y sus copias.
 
-BETA-03 es un pendiente de **evidencia vigente**: no afirma que la aplicación
-esté caída hoy. El transcurso del tiempo no convierte automáticamente una
-ventana con fallos en una ventana limpia. No se reinicia ni descarta historia
-para obtener un resultado favorable.
+BETA-03 se cerró mediante **evidencia de una ventana identificada**, no por el
+mero transcurso del tiempo. Las ventanas anteriores con fallos siguen intactas;
+no se reinició ni descartó historia para obtener un resultado favorable. La
+captura terminó el 01/11 y no acredita vigilancia continua hasta el 06/11.
 
 ## Mejoras del producto que priorizaría
 

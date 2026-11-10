@@ -1,5 +1,11 @@
 # Beta cerrada de la veterinaria propia — estado al 22 de octubre de 2026
 
+**Actualización de cierre — 06/11:** ítem 9 cerrado para el dashboard manual de
+3.0.0: 577 sondeos correctos, 48 horas continuas y cero huecos. Contraste de
+actividad/logs/colas y lecturas autenticadas completado; hechos y límites en
+[el acta de estabilidad](STABILITY_48H_CLOSURE_20261106.md). No cierra respaldo
+independiente ni activa WhatsApp. Las notas fechadas anteriores son históricas.
+
 
 > Actualización editorial de marca — 28/10/2026: se usa Huella Nex por solicitud de Andrés. Se conservan las fechas, versiones, decisiones y condiciones originales; esta edición no registra nuevas aprobaciones ni autorizaciones de clientes.
 
@@ -248,7 +254,7 @@ cobros, cierres, historias clínicas ni movimientos de inventario.
 | 6. WhatsApp empresarial | ⏸️ Aplazado expresamente. La beta utiliza el dashboard; canal privado deshabilitado. | Habilitación, número y entregas reales se revisarán cuando el responsable incorpore ese canal. No bloquea la beta manual acordada. |
 | 7. Documentación de la operación real | ✅ Cierre documental solicitado por Andrés el 27/10. Política de entrega 1.2, condiciones 1.0 y anexo completados/adoptados; revisión de Lina y acceso a canales confirmados. Alcance limitado al criterio documental original. | Seguimientos S7-1 a S7-4: primera entrega/decisión real, acuerdos/opciones particulares de proveedores, adecuación técnica de conservación y otros integrantes si corresponde. No se certifica ejecución de esos puntos ni cumplimiento integral. [Acta y evidencia](CLOSED_BETA_LEGAL_DOCUMENTATION_CLOSURE_20261027.md). |
 | 8. Matriz de agenda | ✅ Cierre del 13/10 conservado, mejoras publicadas y uso real de citas de peluquería/veterinaria confirmado. Regresiones aprobadas. | Revisar únicamente hallazgos nuevos y regresiones afectadas; no volver a exigir que empiecen a agendar ni repetir la matriz cerrada. |
-| 9. Estabilización | 🟠 2.58.2 publicada con límite OpenAI de ocho segundos y cero reintentos; cinco lecturas autenticadas 200 y huellas de datos iguales. Ventana nueva activa desde 27/10 16:35:20; primera muestra HTTP 503 por OpenAI. Consulta posterior 200, dependencia intermitente. Serie 2.58.1 preservada con 308 muestras y seis fallos. | Revisar observación de 2.58.2 e incidentes históricos sin atribuciones no probadas. El despliegue no cierra el ítem ni resuelve por sí solo los errores externos. No borrar muestras, sumar versiones ni reiniciar para obtener verde. [Detalle](REAL_OPERATION_STABILITY_REVIEW_20261022.md) y [certificación de publicación](../history/RELEASE_2_58_2_VPS_20261027.md). |
+| 9. Estabilización | ✅ Cerrado el 06/11 para dashboard manual 3.0.0: ventana 30/10–01/11 de 48 horas, 577 muestras, cero fallos/huecos/versiones inesperadas; analizador original aprobado y contraste operacional realizado. | Preservar series históricas y alcance del sondeo; logs con rechazos CORS y una conexión abortada documentados. WhatsApp/IA comercial y recuperación independiente siguen fuera de este cierre. [Acta y evidencia](STABILITY_48H_CLOSURE_20261106.md). |
 | 10. Jornada y aceptación | ✅ Cerrado el 27/10 para el alcance manual actual. Andrés confirma que punto de venta, inventario y comisiones cuadran en las jornadas reales desde el 19/10; cotejo físico de productos confirmado expresamente y coincidente. Responsables, soporte y recuperación ya documentados. | Mantener conciliación habitual y seguimiento de incidencias. Aceptación del responsable, no auditoría independiente ni prueba de todos los módulos. Conservar correcciones y excepciones previas sin ajustar stock retrospectivo ni duplicar historia clínica. [Acta y límites](REAL_OPERATION_ACCEPTANCE_CLOSURE_20261027.md). |
 
 ✅ indica un criterio técnico u organizativo comprobado, dentro del alcance

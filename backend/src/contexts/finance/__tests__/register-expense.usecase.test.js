@@ -63,3 +63,14 @@ describe("RegisterExpenseUseCase", () => {
     ).rejects.toBeInstanceOf(DailyCloseAlreadyExistsForDateError);
   });
 });
+
+
+describe('Expense categories for pet businesses', () => {
+  const { EXPENSE_CATEGORIES } = require('../../shared/expense-categories');
+  test.each(EXPENSE_CATEGORIES)('persists stable category %s without changing amounts', async category => {
+    const { execute } = buildUseCase();
+    const { expense } = await execute({ tenantId: 'example', amount: 12500.50, category, responsible: 'Example', date: '2026-11-09' });
+    expect(expense.category).toBe(category);
+    expect(expense.amount).toBe(12500.50);
+  });
+});

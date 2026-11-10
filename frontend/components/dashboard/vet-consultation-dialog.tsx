@@ -116,18 +116,18 @@ function VetConsultationContent({ petId, petName, onSaved, onClose }: Omit<Props
   }
 
   return (
-    <DialogContent className="flex h-[92vh] w-full max-w-[95vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
+    <DialogContent className="flex h-[92dvh] w-[calc(100%-1.5rem)] max-w-[95vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
         <DialogHeader className="shrink-0 border-b px-6 py-4 pr-14">
           <DialogTitle className="flex items-center gap-2">
             <span>🩺</span>
-            <span>Antecedente sin cita — {petName}</span>
+            <span className="min-w-0 [overflow-wrap:anywhere]">Antecedente sin cita — {petName}</span>
           </DialogTitle>
           <DialogDescription>
             Registra una consulta anterior que no tiene cita en la agenda. Para una atención programada, usa Consultas veterinarias.
           </DialogDescription>
         </DialogHeader>
 
-        <form id={id} onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5">
+        <form id={id} onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto px-5 py-5 [&_input]:min-h-11 [&_input]:min-w-0 sm:px-6">
           <fieldset disabled={saving} className="flex flex-col gap-5">
           {/* Fila 1: Fecha + Peso + Veterinario */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -261,8 +261,8 @@ function VetConsultationContent({ petId, petName, onSaved, onClose }: Omit<Props
           {error && <p role="alert" className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{error}</p>}
         </form>
         <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t bg-card px-6 py-4">
-          <p className="text-sm text-muted-foreground">Antecedente sin cita · {petName}</p>
-          <div className="flex gap-2"><Button type="button" variant="outline" onClick={handleClose} disabled={saving}>Cancelar</Button><Button type="submit" form={id} disabled={saving}>{saving ? "Guardando…" : "Guardar antecedente"}</Button></div>
+          <p className="[overflow-wrap:anywhere] text-sm text-muted-foreground">Antecedente sin cita · {petName}</p>
+          <div className="grid w-full grid-cols-2 gap-2 [&_button]:min-h-11 [&_button]:whitespace-normal sm:flex sm:w-auto"><Button type="button" variant="outline" onClick={handleClose} disabled={saving}>Cancelar</Button><Button type="submit" form={id} disabled={saving}>{saving ? "Guardando…" : "Guardar antecedente"}</Button></div>
         </footer>
       </DialogContent>
   );

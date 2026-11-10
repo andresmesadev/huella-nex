@@ -28,18 +28,18 @@ export default async function ContactoPage({ searchParams }: ContactoPageProps) 
         tint="bg-teal-100 text-teal-700"
       />
 
-      <nav aria-label="Ver contactos" className="mb-6 inline-flex gap-1 rounded-xl border border-border bg-white p-1 shadow-sm">
+      <nav aria-label="Ver contactos" className="mb-6 inline-flex max-w-full gap-1 rounded-xl border border-border bg-white p-1">
         <Link
           prefetch={false} href={canonicalDashboardHref("/dashboard/contacto", navigationQuery, { view: "clientes" })}
           aria-current={activeView === "clientes" ? "page" : undefined}
-          className={`inline-flex min-h-10 items-center rounded-lg px-5 text-sm font-semibold transition-colors ${activeView === "clientes" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+          className={`inline-flex min-h-11 items-center rounded-lg px-5 text-sm font-semibold transition-colors ${activeView === "clientes" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
         >
           Clientes
         </Link>
         <Link
           href={canonicalDashboardHref("/dashboard/contacto", navigationQuery, { view: "mascotas" })}
           aria-current={activeView === "mascotas" ? "page" : undefined}
-          className={`inline-flex min-h-10 items-center rounded-lg px-5 text-sm font-semibold transition-colors ${activeView === "mascotas" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+          className={`inline-flex min-h-11 items-center rounded-lg px-5 text-sm font-semibold transition-colors ${activeView === "mascotas" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
         >
           Mascotas
         </Link>

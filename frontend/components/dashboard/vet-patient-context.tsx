@@ -50,22 +50,22 @@ export function VetPatientContext({ petId, appointmentId, preview = false }: { p
 
   return (
     <section aria-labelledby="paciente-contexto" className="overflow-hidden rounded-2xl border border-teal-200 bg-teal-50/30">
-      <div className="flex items-center gap-2 border-b border-teal-100 px-4 py-3 sm:px-5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-teal-100 px-4 py-3 sm:px-5">
         <HeartPulse aria-hidden="true" className="size-4 text-teal-700" />
         <h3 id="paciente-contexto" className="text-sm font-bold text-teal-950">Antes de atender</h3>
-        <span className="ml-auto text-xs text-teal-800">Datos registrados del paciente</span>
+        <span className="w-full text-xs sm:ml-auto sm:w-auto text-teal-800">Datos registrados del paciente</span>
       </div>
       {preview ? <p className="px-5 py-4 text-sm text-slate-600">Los antecedentes reales aparecerán aquí al abrir una consulta.</p>
         : loading ? <p role="status" className="px-5 py-4 text-sm text-slate-600">Cargando antecedentes…</p>
-        : error ? <div role="alert" className="flex items-center justify-between gap-3 px-5 py-4 text-sm text-amber-900"><span>No se pudieron consultar los antecedentes. Puedes registrar la atención, pero revisa la historia antes de continuar.</span><button type="button" className="shrink-0 font-semibold underline" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div>
+        : error ? <div role="alert" className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm text-amber-900"><span>No se pudieron consultar los antecedentes. Puedes registrar la atención, pero revisa la historia antes de continuar.</span><button type="button" className="min-h-11 shrink-0 font-semibold underline" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div>
         : data && <div className="space-y-4 px-4 py-4 sm:px-5">
           <div className="grid gap-3 text-sm sm:grid-cols-3">
-            <div><p className="text-xs text-slate-500">Paciente</p><p className="font-semibold text-slate-900">{formatPetType(data.pet.type)}{data.pet.breed ? ` · ${data.pet.breed}` : ""}</p></div>
-            <div><p className="text-xs text-slate-500">Último peso registrado</p><p className="font-semibold text-slate-900">{lastWeight?.weight != null ? `${lastWeight.weight} kg · ${formatRecordDate(lastWeight.date ?? lastWeight.createdAt)}` : data.pet.weight != null ? `${data.pet.weight} kg` : "Sin registro"}</p></div>
-            <div><p className="text-xs text-slate-500">Consultas anteriores</p><p className="font-semibold text-slate-900">{consultations.length}</p></div>
+            <div><p className="text-xs text-slate-500">Paciente</p><p className="[overflow-wrap:anywhere] font-semibold text-slate-900">{formatPetType(data.pet.type)}{data.pet.breed ? ` · ${data.pet.breed}` : ""}</p></div>
+            <div><p className="text-xs text-slate-500">Último peso registrado</p><p className="[overflow-wrap:anywhere] font-semibold text-slate-900">{lastWeight?.weight != null ? `${lastWeight.weight} kg · ${formatRecordDate(lastWeight.date ?? lastWeight.createdAt)}` : data.pet.weight != null ? `${data.pet.weight} kg` : "Sin registro"}</p></div>
+            <div><p className="text-xs text-slate-500">Consultas anteriores</p><p className="[overflow-wrap:anywhere] font-semibold text-slate-900">{consultations.length}</p></div>
           </div>
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950">
-            <div className="flex items-start gap-2"><AlertCircle aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><div><p className="font-semibold">Alergias registradas</p><p className="mt-0.5">{allergies.length ? allergies.map((record) => record.title).join(", ") : "No hay alergias registradas en la historia."}</p></div></div>
+            <div className="flex items-start gap-2"><AlertCircle aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><div><p className="font-semibold">Alergias registradas</p><p className="mt-0.5 [overflow-wrap:anywhere]">{allergies.length ? allergies.map((record) => record.title).join(", ") : "No hay alergias registradas en la historia."}</p></div></div>
           </div>
           <VetClinicalHistory key={`${petId}:${appointmentId}`} records={prior} petId={petId} />
         </div>}

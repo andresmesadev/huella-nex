@@ -112,7 +112,7 @@ function PlanCard({
 }) {
   return (
     <div className={`relative flex flex-col rounded-xl border p-5 gap-4
-      ${plan.highlight ? "border-2 border-primary shadow-sm" : ""}
+      ${plan.highlight ? "border-primary" : ""}
       ${isCurrent ? "bg-muted/40" : "bg-background"}`}
     >
       {plan.highlight && (
@@ -122,7 +122,7 @@ function PlanCard({
       )}
 
       <div>
-        <div className="flex items-baseline gap-1">
+        <div className="flex flex-wrap items-baseline gap-1">
           <span className="text-2xl font-bold">{plan.price}</span>
           {plan.id !== "free" && plan.id !== "custom" && (
             <span className="text-sm text-muted-foreground">/ {plan.period}</span>
@@ -248,7 +248,7 @@ export function BillingView({ status }: { status: BillingStatus | null }) {
   }
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="max-w-4xl space-y-6 [&_button]:min-h-11 [&_button]:whitespace-normal [&_a]:min-h-11">
       {confirmation}
       {/* Estado actual */}
       {status && (

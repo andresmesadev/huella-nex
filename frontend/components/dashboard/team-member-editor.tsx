@@ -25,6 +25,9 @@ export function MemberEditor({ member, activeModules, onSaved, ...signals }: Edi
   const [permissions, setPermissions] = useState<string[]>([]);
   const lock = useRef(false), tenant = useTenant(), dirty = JSON.stringify(form) !== JSON.stringify(initial) || (!member && permissions.length > 0);
   useSignals(dirty, busy, signals);
+  const onCanSaveChange = signals.onCanSaveChange;
+  const canSubmit = !busy && !memberFormError(form) && (member ? dirty : Boolean(form.name.trim()));
+  useEffect(() => { onCanSaveChange?.(canSubmit); return () => onCanSaveChange?.(false); }, [canSubmit, onCanSaveChange]);
   async function save(event: React.FormEvent) {
     event.preventDefault(); const invalid = memberFormError(form); if (invalid) { setError(invalid); return; }
     if (lock.current) return; lock.current = true; setBusy(true); setError("");
@@ -35,14 +38,14 @@ export function MemberEditor({ member, activeModules, onSaved, ...signals }: Edi
     } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo guardar la ficha."); }
     finally { lock.current = false; setBusy(false); }
   }
-  return <form onSubmit={save} className="space-y-5"><fieldset disabled={busy} className="space-y-4">
-    <label className="block space-y-1.5 text-sm font-semibold">Nombre del integrante<Input required maxLength={200} value={form.name} onChange={e => { setError(""); setForm({ ...form, name: e.target.value }); }} autoComplete="name" /></label>
-    <label className="block space-y-1.5 text-sm font-semibold">Perfil<select className="h-11 w-full rounded-xl border border-input bg-background px-3 font-normal" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>{TEAM_ROLES.map(role => <option key={role.value} value={role.value}>{role.label}</option>)}</select></label>
-    <p className="rounded-xl bg-muted/50 p-3 text-sm text-muted-foreground">{TEAM_ROLES.find(role => role.value === form.role)?.description}</p>
+  return <form id={`staff-member-${member?.id ?? "new"}`} onSubmit={save} className="space-y-5"><fieldset disabled={busy} className="space-y-4">
+    <div className="grid min-w-0 gap-3 sm:grid-cols-2"><label className="block min-w-0 space-y-1.5 text-sm font-semibold">Nombre del integrante<Input required maxLength={200} value={form.name} onChange={e => { setError(""); setForm({ ...form, name: e.target.value }); }} autoComplete="name" /></label>
+    <label className="block space-y-1.5 text-sm font-semibold">Perfil<select className="h-11 w-full rounded-xl border border-input bg-background px-3 font-normal" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>{TEAM_ROLES.map(role => <option key={role.value} value={role.value}>{role.label}</option>)}</select></label></div>
+    <p className="border-l-0 text-sm leading-relaxed text-sm text-muted-foreground">{TEAM_ROLES.find(role => role.value === form.role)?.description}</p>
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-semibold">Teléfono (opcional)<Input type="tel" value={form.phone} maxLength={40} onChange={e => setForm({ ...form, phone: e.target.value })} /></label><label className="space-y-1.5 text-sm font-semibold">Correo de contacto (opcional)<Input type="email" maxLength={254} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></label></div>
     {!member && <TeamPermissionFields role={form.role} selected={permissions} onChange={values => { setError(''); setPermissions(values); }} activeModules={activeModules} disabled={busy} />}
     <p className="text-sm text-muted-foreground">La ficha identifica al integrante en las atenciones. Su cuenta de ingreso se configura en Acceso.</p>
-  </fieldset>{error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}<Button type="submit" disabled={busy || (member ? !dirty : !form.name.trim())}>{busy ? "Guardando…" : member ? "Guardar ficha" : "Crear integrante"}</Button></form>;
+  </fieldset>{error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}</form>;
 }
 export function StaffScheduleEditor({ member, businessHours, onSaved, ...signals }: EditorSignals & { member: StaffMember; businessHours: unknown; onSaved: (member: StaffMember) => void }) {
   const [av, setAv] = useState<Availability | null>(member.availability), [busy, setBusy] = useState(false), [error, setError] = useState("");

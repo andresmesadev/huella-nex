@@ -5,7 +5,7 @@ import { useActionConfirmation } from "@/components/dashboard/action-confirmatio
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Clock3, Search, Stethoscope, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock3, Search, Stethoscope, X } from "lucide-react";
 
 import { VetRecordSheet } from "@/components/dashboard/vet-record-sheet";
 import { homeHref } from "@/lib/home-workspace";
@@ -300,11 +300,11 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
   const period = searchActive ? "en resultados" : scope === "today" ? "hoy" : "semana seleccionada";
 
   const metrics = [
-    { label: "Por revisar", value: professionalAppointments.filter((item) => careGroup(item, today) === "Por revisar").length, icon: Clock3, tint: "bg-amber-50 text-amber-700" },
-    { label: "Por atender", value: professionalAppointments.filter((item) => careGroup(item, today) === "Por atender").length, icon: CalendarDays, tint: "bg-sky-50 text-sky-700" },
-    { label: "En atención", value: professionalAppointments.filter((item) => careGroup(item, today) === "En atención").length, icon: Stethoscope, tint: "bg-amber-50 text-amber-700" },
-    { label: "Atendidas", value: professionalAppointments.filter((item) => careGroup(item, today) === "Atendidas").length, icon: ClipboardList, tint: "bg-teal-50 text-teal-700" },
-    { label: "Historias pendientes", value: professionalAppointments.filter((item) => ["in_progress", "completed"].includes(item.status) && !item.hasMedicalRecord).length, icon: ClipboardList, tint: "bg-rose-50 text-rose-700" },
+    { label: "Por revisar", value: professionalAppointments.filter((item) => careGroup(item, today) === "Por revisar").length },
+    { label: "Por atender", value: professionalAppointments.filter((item) => careGroup(item, today) === "Por atender").length },
+    { label: "En atención", value: professionalAppointments.filter((item) => careGroup(item, today) === "En atención").length },
+    { label: "Atendidas", value: professionalAppointments.filter((item) => careGroup(item, today) === "Atendidas").length },
+    { label: "Historias pendientes", value: professionalAppointments.filter((item) => ["in_progress", "completed"].includes(item.status) && !item.hasMedicalRecord).length },
   ];
 
   if (!continuity.ready) return <p role="status">Preparando filtros de Consultas…</p>;
@@ -312,29 +312,15 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
     <div className="space-y-6">
       {confirmation}
       {initialAppointmentId && !requestedAppointment && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">No se pudo abrir esa consulta. Comprueba el establecimiento y la fecha, o busca al paciente en las consultas anteriores.</div>}
-      {(!searchActive || searchResults) && <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5" aria-label={`Resumen de consultas: ${period}`}>
-        {metrics.map(({ label, value, icon: Icon, tint }) => (
-          <button type="button" key={label} onClick={() => setCareFilter((current) => current === label ? "all" : label)} aria-pressed={careFilter === label} className={`flex items-center gap-4 rounded-2xl border bg-white p-4 text-left shadow-sm transition-colors hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${careFilter === label ? "border-teal-600 ring-1 ring-teal-600" : "border-border"}`}>
-            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tint}`}>
-              <Icon className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">{label} · {period}</p>
-              <p className="text-2xl font-bold tabular-nums text-foreground">{value}</p>
-            </div>
-          </button>
-        ))}
-      </div>}
-
-      <section aria-labelledby="consultas-lista" className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+      <section aria-labelledby="consultas-lista" className="overflow-hidden rounded-2xl border border-border bg-white">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
           <div>
             <h2 id="consultas-lista" className="text-lg font-bold text-foreground">Citas veterinarias</h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">Consulta la atención del día o busca por mascota y propietario en todas las fechas.</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Busca al paciente, inicia la atención y abre su consulta. Puedes encontrar citas de fechas anteriores.</p>
           </div>
-          <div aria-label="Período de consultas" className="inline-flex rounded-lg border border-border p-1">
-            <button type="button" onClick={() => { clearSearch(); if (weekStart(anchor) === weekStart(today)) setScope("today"); else void loadWeek(today, "today"); }} aria-pressed={!searchActive && scope === "today"} className={`min-h-9 rounded-md px-4 text-sm font-semibold transition-colors ${!searchActive && scope === "today" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>Hoy</button>
-            <button type="button" onClick={() => { clearSearch(); setScope("week"); }} aria-pressed={!searchActive && scope === "week"} className={`min-h-9 rounded-md px-4 text-sm font-semibold transition-colors ${!searchActive && scope === "week" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>Semana</button>
+          <div role="group" aria-label="Período de consultas" className="inline-flex rounded-lg border border-border p-1">
+            <button type="button" onClick={() => { clearSearch(); if (weekStart(anchor) === weekStart(today)) setScope("today"); else void loadWeek(today, "today"); }} aria-pressed={!searchActive && scope === "today"} className={`min-h-11 rounded-md px-4 text-sm font-semibold transition-colors ${!searchActive && scope === "today" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>Hoy</button>
+            <button type="button" onClick={() => { clearSearch(); setScope("week"); }} aria-pressed={!searchActive && scope === "week"} className={`min-h-11 rounded-md px-4 text-sm font-semibold transition-colors ${!searchActive && scope === "week" ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>Semana</button>
           </div>
         </div>
 
@@ -343,30 +329,37 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
             <label htmlFor="buscar-consulta" className="text-sm font-semibold text-foreground">Buscar por mascota o propietario</label>
             <div className="relative">
               <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input id="buscar-consulta" type="search" value={searchQuery} onChange={(event) => updateSearch(event.target.value)} maxLength={80} placeholder="Ej. Luna o Camila Torres" className="min-h-10 w-full rounded-xl border border-border bg-white py-2 pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal-600" />
-              {searchQuery && <button type="button" onClick={clearSearch} aria-label="Borrar búsqueda" className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"><X className="size-4" /></button>}
+              <input id="buscar-consulta" type="search" value={searchQuery} onChange={(event) => updateSearch(event.target.value)} maxLength={80} placeholder="Ej. Luna o Camila Torres" className="min-h-11 w-full rounded-xl border border-border bg-white py-2 pl-10 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal-600" />
+              {searchQuery && <button type="button" onClick={clearSearch} aria-label="Borrar búsqueda" className="absolute right-0 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"><X className="size-4" /></button>}
             </div>
           </div>
           <p className="pb-2 text-xs text-muted-foreground">{searchActive ? "Buscando en todas las fechas" : searchQuery ? "Escribe al menos 2 caracteres" : "La búsqueda incluye consultas anteriores"}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-3 sm:px-6">
-          <div className="flex flex-wrap gap-2" aria-label="Asignación de consultas">
-            {[...(clinicianStaffId ? [{ value: clinicianStaffId, label: "Mis consultas" }] : []), { value: "unassigned", label: "Sin asignar" }, { value: "all", label: "Todas" }].map((option) => <button key={option.value} type="button" aria-pressed={professionalFilter === option.value} onClick={() => setProfessionalFilter(option.value)} className={`min-h-9 rounded-lg px-3 text-sm font-semibold ${professionalFilter === option.value ? "bg-teal-700 text-white" : "border border-border hover:bg-muted"}`}>{option.label}</button>)}
+        {(!searchActive || searchResults) && <div role="group" aria-label={`Filtrar consultas: ${period}`} className="flex flex-wrap gap-2 border-b px-5 py-3 sm:px-6">
+          <button type="button" aria-pressed={careFilter === "all"} onClick={() => setCareFilter("all")} className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-sm font-medium ${careFilter === "all" ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-muted"}`}>Todas<span className="tabular-nums">{professionalAppointments.length}</span></button>
+          {metrics.map(({ label, value }) => <button type="button" key={label} aria-pressed={careFilter === label} onClick={() => setCareFilter(current => current === label ? "all" : label)} className={`inline-flex min-h-11 max-w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium ${careFilter === label ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-muted"}`}><span>{label}</span><span className="tabular-nums">{value}</span></button>)}
+        </div>}
+        <details className="border-b border-border px-5 py-2 sm:px-6">
+          <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-foreground">Más filtros{professionalFilter !== "all" && <span className="ml-2 text-xs font-normal text-muted-foreground">Asignación activa</span>}</summary>
+        <div className="flex flex-wrap items-center gap-3 pb-3 pt-2">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Asignación de consultas">
+            {[...(clinicianStaffId ? [{ value: clinicianStaffId, label: "Mis consultas" }] : []), { value: "unassigned", label: "Sin asignar" }, { value: "all", label: "Todas" }].map((option) => <button key={option.value} type="button" aria-pressed={professionalFilter === option.value} onClick={() => setProfessionalFilter(option.value)} className={`min-h-11 rounded-lg px-3 text-sm font-semibold ${professionalFilter === option.value ? "bg-teal-700 text-white" : "border border-border hover:bg-muted"}`}>{option.label}</button>)}
           </div>
-          {!clinician && <div className="flex items-center gap-2"><label htmlFor="consultas-profesional" className="text-sm text-muted-foreground">Profesional:</label><select id="consultas-profesional" value={professionalFilter} onChange={(event) => setProfessionalFilter(event.target.value)} className="min-h-9 max-w-64 rounded-lg border border-border bg-white px-3 text-sm"><option value="all">Todos los profesionales</option><option value="unassigned">Sin asignar</option>{professionals.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select></div>}
+          {!clinician && <div className="flex min-w-0 w-full items-center gap-2 sm:w-auto"><label htmlFor="consultas-profesional" className="text-sm text-muted-foreground">Profesional:</label><select id="consultas-profesional" value={professionalFilter} onChange={(event) => setProfessionalFilter(event.target.value)} className="min-h-11 min-w-0 flex-1 rounded-lg sm:max-w-64 border border-border bg-white px-3 text-sm"><option value="all">Todos los profesionales</option><option value="unassigned">Sin asignar</option>{professionals.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select></div>}
           {professionalError && !clinician && <p role="status" className="text-xs text-amber-800">No se cargó el listado de profesionales. Puedes usar Todas o Sin asignar.</p>}
-          <Button variant="ghost" size="sm" onClick={() => continuity.clear()}>Limpiar filtros</Button>
-          {careFilter !== "all" && <button type="button" onClick={() => setCareFilter("all")} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 text-sm font-semibold text-teal-800">{careFilter}<X className="size-4" aria-hidden="true" /><span className="sr-only">Quitar filtro</span></button>}
+          <Button variant="ghost" size="sm" className="min-h-11" onClick={() => continuity.clear()}>Limpiar filtros</Button>
         </div>
 
-        {!preview && !searchActive && (
-          <div className="flex flex-wrap items-center gap-2 border-b border-border bg-slate-50/70 px-5 py-3 text-sm sm:px-6">
-            <button type="button" onClick={() => void loadWeek(shiftDays(anchor, -7))} disabled={loading} aria-label="Semana anterior" className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-50"><ChevronLeft className="size-4" /></button>
-            <span className="min-w-48 text-center font-semibold text-foreground">{scope === "today" ? "Hoy" : weekLabel(anchor)}</span>
-            <button type="button" onClick={() => void loadWeek(shiftDays(anchor, 7))} disabled={loading} aria-label="Semana siguiente" className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-50"><ChevronRight className="size-4" /></button>
-            <label htmlFor="consultas-fecha" className="ml-1 text-muted-foreground">Buscar semana:</label>
-            <input id="consultas-fecha" type="date" value={anchor} onChange={(event) => { if (event.target.value) void loadWeek(event.target.value); }} disabled={loading} className="min-h-9 rounded-lg border border-border bg-white px-3 text-foreground disabled:opacity-50" />
+        </details>
+
+        {!preview && !searchActive && scope === "week" && (
+          <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-border bg-slate-50/70 px-5 py-3 text-sm sm:flex sm:flex-wrap sm:px-6">
+            <button type="button" onClick={() => void loadWeek(shiftDays(anchor, -7))} disabled={loading} aria-label="Semana anterior" className="inline-flex size-11 items-center justify-center rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-50"><ChevronLeft className="size-4" /></button>
+            <span className="min-w-0 text-center font-semibold text-foreground">{weekLabel(anchor)}</span>
+            <button type="button" onClick={() => void loadWeek(shiftDays(anchor, 7))} disabled={loading} aria-label="Semana siguiente" className="inline-flex size-11 items-center justify-center rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-50"><ChevronRight className="size-4" /></button>
+            <label htmlFor="consultas-fecha" className="col-span-3 mt-2 text-muted-foreground sm:ml-1 sm:mt-0">Buscar semana:</label>
+            <input id="consultas-fecha" type="date" value={anchor} onChange={(event) => { if (event.target.value) void loadWeek(event.target.value); }} disabled={loading} className="col-span-3 min-h-11 min-w-0 w-full rounded-lg border border-border bg-white px-3 text-foreground disabled:opacity-50 sm:w-auto" />
             {scope === "week" && weekStart(anchor) !== weekStart(today) && <button type="button" onClick={() => void loadWeek(today, "today")} disabled={loading} className="font-semibold text-teal-700 hover:underline disabled:opacity-50">Volver a hoy</button>}
           </div>
         )}
@@ -405,10 +398,10 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
               if (preview) calendarParams.set("preview", "1");
 
               return (
-                <li key={appointment.id} className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <li key={appointment.id} className="flex min-w-0 flex-col gap-4 px-5 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
                   <div className="flex min-w-0 items-start gap-4">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-xl" aria-hidden="true">{getPetEmoji(appointment.petType)}</span>
-                    <div className="min-w-0">
+                    <div className="min-w-0 [overflow-wrap:anywhere]">
                       <div className="flex flex-wrap items-center gap-2">
                         <h4 className="font-semibold text-foreground">{appointment.petName}</h4>
                         <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusBadgeClass(appointment.status)}`}>{formatStatus(appointment.status)}</span>
@@ -419,22 +412,22 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
                       <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />{appointmentDate(appointment.date)} · {appointmentTime(appointment.date)}{appointment.staffName ? ` · ${appointment.staffName}` : ""}</p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2 pl-[60px] sm:pl-0">
+                  <div className="flex max-w-full flex-wrap items-center gap-2 [&_button]:min-h-11 [&_a]:min-h-11 xl:max-w-sm xl:shrink-0">
                     {appointment.petId && !preview && !isVet && (
-                      <Link href={homeHref(`/dashboard/contacto?pet=${encodeURIComponent(appointment.petId)}`, tenantId ?? null)} className="inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted">Ver historia</Link>
+                      <Link href={homeHref(`/dashboard/contacto?pet=${encodeURIComponent(appointment.petId)}`, tenantId ?? null)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted">Ver historia</Link>
                     )}
-                    {!preview && canManage && appointment.status === "confirmed" && !graceExpired && <button type="button" disabled={statusBusyId === appointment.id} onClick={() => void advanceAppointment(appointment, "arrived")} className="inline-flex min-h-9 items-center rounded-lg border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-900 hover:bg-teal-100 disabled:opacity-50">{statusBusyId === appointment.id ? "Actualizando…" : "Registrar llegada"}</button>}
-                    {!preview && canManage && appointment.status === "arrived" && !priorDay && <button type="button" disabled={statusBusyId === appointment.id} onClick={() => void advanceAppointment(appointment, "in_progress")} className="inline-flex min-h-9 items-center rounded-lg bg-teal-700 px-3 text-xs font-semibold text-white hover:bg-teal-800 disabled:opacity-50">{statusBusyId === appointment.id ? "Actualizando…" : "Iniciar atención"}</button>}
+                    {!preview && canManage && appointment.status === "confirmed" && !graceExpired && <button type="button" disabled={statusBusyId === appointment.id} onClick={() => void advanceAppointment(appointment, "arrived")} className="inline-flex min-h-11 items-center rounded-lg border border-teal-200 bg-teal-50 px-3 text-xs font-semibold text-teal-900 hover:bg-teal-100 disabled:opacity-50">{statusBusyId === appointment.id ? "Actualizando…" : "Registrar llegada"}</button>}
+                    {!preview && canManage && appointment.status === "arrived" && !priorDay && <button type="button" disabled={statusBusyId === appointment.id} onClick={() => void advanceAppointment(appointment, "in_progress")} className="inline-flex min-h-11 items-center rounded-lg bg-teal-700 px-3 text-xs font-semibold text-white hover:bg-teal-800 disabled:opacity-50">{statusBusyId === appointment.id ? "Actualizando…" : "Iniciar atención"}</button>}
                     {!preview && ["pending", "confirmed"].includes(appointment.status) && graceExpired && <span className="text-xs font-medium text-amber-800">Tolerancia vencida · cierre automático pendiente</span>}
-                    {!preview && appointment.status === "arrived" && priorDay && (isVet ? <span className="text-xs text-amber-800">Llegada antigua: solicita revisión</span> : <Link href={`/dashboard/calendar?${calendarParams.toString()}`} className="inline-flex min-h-9 items-center rounded-lg border border-amber-200 px-3 text-xs font-semibold text-amber-900 hover:bg-amber-50">Revisar en agenda</Link>)}
+                    {!preview && appointment.status === "arrived" && priorDay && (isVet ? <span className="text-xs text-amber-800">Llegada antigua: solicita revisión</span> : <Link href={`/dashboard/calendar?${calendarParams.toString()}`} className="inline-flex min-h-11 items-center rounded-lg border border-amber-200 px-3 text-xs font-semibold text-amber-900 hover:bg-amber-50">Revisar en agenda</Link>)}
                     {canRecord ? (
-                      <button type="button" onClick={() => setSelected(appointment)} className="inline-flex min-h-9 items-center rounded-lg bg-teal-700 px-3 text-xs font-semibold text-white hover:bg-teal-800">
-                        {preview ? "Explorar formulario" : appointment.hasMedicalRecord ? canManage ? "Ver o editar registro" : "Ver registro" : canManage ? "Registrar atención" : "Ver paciente"}
+                      <button type="button" onClick={() => setSelected(appointment)} className="inline-flex min-h-11 items-center rounded-lg bg-teal-700 px-3 text-xs font-semibold text-white hover:bg-teal-800">
+                        {preview ? "Explorar formulario" : appointment.hasMedicalRecord ? "Ver consulta" : canManage ? "Abrir consulta" : "Ver paciente"}
                       </button>
                     ) : appointment.status === "pending" && graceExpired ? null : appointment.status === "pending" && isVet ? <span className="text-xs text-amber-800">Pendiente de confirmación</span> : appointment.status === "pending" ? (
-                      <Link href={`/dashboard/calendar?${calendarParams.toString()}`} className="inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted">Ver en agenda</Link>
+                      <Link href={`/dashboard/calendar?${calendarParams.toString()}`} className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted">Ver en agenda</Link>
                     ) : !appointment.petId ? <span className="text-xs text-amber-800">Asocia una mascota para registrar atención</span> : null}
-                    {!preview && canManage && appointment.status === "in_progress" && appointment.hasMedicalRecord && <button type="button" disabled={statusBusyId === appointment.id} onClick={() => void advanceAppointment(appointment, "completed")} className="inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50">{statusBusyId === appointment.id ? "Finalizando…" : "Finalizar cita"}</button>}
+                    {!preview && canManage && appointment.status === "in_progress" && appointment.hasMedicalRecord && <button type="button" disabled={statusBusyId === appointment.id} onClick={() => void advanceAppointment(appointment, "completed")} className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50">{statusBusyId === appointment.id ? "Finalizando…" : "Finalizar cita"}</button>}
                     {!canManage && <span className="text-xs text-slate-500">{appointment.staffName ? `Asignada a ${appointment.staffName}` : "Solicita al administrador que te asigne esta atención"}</span>}
                   </div>
                 </li>

@@ -12,6 +12,21 @@ function readReportPeriod(query, now = new Date()) {
   const period = query.period ?? 'month';
   const comparison = query.comparison ?? 'full';
   if (!['full', 'equivalent'].includes(comparison)) throw new Error('Selecciona una comparación válida.');
+  if (period === 'custom') {
+    const civil = value => typeof value === 'string' && /^[1-9]\d{3}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+    if (!civil(query.from) || !civil(query.to) || query.from > query.to) throw new Error('Selecciona fechas válidas; Desde no puede ser posterior a Hasta.');
+    const today = bogotaDate(now).toISOString().slice(0, 10);
+    const start = new Date(query.from + 'T00:00:00-05:00');
+    const end = new Date(new Date(query.to + 'T00:00:00-05:00').getTime() + DAY);
+    const duration = end - start;
+    if (query.from > today || duration > 366 * DAY) throw new Error('El rango debe comenzar hoy o antes y abarcar como máximo 366 días.');
+    if ((query.offset !== undefined && query.offset !== '0') || comparison !== 'full') throw new Error('El rango personalizado se compara con los mismos días inmediatamente anteriores.');
+    const prev = { start: new Date(start.getTime() - duration), end: start };
+    if (prev.start.getUTCFullYear() < 1000) throw new Error('El período solicitado queda fuera del rango admitido.');
+    const current = { start, end }, rangeYear = Number(query.from.slice(0, 4));
+    return { period, offset: 0, current, prev, year: rangeYear, asOf: now,
+      metadata: { period, offset: 0, comparison: 'full', comparisonClamped: false, rangeStart: start, rangeEnd: end, previousRangeStart: prev.start, previousRangeEnd: prev.end, asOf: now, partial: now < end, year: rangeYear } };
+  }
   const raw = query.offset ?? '0';
   if (!['week', 'month', 'year'].includes(period) || typeof raw !== 'string' || !/^-?\d+$/.test(raw)) throw new Error('Selecciona una semana, mes o año válido.');
   const offset = Number(raw);

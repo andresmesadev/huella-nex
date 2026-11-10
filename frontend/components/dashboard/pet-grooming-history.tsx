@@ -10,7 +10,7 @@ import type { GroomingVisit } from "@/lib/grooming";
 import type { TimelineItem } from "@/lib/pets";
 import { isGroomingTimelineItem } from "@/lib/contact-profile-utils";
 
-export function PetGroomingHistory({ petId, appointments = [], onSaved }: { petId: string; appointments?: TimelineItem[]; onSaved?: () => void }) {
+export function PetGroomingHistory({ petId, appointments = [], onSaved, readOnly = false }: { readOnly?: boolean; petId: string; appointments?: TimelineItem[]; onSaved?: () => void }) {
   const tenant = useTenant();
   const [visits, setVisits] = useState<GroomingVisit[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -75,6 +75,6 @@ export function PetGroomingHistory({ petId, appointments = [], onSaved }: { petI
     {error && <div role="alert" className="rounded-xl border p-4 text-sm"><p>{error}</p><Button variant="outline" className="mt-2" onClick={() => setRetry((value) => value + 1)}>Reintentar</Button></div>}
     {!loading && !error && ordered.length === 0 && <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Todavía no hay visitas de peluquería para esta mascota. Crea una cita de baño o corte para registrar sus notas.</p>}
     {!loading && !error && nextCursor && <Button variant="outline" onClick={() => setCursor(nextCursor)}>Ver notas de visitas anteriores</Button>}
-    {selected && <GroomingNotesDialog key={selected.id} visit={selected} tenantId={tenant ?? undefined} onClose={() => setSelected(null)} onSaved={(updated) => { setSelected(updated); setCursor(null); setRetry((value) => value + 1); onSaved?.(); }} />}
+    {selected && <GroomingNotesDialog readOnly={readOnly} key={selected.id} visit={selected} tenantId={tenant ?? undefined} onClose={() => setSelected(null)} onSaved={(updated) => { setSelected(updated); setCursor(null); setRetry((value) => value + 1); onSaved?.(); }} />}
   </section>;
 }

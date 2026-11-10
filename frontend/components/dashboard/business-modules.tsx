@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, CheckCircle2, Info, Layers3, Save, Scissors, ShoppingBag, Stethoscope } from "lucide-react";
+import { CheckCircle2, Info, Layers3, Save, Scissors, ShoppingBag, Stethoscope } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,49 +79,47 @@ export function BusinessModules({ initial, onDirtyChange, onSavingChange }: Prop
   }
 
   return (
-    <section className="max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm" aria-labelledby="business-areas-title" aria-busy={saving}>
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border p-6 sm:p-8">
+    <section className="max-w-5xl overflow-hidden rounded-2xl border border-border bg-card [&_button]:min-h-11 [&_button]:whitespace-normal" aria-labelledby="business-areas-title" aria-busy={saving}>
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border p-5 sm:p-6">
         <div className="flex items-start gap-3"><div className="rounded-xl bg-teal-50 p-3 text-primary"><Layers3 aria-hidden="true" className="h-5 w-5" /></div><div><h2 id="business-areas-title" className="text-xl font-bold">Áreas del negocio</h2><p className="mt-1 max-w-xl text-sm text-muted-foreground">Selecciona lo que ofrece tu establecimiento. Puedes combinar las áreas según tu negocio.</p></div></div>
         <Badge variant="outline">{saved.length} {saved.length === 1 ? "área activa" : "áreas activas"}</Badge>
       </div>
 
-      <div className="space-y-6 p-6 sm:p-8">
+      <div className="space-y-6 p-5 sm:p-6">
         <fieldset disabled={saving} className="min-w-0">
           <legend className="mb-4 text-sm font-semibold">¿Qué servicios ofrece tu negocio?</legend>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="divide-y divide-border rounded-xl border border-border">
             {MODULES.map(({ id, name, icon: Icon, detail, features, team }) => {
               const checked = selected.includes(id);
               const configured = saved.includes(id);
               return (
-                <label key={id} className={cn("relative flex cursor-pointer flex-col rounded-xl border p-5 transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2", checked ? "border-primary bg-teal-50/60" : "border-border bg-white hover:bg-muted/30", saving && "cursor-wait opacity-60")}>
-                  <div className="flex items-center justify-between gap-3"><span className={cn("rounded-lg p-2", checked ? "bg-teal-100 text-primary" : "bg-muted text-muted-foreground")}><Icon aria-hidden="true" className="h-5 w-5" /></span><input type="checkbox" aria-label={name} aria-describedby={`area-detail-${id}`} checked={checked} onChange={(event) => { const checked = event.target.checked; setSelected((values) => checked ? [...values, id] : values.filter((value) => value !== id)); setError(null); setJustSaved(false); }} className="h-5 w-5 cursor-pointer accent-teal-700" /></div>
-                  <span className="mt-4 text-base font-bold">{name}</span><span id={`area-detail-${id}`} className="mt-1 text-sm text-muted-foreground">{detail}</span>
-                  <ul className="my-4 space-y-2">{features.map((feature) => <li key={feature} className="flex items-start gap-2 text-sm"><Check aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span>{feature}</span></li>)}</ul>
-                  <span className="mt-auto border-t border-border/70 pt-3 text-xs text-muted-foreground">{team}</span>
-                  <span className={cn("mt-3 text-xs font-semibold", checked !== configured ? "text-amber-800" : checked ? "text-primary" : "text-muted-foreground")}>{checked !== configured ? checked ? "Se activará al guardar" : "Se desactivará al guardar" : configured ? "Activa actualmente" : "No activa"}</span>
+                <label key={id} className={cn("relative flex cursor-pointer items-start gap-3 p-4 transition-colors first:rounded-t-xl last:rounded-b-xl focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring", checked ? "bg-teal-50/60" : "bg-card hover:bg-muted/30", saving && "cursor-wait opacity-60")}>
+                  <span className={cn("shrink-0 rounded-lg p-2", checked ? "bg-teal-100 text-primary" : "bg-muted text-muted-foreground")}><Icon aria-hidden="true" className="h-5 w-5" /></span>
+                  <div className="min-w-0 flex-1 space-y-1"><span className="block text-base font-bold">{name}</span><span id={`area-detail-${id}`} className="block text-sm text-muted-foreground">{detail}</span><span className="block text-sm">{features.join(" · ")}</span><span className="block text-xs text-muted-foreground">{team}</span><span className={cn("block pt-1 text-xs font-semibold", checked !== configured ? "text-amber-800" : checked ? "text-primary" : "text-muted-foreground")}>{checked !== configured ? checked ? "Se activará al guardar" : "Se desactivará al guardar" : configured ? "Activa actualmente" : "No activa"}</span></div>
+                  <span className="flex min-h-11 w-11 shrink-0 items-center justify-center"><input type="checkbox" aria-label={name} aria-describedby={`area-detail-${id}`} checked={checked} onChange={(event) => { const checked = event.target.checked; setSelected((values) => checked ? [...values, id] : values.filter((value) => value !== id)); setError(null); setJustSaved(false); }} className="h-5 w-5 cursor-pointer accent-teal-700" /></span>
                 </label>
               );
             })}
           </div>
         </fieldset>
 
-        <div className="rounded-xl border border-border bg-muted/20 p-5">
+        <div className="border-t border-border pt-4">
           <h3 className="flex items-center gap-2 font-semibold"><Info aria-hidden="true" className="h-4 w-4 text-primary" />Cómo queda tu espacio de trabajo</h3>
           <p className="mt-1 text-sm text-muted-foreground">{dirty ? "Vista previa de la selección. El menú cambia después de guardar." : "Configuración guardada para este establecimiento."}</p>
           <p className="mt-4 text-sm font-medium">{selected.length === 0 ? "Selecciona al menos un área para continuar." : `Áreas seleccionadas: ${MODULES.filter((area) => selected.includes(area.id)).map((area) => area.name).join(" · ")}.`}</p>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+          <details className="mt-3 text-sm"><summary className="cursor-pointer py-2 font-medium text-muted-foreground">Ver opciones y accesos disponibles</summary><ul className="mt-2 space-y-2 text-sm text-muted-foreground">
             <li>{hasAppointments ? "Agenda disponible para las áreas de atención seleccionadas." : "Sin Agenda, consultas ni peluquería: una tienda sola puede trabajar directamente desde Punto de venta."}</li>
             <li>{selected.includes("retail") ? "Venta de productos habilitada, además del cobro de los servicios que ofrezcas." : "Punto de venta disponible para cobrar servicios; la venta de productos requiere activar Pet shop."}</li>
             <li>El administrador mantiene Clientes y mascotas, WhatsApp, Inventario, Seguimiento de clientes y Administración.</li>
           </ul>
-          <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">Activar un área no concede permisos adicionales al equipo. Cada persona ve las opciones permitidas por su perfil y por las áreas activas. Los accesos se gestionan en Equipo y accesos.</p>
+          <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">Activar un área no concede permisos adicionales al equipo. Cada persona ve las opciones permitidas por su perfil y por las áreas activas. Los accesos se gestionan en Equipo y accesos.</p></details>
         </div>
 
         {dirty && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" aria-label="Cambios de áreas pendientes"><h3 className="font-semibold">Cambios al guardar</h3>{added.length > 0 && <p className="mt-2">Activar: {added.map((area) => area.name).join(", ")}.</p>}{removed.length > 0 && <><p className="mt-2">Desactivar: {removed.map((area) => area.name).join(", ")}.</p><p className="mt-2">Se bloquearán nuevas operaciones de esas áreas. Los registros existentes se conservan y puedes reactivar el área después.</p></>}</div>}
         {selected.length === 0 && <p role="alert" className="text-sm text-destructive">El negocio debe tener al menos un área activa. Marca una opción antes de guardar.</p>}
       </div>
 
-      <div className="border-t border-border bg-muted/20 p-6 sm:px-8">
+      <div className="border-t border-border bg-muted/20 p-5 sm:px-6">
         {error && <p role="alert" className="mb-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">{justSaved && <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-primary" />}{saving ? "Guardando las áreas…" : dirty ? "Tienes cambios sin guardar." : justSaved ? menuUpdated ? "Áreas guardadas. El menú se actualizó para tu perfil." : "Áreas guardadas. Actualizando las opciones disponibles…" : "No hay cambios pendientes."}</p>

@@ -8,7 +8,7 @@ const fail = (code, message, status) => { throw new OperationalError(code, messa
 const INTENTS = ['financial_history', 'daily_close', 'financial_period', 'prepare_expense', 'inventory_search', 'inventory_detail', 'inventory_movements', 'prepare_entry'];
 const SPECIALIZATIONS = { asistente_financiero: INTENTS.slice(0, 4), asistente_administrativo: INTENTS.slice(4) };
 const COMMANDS = { prepare_expense: 'registrar_gasto', prepare_entry: 'entrada_inventario' };
-const EXPENSE_CATEGORIES = ['supplies','utilities','rent','salary','equipment','marketing','other'];
+const { EXPENSE_CATEGORIES } = require('../../../shared/expense-categories');
 const PAYMENT_METHODS = ['cash','transfer','card','other'];
 const FIELDS = {
   financial_history: ['rangeStart', 'rangeEnd'], daily_close: ['date'], financial_period: ['periodStart', 'periodEnd'],

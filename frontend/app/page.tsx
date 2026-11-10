@@ -1,61 +1,95 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, CircleDollarSign, Clock3, HeartPulse, MessageCircleMore, PawPrint, Scissors, Sparkles, UsersRound } from "lucide-react";
-import styles from "./landing.module.css";
+import { ArrowRight, CalendarDays, Check, ChevronDown, CircleDollarSign, HeartPulse, Mail, Package, PawPrint, Scissors, ShoppingBag, UsersRound } from "lucide-react";
 import { ProductBrand } from "@/components/brand/product-brand";
+import { OperationPreview } from "@/components/marketing/operation-preview";
+import { PRODUCT_DESCRIPTION, PRODUCT_SUPPORT_EMAIL } from "@/lib/product-brand";
+import styles from "./landing.module.css";
 
 export const metadata: Metadata = {
-  title: "Huella Nex | Una operación más simple para tu negocio de mascotas",
-  description: "Organiza agenda, clientes, servicios, equipo y finanzas en una plataforma para negocios de salud y bienestar animal, con empleados digitales especializados.",
+  title: "Huella Nex | Software para veterinarias, peluquerías y pet shops",
+  description: PRODUCT_DESCRIPTION,
 };
 
-const capabilities = [
-  { icon: CalendarDays, title: "Una agenda que sigue el ritmo de tu negocio", description: "Consulta citas, disponibilidad y servicios desde un mismo lugar. Tu equipo sabe qué viene y qué necesita atención.", tone: styles.mint },
-  { icon: PawPrint, title: "Cada mascota tiene una historia", description: "Reúne clientes, mascotas y datos importantes para dar una atención más cercana en cada visita.", tone: styles.peach },
-  { icon: CircleDollarSign, title: "La operación también se ve en números", description: "Lleva servicios, cobros, gastos y comisiones con información conectada a lo que ocurre cada día.", tone: styles.blue },
+const demoHref = `mailto:${PRODUCT_SUPPORT_EMAIL}?subject=${encodeURIComponent("Quiero conocer Huella Nex para mi negocio")}`;
+const modules = [
+  { icon: CalendarDays, title: "Agenda y atención", description: "Organiza las citas por servicio y profesional. Sigue cada atención desde la llegada hasta su finalización." },
+  { icon: PawPrint, title: "Clientes y mascotas", description: "Encuentra contactos, datos de cada mascota, visitas y preferencias de atención en su ficha." },
+  { icon: ShoppingBag, title: "Punto de venta", description: "Cobra servicios y productos en una sola venta. Registra efectivo, transferencia o un pago combinado." },
+  { icon: Package, title: "Inventario", description: "Controla existencias, entradas, ventas y consumos para saber qué tienes y qué necesitas reponer." },
+  { icon: UsersRound, title: "Equipo y comisiones", description: "Configura el porcentaje de cada profesional y cuáles servicios se reparten o quedan para el negocio." },
+  { icon: CircleDollarSign, title: "Caja y reportes", description: "Revisa ingresos, gastos y comisiones. Registra la base de efectivo y guarda el cierre de la jornada." },
+];
+const sectors = [
+  { icon: HeartPulse, name: "Veterinarias", description: "Coordina consultas y servicios sin perder de vista lo que se vende, se utiliza y se cobra.", features: ["Agenda por servicio y profesional", "Clientes, mascotas y atenciones", "Productos y consumos de inventario"], tone: styles.vet },
+  { icon: Scissors, name: "Peluquerías caninas y felinas", description: "Desde la llegada hasta la entrega, mantén a tu equipo al tanto de cada mascota.", features: ["Seguimiento de las atenciones", "Tarifas de peluquería y domicilio", "Comisiones por profesional y servicio"], tone: styles.grooming },
+  { icon: ShoppingBag, name: "Pet shops", description: "Conoce tus existencias, registra tus ventas y lleva las cuentas de cada jornada.", features: ["Venta de productos en mostrador", "Stock, entradas y reposición", "Pagos combinados y cierre de caja"], tone: styles.retail },
+];
+const questions = [
+  { question: "¿Me sirve si mi negocio solo es una peluquería o un pet shop?", answer: "Sí. Huella Nex permite configurar el negocio según su actividad. Una peluquería puede concentrarse en sus citas, atenciones y comisiones; un pet shop, en ventas e inventario. También puedes combinar actividades en un mismo establecimiento." },
+  { question: "¿Necesito conectar WhatsApp o usar inteligencia artificial?", answer: "No. Puedes trabajar con el dashboard y registrar directamente citas, clientes, ventas y pagos. Las integraciones de WhatsApp e IA se revisan por separado, según su disponibilidad y las condiciones de activación." },
+  { question: "¿Puedo registrar una parte en efectivo y otra por transferencia?", answer: "Sí. Puedes dividir el pago entre ambos métodos y conservar el desglose en el cobro, para revisar cómo se recibió el dinero." },
+  { question: "¿Cómo funcionan las comisiones?", answer: "Puedes configurar el porcentaje del profesional y señalar qué servicios participan en el reparto. El domicilio y los productos se distinguen de los servicios comisionables para calcular la parte correspondiente." },
+  { question: "¿Cómo puedo conocer los planes y empezar?", answer: "Estamos preparando una beta cerrada con acompañamiento. Solicita una demostración para revisar tu actividad, las funciones que necesitas y las condiciones de participación. Los precios y el alcance se confirman antes de contratar." },
+  { question: "¿El comprobante del punto de venta es una factura electrónica?", answer: "El comprobante registra el cobro de la operación. No sustituye una factura electrónica ni su emisión a través de la DIAN o de un proveedor autorizado." },
 ];
 
 function Brand() {
   return <Link href="/" className={styles.brand} aria-label="Huella Nex, inicio"><ProductBrand size="md" /></Link>;
 }
 
-function Header() {
-  return <header className={styles.header}><div className={styles.headerInner}><Brand /><nav className={styles.desktopNav} aria-label="Navegación principal"><a href="#plataforma">La plataforma</a><a href="#como-funciona">Cómo funciona</a></nav><div className={styles.headerActions}><Link href="/login" className={styles.loginLink}>Ingresar</Link><Link href="/onboarding" className={styles.headerCta}>Crear mi cuenta <ArrowRight size={16} /></Link></div></div></header>;
-}
-
-function OperationPreview() {
-  return <div className={styles.preview} aria-label="Vista ilustrativa de una jornada en la plataforma">
-    <div className={styles.previewTop}><div className={styles.previewLogo}><ProductBrand size="sm" /></div><span className={styles.previewToday}>Tu operación, en un lugar</span></div>
-    <div className={styles.previewBody}><div className={styles.previewIntro}><span>Hoy en tu negocio</span><strong>Todo empieza aquí.</strong></div><div className={styles.previewColumns}>
-      <div className={styles.appointmentPanel}><div className={styles.panelTitle}><CalendarDays size={17} /> Agenda del día</div>
-        <div className={styles.appointment}><span className={styles.time}>09:00</span><span className={styles.appointmentIcon}><Scissors size={17} /></span><span><strong>Baño y peluquería</strong><small>Una cita por atender</small></span><span className={styles.statusDot} /></div>
-        <div className={styles.appointment}><span className={styles.time}>11:30</span><span className={styles.appointmentIcon}><HeartPulse size={17} /></span><span><strong>Consulta veterinaria</strong><small>Equipo preparado</small></span><span className={styles.statusDot} /></div>
-        <div className={styles.appointment}><span className={styles.time}>15:00</span><span className={styles.appointmentIcon}><PawPrint size={17} /></span><span><strong>Control de mascota</strong><small>Próxima visita</small></span><span className={styles.statusDot} /></div>
-      </div><div className={styles.sidePanel}><div className={styles.sidePanelIcon}><MessageCircleMore size={22} /></div><strong>Conversaciones al día</strong><p>La recepcionista digital ayuda a responder, coordinar citas y dar continuidad a cada conversación.</p><div className={styles.sidePanelFoot}><Sparkles size={15} /> Equipo humano + digital</div></div>
-    </div></div><span className={styles.floatingNote}><Clock3 size={17} /> Más claridad para cada jornada</span>
-  </div>;
-}
-
-function Hero() {
-  return <section className={styles.hero}><div className={styles.heroInner}><div className={styles.heroCopy}><p className={styles.kicker}><span className={styles.kickerDot} /> Para quienes cuidan mascotas</p><h1>Tu negocio de mascotas, <span>en sintonía.</span></h1><p className={styles.heroDescription}>Agenda, clientes, servicios, equipo y finanzas conectados en una sola plataforma. Con empleados digitales que ayudan a que cada día fluya mejor.</p><div className={styles.heroActions}><Link href="/onboarding" className={styles.primaryButton}>Empieza con Huella Nex <ArrowRight size={18} /></Link><a href="#plataforma" className={styles.textButton}>Conoce la plataforma <ArrowRight size={17} /></a></div><p className={styles.heroFootnote}>Para veterinarias, pet shops y peluquerías caninas y felinas.</p></div><OperationPreview /></div></section>;
-}
-
-function Platform() {
-  return <section id="plataforma" className={styles.platform}><div className={styles.sectionInner}><div className={styles.sectionHeading}><p className={styles.sectionEyebrow}>La plataforma</p><h2>Menos piezas sueltas.<br />Más tiempo para cuidar.</h2><p>Las tareas diarias se entienden mejor cuando la información del negocio vive en un mismo lugar.</p></div><div className={styles.capabilityGrid}>{capabilities.map(({ icon: Icon, title, description, tone }) => <article className={`${styles.capability} ${tone}`} key={title}><div className={styles.capabilityIcon}><Icon size={25} strokeWidth={1.8} /></div><h3>{title}</h3><p>{description}</p></article>)}</div></div></section>;
-}
-
-function HowItWorks() {
-  return <section id="como-funciona" className={styles.how}><div className={styles.howInner}><div className={styles.howCopy}><p className={styles.sectionEyebrow}>Personas y tecnología, juntas</p><h2>Tu equipo hace lo que mejor sabe hacer. La plataforma acompaña el resto.</h2><p>Huella Nex reúne la operación del establecimiento y permite que empleados digitales especializados apoyen las tareas repetitivas, sin perder de vista el trabajo del equipo humano.</p><Link href="/onboarding" className={styles.darkButton}>Conocer los planes <ArrowRight size={18} /></Link></div><div className={styles.flow}>
-    <div className={styles.flowItem}><span><UsersRound size={23} /></span><div><strong>Tu equipo</strong><p>Atiende a las mascotas y toma las decisiones importantes.</p></div><Check size={18} className={styles.flowCheck} /></div>
-    <div className={styles.flowItem}><span><MessageCircleMore size={23} /></span><div><strong>Empleados digitales</strong><p>Apoyan conversaciones, citas y recordatorios.</p></div><Check size={18} className={styles.flowCheck} /></div>
-    <div className={styles.flowItem}><span><Sparkles size={23} /></span><div><strong>Una operación conectada</strong><p>La información queda disponible para trabajar con más claridad.</p></div><Check size={18} className={styles.flowCheck} /></div>
-  </div></div></section>;
-}
-
-function FinalCta() {
-  return <section className={styles.finalCta}><div className={styles.finalInner}><div><p className={styles.finalEyebrow}>El siguiente paso</p><h2>Haz espacio para lo que más importa.</h2><p>Conoce los planes y empieza a organizar tu negocio con Huella Nex.</p></div><Link href="/onboarding" className={styles.lightButton}>Crear mi cuenta <ArrowRight size={18} /></Link></div></section>;
+function DemoLink({ className, children = "Solicitar una demostración" }: { className: string; children?: React.ReactNode }) {
+  return <a href={demoHref} className={className}>{children}<ArrowRight size={18} aria-hidden="true" /></a>;
 }
 
 export default function LandingPage() {
-  return <div className={styles.page}><Header /><main><Hero /><Platform /><HowItWorks /><FinalCta /></main><footer className={styles.footer}><div className={styles.footerInner}><Brand /><span>Una operación más simple para quienes cuidan mascotas.</span><div><Link href="/login">Ingresar</Link><Link href="/onboarding">Crear cuenta</Link></div><small>© {new Date().getFullYear()} Huella Nex</small></div></footer></div>;
+  return (
+    <div className={styles.page}>
+      <a href="#contenido" className={styles.skipLink}>Saltar al contenido</a>
+      <header className={styles.header}><div className={styles.headerInner}>
+        <Brand />
+        <nav className={styles.desktopNav} aria-label="Navegación principal"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><a href="#preguntas">Preguntas</a></nav>
+        <div className={styles.headerActions}><Link href="/login" className={styles.loginLink}>Ingresar</Link><DemoLink className={styles.headerCta}>Solicitar demo</DemoLink></div>
+      </div></header>
+      <main id="contenido">
+        <section className={styles.hero} aria-labelledby="hero-title"><div className={styles.heroInner}>
+          <div className={styles.heroCopy}>
+            <p className={styles.kicker}><PawPrint size={17} aria-hidden="true" /> Gestión para negocios de mascotas</p>
+            <h1 id="hero-title">Tu negocio de mascotas.<br />Todo bajo control.</h1>
+            <p className={styles.heroDescription}>La cita que llega, el producto que vendes y las cuentas al cerrar el día. Organiza tu operación con Huella Nex y dedica más atención a quienes te visitan.</p>
+            <div className={styles.heroActions}><DemoLink className={styles.primaryButton} /><a href="#plataforma" className={styles.textButton}>Explorar la plataforma <ChevronDown size={17} aria-hidden="true" /></a></div>
+            <div className={styles.heroAudiences}><span>Veterinarias</span><span>Peluquerías</span><span>Pet shops</span></div>
+          </div>
+          <OperationPreview />
+        </div></section>
+        <div className={styles.introBand}><div className={styles.sectionInner}><PawPrint size={25} aria-hidden="true" /><p>Nació de una necesidad real.<br /><strong>Hoy acompaña la operación diaria de un centro veterinario.</strong></p><a href="#como-funciona">Conoce cómo funciona <ArrowRight size={17} aria-hidden="true" /></a></div></div>
+        <section id="plataforma" className={styles.platform} aria-labelledby="platform-title"><div className={styles.sectionInner}>
+          <div className={styles.sectionHeading}><h2 id="platform-title">Todo lo que pasa en tu negocio tiene su lugar.</h2><p>De la agenda al cierre de caja, trabaja con la misma información. Menos búsquedas, más claridad para tu equipo.</p></div>
+          <div className={styles.moduleGrid}>{modules.map(({ icon: Icon, title, description }) => <article className={styles.module} key={title}><span className={styles.moduleIcon}><Icon size={23} strokeWidth={1.7} aria-hidden="true" /></span><div><h3>{title}</h3><p>{description}</p></div></article>)}</div>
+        </div></section>
+        <section id="sectores" className={styles.sectors} aria-labelledby="sectors-title"><div className={styles.sectionInner}>
+          <div className={styles.sectionHeading}><h2 id="sectors-title">Un mismo propósito.<br />Tu forma de trabajar.</h2><p>No todos los negocios atienden igual. Configura los servicios, horarios y equipo que necesita el tuyo.</p></div>
+          <div className={styles.sectorGrid}>{sectors.map(({ icon: Icon, name, description, features, tone }) => <article className={`${styles.sector} ${tone}`} key={name}><Icon size={33} strokeWidth={1.6} aria-hidden="true" /><h3>{name}</h3><p>{description}</p><ul>{features.map(feature => <li key={feature}><Check size={16} aria-hidden="true" />{feature}</li>)}</ul></article>)}</div>
+        </div></section>
+        <section id="como-funciona" className={styles.how} aria-labelledby="how-title"><div className={styles.sectionInner}>
+          <div className={styles.howHeading}><p className={styles.sectionLabel}>Una jornada con Huella Nex</p><h2 id="how-title">Desde el primer saludo<br />hasta el cierre del día.</h2></div>
+          <ol className={styles.steps}>
+            <li><span className={styles.stepNumber}>1</span><h3>Prepara tu jornada</h3><p>Consulta la agenda, los servicios y quién los atenderá. En mostrador, encuentra el producto que vas a vender.</p></li>
+            <li><span className={styles.stepNumber}>2</span><h3>Registra lo que sucede</h3><p>Actualiza la atención, agrega productos y registra los consumos que correspondan.</p></li>
+            <li><span className={styles.stepNumber}>3</span><h3>Cobra con claridad</h3><p>Revisa servicios y adicionales. Confirma cuánto se pagó y cómo recibiste el dinero.</p></li>
+            <li><span className={styles.stepNumber}>4</span><h3>Cierra las cuentas</h3><p>Consulta ingresos, gastos y comisiones. Guarda el cierre y el efectivo que dejas como base.</p></li>
+          </ol>
+        </div></section>
+        <section id="preguntas" className={styles.faq} aria-labelledby="faq-title"><div className={styles.faqInner}>
+          <div><p className={styles.sectionLabel}>Antes de empezar</p><h2 id="faq-title">Resolvamos tus dudas.</h2><p className={styles.faqIntro}>Cuéntanos cómo trabajas. La demostración es el espacio para revisar si Huella Nex encaja con tu negocio.</p><a href={demoHref} className={styles.emailLink}><Mail size={18} aria-hidden="true" /> Hablar con el equipo</a></div>
+          <div className={styles.questions}>{questions.map(({ question, answer }) => <details className={styles.question} key={question}><summary>{question}<ChevronDown size={19} aria-hidden="true" /></summary><p>{answer}</p></details>)}</div>
+        </div></section>
+        <section className={styles.finalCta} aria-labelledby="contact-title"><div className={styles.finalInner}>
+          <div><span className={styles.betaLabel}>Beta cerrada con acompañamiento</span><h2 id="contact-title">Conozcamos tu negocio.<br />Te mostramos Huella Nex.</h2><p>Revisamos juntos tus servicios, tu equipo y lo que necesitas para empezar.</p></div>
+          <div className={styles.finalActions}><DemoLink className={styles.lightButton} /><small>Se abrirá tu aplicación de correo.</small></div>
+        </div></section>
+      </main>
+      <footer className={styles.footer}><div className={styles.footerInner}><div><Brand /><p>Gestión para quienes cuidan mascotas.</p></div><nav aria-label="Enlaces del pie de página"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><Link href="/login">Ingresar al dashboard</Link><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`}>Contacto</a></nav><small>© {new Date().getFullYear()} Huella Nex</small></div></footer>
+    </div>
+  );
 }

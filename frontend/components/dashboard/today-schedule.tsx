@@ -7,7 +7,7 @@ import type { DashboardAccess } from "@/lib/dashboard-access";
 import { useDashboardAccess } from "@/components/dashboard/dashboard-access-provider";
 import { homeAppointments, homeHref } from "@/lib/home-workspace";
 import { DAY_GROUPS, matchesDayGroup, type HomeScheduleFilter } from "@/lib/home-adaptability";
-import { ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronRight, RefreshCw } from "lucide-react";
 import { DailyCloseSheet } from "@/components/dashboard/daily-close-sheet";
 
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +72,22 @@ function DaySummary({ appointments, prices }: { appointments: TodayAppointment[]
       )}
     </div>
   );
+}
+
+function AppointmentAmounts({ appointment: appt }: { appointment: TodayAppointment }) {
+  const paid = appt.payment?.status === "paid" && appt.payment.total != null;
+  const service = appt.priceResolution?.servicePrice ?? appt.finalPrice;
+  const source = appt.finalPrice !== null && appt.priceResolution?.source;
+  return <span className="mt-2 block space-y-1 text-xs text-muted-foreground">
+    <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1 tabular-nums">
+      {paid ? <span className="font-semibold text-primary">Cobrado: {COP.format(appt.payment!.total!)}</span> : <>
+        <span>Servicio: <span className="font-medium text-foreground">{service == null ? "Por confirmar" : COP.format(service)}</span></span>
+        <span>Domicilio: {appt.transport?.pending ? "Por confirmar" : COP.format(appt.transport?.price ?? 0)}</span>
+        <span className="font-semibold text-foreground">{appt.payment?.status === "pending" ? "Referencia" : "Total"}: {appt.finalPrice == null ? "Por confirmar" : COP.format(appt.finalPrice)}</span>
+      </>}
+    </span>
+    {source && source !== "manual_override" && <span className="block">{PRICE_SOURCE_LABEL[source]}</span>}
+  </span>;
 }
 
 function formatTimeSince(date: Date): string {
@@ -171,9 +187,9 @@ export function TodaySchedule({ appointments: initial, initialReview = false, co
 
   return (
     <>
-      <Card id="agenda-de-hoy" className={`scroll-mt-28 border-t-2 border-t-teal-500/50 border-black/[0.12] ${compact ? "@min-[880px]:min-h-[430px]" : ""}`}>
-        <CardHeader className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-3">
-          <CardTitle className="text-base font-semibold"><h2>Agenda de hoy</h2></CardTitle>
+      <Card id="agenda-de-hoy" className={`scroll-mt-28 border-border shadow-none ${compact ? "@min-[880px]:min-h-[430px]" : ""}`}>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+          <CardTitle className="text-lg font-semibold"><h2 className="flex items-center gap-2"><CalendarDays aria-hidden="true" className="size-5 text-primary" />Agenda de hoy</h2></CardTitle>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="hidden text-sm text-muted-foreground sm:inline">{capitalized}</span>
             {access?.capabilities.finance && !compact && <DailyCloseSheet />}
@@ -181,21 +197,10 @@ export function TodaySchedule({ appointments: initial, initialReview = false, co
               onClick={() => refresh(false)}
               disabled={polling}
               aria-label="Actualizar ahora"
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className={`w-3.5 h-3.5 ${polling ? "animate-spin" : ""}`}
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H5.498a.75.75 0 0 0-.75.75v3.232a.75.75 0 0 0 1.5 0v-1.54l.308.31a7 7 0 0 0 11.494-3.353.75.75 0 1 0-1.454-.364zm-4.306-9.85a.75.75 0 0 0-.75.75v3.232a.75.75 0 0 0 1.5 0v-1.54l.308.31a7 7 0 0 0-11.494 3.353.75.75 0 0 0 1.454.364 5.5 5.5 0 0 1 9.201-2.466l.312.311h-2.433a.75.75 0 0 0 0 1.5h3.232a.75.75 0 0 0 .75-.75V2.324a.75.75 0 0 0-.75-.75z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="hidden sm:inline">
+              <RefreshCw aria-hidden="true" className={`size-4 ${polling ? "animate-spin motion-reduce:animate-none" : ""}`} />
+              <span className="text-xs">
                 {polling ? "Actualizando…" : `${formatTimeSince(lastUpdated)}`}
               </span>
             </button>
@@ -205,44 +210,42 @@ export function TodaySchedule({ appointments: initial, initialReview = false, co
         <CardContent className={compact ? "flex min-h-0 flex-1 flex-col" : undefined}>
           {refreshError && <p role="alert" className="mb-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">No se pudo actualizar. Se muestran los últimos datos cargados.</p>}
           {agendaAppointments.length > 0 && !compact && <DaySummary appointments={agendaAppointments} prices={prices} />}
-          {agendaAppointments.length > 0 && <div className="mb-2 flex flex-wrap items-center gap-2 border-b border-slate-100 pb-3">
-            <button type="button" onClick={() => changeFilter("all")} aria-pressed={selectedFilter === "all"} className={`min-h-9 rounded-lg px-3 text-sm font-semibold ${selectedFilter === "all" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>Todas las citas</button>
-            <button type="button" onClick={() => changeFilter("review")} aria-pressed={selectedFilter === "review"} className={`min-h-9 rounded-lg px-3 text-sm font-semibold ${selectedFilter === "review" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>Por revisar ({attentionCount})</button>
+          {agendaAppointments.length > 0 && <div role="group" aria-label="Filtros de la agenda del día" className="mb-2 flex flex-wrap items-center gap-2 border-b border-border pb-3">
+            <button type="button" onClick={() => changeFilter("all")} aria-pressed={selectedFilter === "all"} className={`min-h-11 rounded-lg px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${selectedFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>Todas las citas</button>
+            <button type="button" onClick={() => changeFilter("review")} aria-pressed={selectedFilter === "review"} className={`min-h-11 rounded-lg px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${selectedFilter === "review" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>Por revisar ({attentionCount})</button>
           </div>}
-          {groupLabel && <p role="status" className="mb-3 text-sm font-semibold text-teal-800">Mostrando: {groupLabel.toLocaleLowerCase("es-CO")}</p>}
+          {groupLabel && <p role="status" className="mb-3 text-sm font-semibold text-primary">Mostrando: {groupLabel.toLocaleLowerCase("es-CO")}</p>}
           {agendaAppointments.length === 0 ? (
             <div className="flex flex-wrap items-center justify-between gap-3 py-5">
               <div>
-                <p className="text-sm font-semibold text-slate-900">No hay citas para hoy</p>
+                <p className="text-sm font-semibold text-foreground">No hay citas para hoy</p>
                 <p className="text-sm text-muted-foreground">{access?.capabilities.schedule ? "Puedes agendar una cita manualmente." : "Las citas de tu área aparecerán aquí."}</p>
               </div>
-              {access?.capabilities.schedule && <Link prefetch={false} href={homeHref("/dashboard/calendar?new=1", tenant)} className="inline-flex min-h-9 items-center rounded-lg border border-teal-200 px-3 text-sm font-semibold text-teal-800 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-teal-700">Nueva cita</Link>}
+              {access?.capabilities.schedule && <Link prefetch={false} href={homeHref("/dashboard/calendar?new=1", tenant)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-sm font-semibold text-primary hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary">Nueva cita</Link>}
             </div>
           ) : visibleAppointments.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-600">{groupLabel ? `No hay citas en «${groupLabel}» ahora.` : "No hay citas que requieran revisión ahora."}</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{groupLabel ? `No hay citas en «${groupLabel}» ahora.` : "No hay citas que requieran revisión ahora."}</p>
           ) : (
             <ul className="divide-y" aria-label="Citas de la agenda">
               {pagination.appointments.map((appt) => (
-                <li key={appt.id} className="flex flex-wrap items-center gap-x-2 rounded-xl transition-colors hover:bg-slate-50 focus-within:bg-slate-50 xl:grid xl:grid-cols-[minmax(0,1fr)_16rem]">
-                  <button type="button" onClick={() => { setStartInPriceEdit(false); setSelected(appt); }} aria-label={`Abrir cita de ${appt.petName}, ${formatColombiaTime(appt.date)}`} className="grid min-w-0 flex-1 grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-3 rounded-xl px-2 py-3 text-left focus-visible:outline-2 focus-visible:outline-teal-700 sm:grid-cols-[5.5rem_minmax(0,1fr)_7.5rem_1rem] sm:px-3">
-                    <span className="whitespace-nowrap text-sm font-bold tabular-nums text-slate-950">{formatColombiaTime(appt.date)}</span>
+                <li key={appt.id} className="grid min-w-0 grid-cols-1 gap-x-3 py-2 transition-colors hover:bg-muted/40 focus-within:bg-muted/40 xl:grid-cols-[minmax(0,1fr)_14rem]">
+                  <button type="button" onClick={() => { setStartInPriceEdit(false); setSelected(appt); }} aria-label={`Abrir cita de ${appt.petName}, ${formatColombiaTime(appt.date)}`} className="grid min-w-0 grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-x-3 gap-y-2 rounded-lg px-1 py-3 text-left focus-visible:outline-2 focus-visible:outline-primary sm:grid-cols-[5.5rem_minmax(0,1fr)_7.5rem_1rem] sm:items-center sm:px-3">
+                    <span className="whitespace-nowrap text-sm font-bold tabular-nums text-foreground"><time dateTime={appt.date}>{formatColombiaTime(appt.date)}</time></span>
                     <span className="min-w-0">
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="min-w-0 truncate text-sm font-semibold text-slate-950">{getPetEmoji(appt.petType)} {appt.petName}</span>
-                        <span className="truncate text-sm text-slate-600">{appt.clientName ?? appt.clientPhone}</span>
+                        <span className="min-w-0 wrap-anywhere text-base font-semibold text-foreground">{getPetEmoji(appt.petType)} {appt.petName}</span>
+                        <span className="min-w-0 wrap-anywhere text-sm text-muted-foreground">{appt.clientName ?? appt.clientPhone}</span>
                       </span>
-                      <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-600">
+                      <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                         <span>{appt.serviceName ?? formatService(appt.serviceType)}</span>
-                        <span aria-hidden="true">·</span>
-                        <span className={!appt.staffName && !["cancelled", "no_show"].includes(appt.status) ? "font-medium text-amber-700" : ""}>{appt.staffName ?? "Sin asignar"}</span>
-                        {prices && <><span aria-hidden="true">·</span>{appt.payment?.status === 'paid' && appt.payment.total != null ? <span className="font-semibold">Cobrado: {COP.format(appt.payment.total)}</span> : <><span className="font-medium text-slate-800">Servicio: {(appt.priceResolution?.servicePrice ?? appt.finalPrice) == null ? "Por confirmar" : COP.format((appt.priceResolution?.servicePrice ?? appt.finalPrice)!)}</span><span>Domicilio: {appt.transport?.pending ? "Por confirmar" : COP.format(appt.transport?.price ?? 0)}</span><span className="font-semibold">{appt.payment?.status === 'pending' ? 'Referencia' : 'Total'}: {appt.finalPrice == null ? "Por confirmar" : COP.format(appt.finalPrice)}</span></>}</>}
-                        {prices && appt.finalPrice !== null && appt.priceResolution?.source && appt.priceResolution.source !== "manual_override" && <span className="text-slate-500">{PRICE_SOURCE_LABEL[appt.priceResolution.source]}</span>}
-                      </span>
+                        <span className={!appt.staffName && !["cancelled", "no_show"].includes(appt.status) ? "font-medium text-amber-700" : ""}>Profesional: {appt.staffName ?? "Sin asignar"}</span>
+                        </span>
+                      {prices && <AppointmentAmounts appointment={appt} />}
                     </span>
                     <Badge variant="outline" className={`col-start-2 justify-self-start sm:col-start-auto sm:justify-self-center ${statusBadgeClass(appt.status)}`}>{formatStatus(appt.status)}</Badge>
-                    <ChevronRight className="hidden h-4 w-4 shrink-0 text-slate-400 sm:block" aria-hidden="true" />
+                    <ChevronRight className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block" aria-hidden="true" />
                   </button>
-                  <div className="flex flex-wrap items-center justify-end gap-2 px-2 pb-2 sm:py-2">
+                  <div className="flex flex-wrap items-center justify-end gap-2 px-1 pb-2 sm:px-3 xl:py-2 [&_a]:min-h-11 [&_button]:min-h-11">
                     <AppointmentQuickActions appointment={appt} onUpdated={updated => { setAppointments(current => current.map(value => value.id === updated.id ? updated : value)); if (compact) router.refresh(); }} />
                     {access?.capabilities.appointmentPrice && isGroomingAppointment(appt) && appt.finalPrice === null && !["completed", "cancelled", "no_show"].includes(appt.status) && <button type="button" onClick={() => { setStartInPriceEdit(true); setSelected(appt); }} className="shrink-0 rounded-lg px-2 py-2 text-xs font-semibold text-amber-800 underline underline-offset-2 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-amber-700">Definir precio</button>}
                   </div>
@@ -252,12 +255,12 @@ export function TodaySchedule({ appointments: initial, initialReview = false, co
           )}
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm">
             <p className="text-xs text-muted-foreground" aria-live="polite">{pagination.pages > 1 ? `${pagination.start}–${pagination.end} de ${pagination.total} citas en este filtro` : `${pagination.total} citas en este filtro`}</p>
-            {pagination.pages > 1 && <nav aria-label="Páginas de la agenda de hoy" className="flex flex-wrap items-center gap-2">
+            {pagination.pages > 1 && <nav aria-label="Páginas de la agenda de hoy" className="flex flex-wrap items-center gap-2 [&_button]:min-h-11">
               <Button variant="outline" disabled={pagination.page === 1} onClick={() => setPage(pagination.page - 1)} aria-label="Página anterior de citas">Anterior</Button>
               <span className="text-xs text-muted-foreground">Página {pagination.page} de {pagination.pages}</span>
               <Button variant="outline" disabled={pagination.page === pagination.pages} onClick={() => setPage(pagination.page + 1)} aria-label="Página siguiente de citas">Siguiente</Button>
             </nav>}
-            {compact && <Link prefetch={false} href={homeHref("/dashboard/calendar", tenant)} className="inline-flex min-h-10 items-center font-semibold text-primary underline underline-offset-4">Abrir agenda completa</Link>}
+            {compact && <Link prefetch={false} href={homeHref("/dashboard/calendar", tenant)} className="inline-flex min-h-11 items-center rounded-sm font-semibold text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary">Abrir agenda completa</Link>}
           </div>
         </CardContent>
       </Card>

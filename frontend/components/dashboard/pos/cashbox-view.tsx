@@ -68,7 +68,7 @@ function NetCard({ total, label, color, icon: Icon }: {
         <Icon className="h-4 w-4" />
         <p className="text-sm font-medium">{label}</p>
       </div>
-      <p className="break-words text-3xl font-bold tabular-nums tracking-tight">{formatPosMoney(total)}</p>
+      <p className="break-words text-2xl font-bold tabular-nums sm:text-3xl tracking-tight">{formatPosMoney(total)}</p>
     </div>
   );
 }
@@ -123,21 +123,21 @@ export async function CashboxView({ date, tenant }: { date?: string; tenant?: st
   }).format(new Date(effectiveDate + "T12:00:00-05:00"));
 
   return (
-    <section className="mt-6 space-y-6 rounded-2xl border bg-white p-5 sm:p-6" aria-label="Resumen administrativo">
+    <section className="mt-6 space-y-6 rounded-2xl border bg-card p-4 sm:p-6" aria-label="Resumen administrativo">
       <div><h3 className="text-lg font-bold">Resumen administrativo</h3><p className="mt-1 text-sm text-muted-foreground">Ingresos y gastos registrados del establecimiento. Consulta hoy o una fecha anterior.</p></div>
       {/* Fecha */}
       <div className="flex flex-wrap items-end gap-3">
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <p className="text-lg font-semibold">{dateLabel.charAt(0).toLocaleUpperCase("es") + dateLabel.slice(1)}</p>
           {isToday && <span className="text-xs font-medium text-primary">Hoy</span>}
         </div>
-        <form action="/dashboard/pos" className="flex flex-wrap items-end gap-2">
+        <form action="/dashboard/pos" aria-label="Consultar resumen por fecha" className="flex w-full flex-wrap items-end gap-2 sm:w-auto">
           <input type="hidden" name="tab" value="caja" />
           {tenant && <input type="hidden" name="tenant" value={tenant} />}
-          <label className="text-xs font-medium">Fecha del resumen<input aria-label="Fecha del resumen" type="date" name="date" defaultValue={effectiveDate} max={bogotaToday} required className="mt-1 block h-10 rounded-lg border bg-white px-3 text-sm" /></label>
-          <Button type="submit"><Search aria-hidden="true" />Consultar</Button>
+          <label className="min-w-0 flex-1 text-sm font-medium sm:flex-none">Fecha del resumen<input aria-label="Fecha del resumen" type="date" name="date" defaultValue={effectiveDate} max={bogotaToday} required className="mt-1 block h-11 w-full min-w-0 rounded-lg border bg-white px-3 text-sm" /></label>
+          <Button type="submit" className="min-h-11"><Search aria-hidden="true" />Consultar</Button>
         </form>
-        <nav aria-label="Cambiar fecha del resumen" className="flex flex-wrap gap-2">
+        <nav aria-label="Cambiar fecha del resumen" className="flex flex-wrap gap-2 [&_a]:min-h-11">
           <Button asChild variant="outline">
             <Link href={posHref("caja", prevDay(effectiveDate))}>
               <ChevronLeft aria-hidden="true" />Día anterior
@@ -179,12 +179,12 @@ export async function CashboxView({ date, tenant }: { date?: string; tenant?: st
         </div>
       </div>
       <DailyClosePanel key={`${tenant ?? "current"}:${effectiveDate}`} date={effectiveDate} tenant={tenant} />
-      <details className="text-xs leading-relaxed text-muted-foreground"><summary className="cursor-pointer font-medium">Cómo se calcula el resumen</summary><p className="mt-2">Incluye ingresos recibidos por fecha de pago y gastos registrados de todos los medios de pago. Las citas pendientes de pago no suman ingreso. El saldo de movimientos no representa el efectivo físico ni la utilidad contable. La reserva de comisiones se muestra separada y no confirma su pago al profesional.</p></details>
+      <details className="text-xs leading-relaxed text-muted-foreground"><summary className="min-h-11 cursor-pointer py-3 font-medium focus-visible:outline-2 focus-visible:outline-primary">Cómo se calcula el resumen</summary><p className="mt-2">Incluye ingresos recibidos por fecha de pago y gastos registrados de todos los medios de pago. Las citas pendientes de pago no suman ingreso. El saldo de movimientos no representa el efectivo físico ni la utilidad contable. La reserva de comisiones se muestra separada y no confirma su pago al profesional.</p></details>
 
       {/* Desglose por método + categoría */}
       {(!isToday || data.expenses.length > 0) && <div className={`grid gap-4 ${!isToday ? "md:grid-cols-2" : ""}`}>
         {/* Ingresos por método */}
-        {!isToday && <div className="rounded-xl border border-black/[0.08] border-t-2 border-t-emerald-500/50 bg-card p-5">
+        {!isToday && <div className="rounded-xl border border-border bg-card p-5">
           <div className="mb-3 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-emerald-700" />
             <p className="text-sm font-semibold">Métodos guardados en los ingresos</p>
@@ -208,7 +208,7 @@ export async function CashboxView({ date, tenant }: { date?: string; tenant?: st
         </div>}
 
         {/* Gastos por categoría */}
-        {data.expenses.length > 0 && <div className="rounded-xl border border-black/[0.08] border-t-2 border-t-rose-500/50 bg-card p-5">
+        {data.expenses.length > 0 && <div className="rounded-xl border border-border bg-card p-5">
           <div className="mb-3 flex items-center gap-2">
             <TrendingDown className="h-4 w-4 text-rose-700" />
             <p className="text-sm font-semibold">Gastos por categoría</p>
@@ -234,7 +234,7 @@ export async function CashboxView({ date, tenant }: { date?: string; tenant?: st
       {/* Transacciones + Gastos del día */}
       <div className={`grid gap-4 ${!isToday ? "lg:grid-cols-2" : ""}`}>
         {/* Cobros */}
-        {!isToday && <div className="rounded-xl border border-black/[0.08] border-t-2 border-t-teal-500/50 bg-card">
+        {!isToday && <div className="rounded-xl border border-border bg-card">
           <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-3">
             <p className="text-sm font-semibold">Cobros del día</p>
             <Link

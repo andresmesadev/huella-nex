@@ -8,13 +8,13 @@ import { ReactivationCampaign } from "@/components/dashboard/reactivation-campai
 import { ChurnView } from "@/components/dashboard/churn-view";
 import { RecoveryCard } from "@/components/dashboard/recovery-card";
 import type { RecuperacionData } from "@/app/dashboard/recuperacion/page";
-const TAB_STYLE = "min-h-11 px-4 data-active:bg-teal-700 data-active:text-white data-active:hover:text-white";
+const TAB_STYLE = "min-h-11 whitespace-normal px-4 data-active:bg-teal-700 data-active:text-white data-active:hover:text-white";
 
 export function RecuperacionView({ data, grooming, initialTab }: { data: RecuperacionData; grooming: boolean; initialTab: string }) {
   const router = useRouter();
   const [frequency, setFrequency] = useState(initialTab === "churn");
   function unavailable(label: string) { return <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-6"><h2 className="font-semibold">No se pudo cargar {label}</h2><p className="my-2 text-sm">Intenta de nuevo para consultar los datos del establecimiento.</p><Button variant="outline" onClick={() => router.refresh()}>Reintentar</Button></div>; }
-  return <Tabs defaultValue={grooming && ["reactivar", "churn"].includes(initialTab) ? "clientes" : initialTab === "resultados" ? "resultados" : "pendientes"} className="gap-5">
+  return <Tabs defaultValue={grooming && ["reactivar", "churn"].includes(initialTab) ? "clientes" : initialTab === "resultados" ? "resultados" : "pendientes"} className="gap-5 [&_button]:min-h-11 [&_button]:whitespace-normal [&_input]:min-h-11 [&_a]:min-h-11">
     <TabsList aria-label="Seguimiento de clientes" className="h-auto max-w-full flex-wrap justify-start gap-1 border bg-white p-1 group-data-horizontal/tabs:h-auto">
       <TabsTrigger value="pendientes" className={TAB_STYLE}>Pendientes{data.opportunities ? ` · ${data.opportunities.total}` : ""}</TabsTrigger>
       {grooming && <TabsTrigger value="clientes" className={TAB_STYLE}>Clientes por contactar</TabsTrigger>}

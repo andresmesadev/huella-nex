@@ -1,5 +1,5 @@
 import { moneyInCents } from "./pos-checkout";
-import type { ExpenseCategory } from "./expenses";
+import { EXPENSE_CATEGORIES, type ExpenseCategory } from "./expenses";
 import type { PaymentMethod } from "./transactions";
 
 export type ExpenseCommand = { category: ExpenseCategory; description: string; responsible: string; amount: number; paymentMethod: PaymentMethod; notes: string | null; date: string };
@@ -16,7 +16,7 @@ export function isExpenseRecord(value: unknown): value is ExpenseRecord {
   const row = value as ExpenseRecord;
   return typeof row.id === "string" && !!row.id && typeof row.description === "string" && typeof row.responsible === "string" &&
     Number.isFinite(row.amount) && row.amount > 0 && ["active", "voided"].includes(row.status) &&
-    ["supplies", "utilities", "rent", "salary", "equipment", "marketing", "other"].includes(row.category) &&
+    EXPENSE_CATEGORIES.includes(row.category) &&
     ["cash", "transfer", "card", "other"].includes(row.paymentMethod) && Number.isFinite(Date.parse(row.date));
 }
 

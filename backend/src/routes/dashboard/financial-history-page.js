@@ -1,3 +1,4 @@
+const { EXPENSE_CATEGORIES } = require("../../contexts/shared/expense-categories");
 const { Prisma } = require("@prisma/client");
 const { bogotaDayStart } = require("./shared");
 
@@ -33,7 +34,7 @@ function readHistoryQuery(query, kind) {
     ...(kind === "transactions" ? {
       method: choice("method", ["all", "cash", "transfer", "card", "other", "mixed", "review"]),
       origin: choice("origin", ["all", "manual_pos_sale", "system_appointment_completed", "legacy"]),
-    } : { category: choice("category", ["all", "supplies", "utilities", "rent", "salary", "equipment", "marketing", "other"]) }),
+    } : { category: choice("category", ["all", ...EXPENSE_CATEGORIES]) }),
     terms: search.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es").trim().split(/\s+/).filter(Boolean),
   };
 }

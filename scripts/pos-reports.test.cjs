@@ -105,3 +105,20 @@ test('Excel se abre con cuatro hojas, participación profesional e importes num�
   assert.match(exportsContext.exports.reportFilename(same), /2026-10-01-2026-10-31\.xlsx$/);
   await assert.rejects(exportsContext.exports.createReportWorkbook(summary, breakdown));
 });
+
+
+test('rangos personalizados conservan ambas fechas en detalle y retorno, incluidos cruces de mes y año', () => {
+ const {validReportDates,readReportSelection,readReportDetail,reportDetailUrl,reportReturnUrl,reportComparisonText}=context.exports;
+ assert.equal(validReportDates('2026-10-11','2026-11-11'),true);
+ assert.equal(validReportDates('2024-01-01','2024-12-31'),true);
+ for(const [from,to] of [['2026-02-30','2026-03-01'],['2026-11-11','2026-10-11'],['2025-01-01','2026-01-02'],[['2026-10-11'],'2026-11-11']])assert.equal(validReportDates(from,to),false);
+ const data={...meta,period:'custom',rangeStart:'2026-10-11T05:00:00Z',rangeEnd:'2026-11-12T05:00:00Z'};
+ assert.equal(parseReportSummary({...summary,...data}).period,'custom');
+ for(const kind of ['income','expense','review']){
+  const detail=new URL(reportDetailUrl(data,kind,'tenant-a'),'http://localhost');
+  const parsed=readReportDetail(Object.fromEntries(detail.searchParams));assert.equal(parsed.selection.period,'custom');assert.equal(parsed.selection.from,'2026-10-11');assert.equal(parsed.selection.to,'2026-11-11');
+  const back=new URL(reportReturnUrl(parsed.selection,'tenant-a'),'http://localhost');assert.equal(back.searchParams.get('from'),'2026-10-11');assert.equal(back.searchParams.get('to'),'2026-11-11');assert.equal(back.searchParams.get('period'),'custom');
+ }
+ assert.equal(readReportSelection({period:'custom',from:'2026-02-30',to:'2026-03-01'}).period,'month');
+ assert.match(reportComparisonText(data),/inmediatamente anteriores/);
+});

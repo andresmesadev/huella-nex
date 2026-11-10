@@ -37,7 +37,7 @@ export function PosTabs({ active }: { active: PosTab }) {
   }
 
   return (
-    <nav aria-label="Secciones del punto de venta" className="mb-6 flex max-w-full gap-1 overflow-x-auto rounded-xl border border-border bg-white p-1 shadow-sm">
+    <nav aria-label="Secciones del punto de venta" className="mb-6 grid max-w-full grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1 sm:flex sm:flex-wrap">
       {TABS.filter(tab => access?.capabilities.finance || ["venta", "caja"].includes(tab.id)).map(({ id, label, icon: Icon }) => {
         const isActive = active === id;
         return (
@@ -46,13 +46,13 @@ export function PosTabs({ active }: { active: PosTab }) {
             href={href(id)}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-teal-700 sm:px-4",
+              "flex min-h-11 min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary sm:px-4",
               isActive
-                ? "bg-teal-700 text-white"
+                ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
             )}
           >
-            <Icon className="h-4 w-4 shrink-0" />
+            <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
             <span>{label}</span>
           </Link>
         );

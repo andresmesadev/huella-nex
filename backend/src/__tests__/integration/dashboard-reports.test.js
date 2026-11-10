@@ -154,3 +154,53 @@ test('un error de base produce error HTTP sin devolver ceros como cifras válida
   try { expect((await request(app()).get('/reports/summary')).status).toBe(500); }
   finally { spy.mockRestore(); }
 });
+
+
+test('rango personalizado incluye ambos días de Bogotá y compara igual duración sin solapar', () => {
+  const result = readReportPeriod({ period: 'custom', from: '2026-10-11', to: '2026-11-11' }, new Date('2026-11-20T15:00:00Z'));
+  expect(result.current.start.toISOString()).toBe('2026-10-11T05:00:00.000Z');
+  expect(result.current.end.toISOString()).toBe('2026-11-12T05:00:00.000Z');
+  expect(result.prev.start.toISOString()).toBe('2026-09-09T05:00:00.000Z');
+  expect(result.prev.end.toISOString()).toBe(result.current.start.toISOString());
+  expect(result.current.end - result.current.start).toBe(result.prev.end - result.prev.start);
+  expect(result.metadata).toMatchObject({ period: 'custom', comparison: 'full', partial: false, year: 2026 });
+  const leap = readReportPeriod({ period: 'custom', from: '2024-02-29', to: '2024-02-29' }, new Date('2026-11-20T15:00:00Z'));
+  expect(leap.current.end.toISOString()).toBe('2024-03-01T05:00:00.000Z');
+  expect(leap.current.end - leap.current.start).toBe(86400000);
+  const year = readReportPeriod({ period: 'custom', from: '2024-01-01', to: '2024-12-31' }, new Date('2026-11-20T15:00:00Z'));
+  expect(year.current.end - year.current.start).toBe(366 * 86400000);
+  expect(readReportYear({ period: 'custom', from: '2025-12-20', to: '2026-01-10' }, new Date('2026-11-20T15:00:00Z'))).toBe(2025);
+});
+
+test('rango personalizado aplica fechas a ingresos, gastos, comisiones y servicios con tenant autenticado', async () => {
+  const query='period=custom&from=2026-10-11&to=2026-11-11&tenantId=tenant-other';
+  const response=await request(app()).get('/reports/summary?'+query);
+  expect(response.status).toBe(200);
+  const bounds={gte:new Date('2026-10-11T05:00:00Z'),lt:new Date('2026-11-12T05:00:00Z')};
+  expect(prisma.transaction.aggregate.mock.calls[0][0].where).toMatchObject({tenantId:'tenant-a',status:'active',paidAt:bounds});
+  expect(prisma.expense.aggregate.mock.calls[0][0].where).toMatchObject({tenantId:'tenant-a',status:'active',date:bounds});
+  expect(prisma.commission.groupBy.mock.calls[0][0].where).toMatchObject({tenantId:'tenant-a',status:'active',completedAt:bounds});
+  expect(prisma.appointment.count.mock.calls[0][0].where.date).toEqual(bounds);
+  prisma.appointment.findMany.mockResolvedValue([]);
+  expect((await request(app()).get('/reports/services?'+query)).status).toBe(200);
+  expect(prisma.appointment.findMany.mock.calls.at(-1)[0].where).toMatchObject({tenantId:'tenant-a',status:'completed',date:bounds});
+});
+
+test('rangos incompletos, imposibles, ambiguos, invertidos o excesivos no consultan datos', async () => {
+  const invalid=['from=2026-10-11','from=2026-10-12&to=2026-10-11','from=2026-02-30&to=2026-03-01','from=2025-01-01&to=2026-01-02','from=9999-01-01&to=9999-01-02','from=2026-10-11&from=2026-10-12&to=2026-11-11','from=2026-10-11&to=2026-11-11&offset=-1','from=2026-10-11&to=2026-11-11&comparison=equivalent'];
+  for(const endpoint of ['summary','services','breakdown','revenue-by-month'])for(const query of invalid)expect((await request(app()).get('/reports/'+endpoint+'?period=custom&'+query)).status).toBe(400);
+  expect(prisma.transaction.aggregate).not.toHaveBeenCalled();expect(prisma.commission.groupBy).not.toHaveBeenCalled();
+});
+
+
+test('desglose personalizado filtra métodos y artículos con los mismos límites inclusivos', async () => {
+ prisma.transaction.groupBy.mockResolvedValue([{paymentMethod:'cash',...aggregate('10.10')}]);
+ prisma.transaction.aggregate.mockResolvedValue(aggregate('10.10'));
+ prisma.transactionItem.aggregate.mockResolvedValue(aggregate('10.10'));
+ const response=await request(app()).get('/reports/breakdown?period=custom&from=2026-10-11&to=2026-11-11');
+ expect(response.status).toBe(200);
+ const paidAt={gte:new Date('2026-10-11T05:00:00Z'),lt:new Date('2026-11-12T05:00:00Z')};
+ expect(prisma.transaction.groupBy.mock.calls[0][0].where.paidAt).toEqual(paidAt);
+ for(const [query] of prisma.transactionItem.aggregate.mock.calls)expect(query.where.AND[0].transaction.is).toMatchObject({tenantId:'tenant-a',status:'active',paidAt});
+ expect(response.body).toMatchObject({period:'custom',rangeStart:'2026-10-11T05:00:00.000Z',rangeEnd:'2026-11-12T05:00:00.000Z'});
+});

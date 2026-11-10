@@ -141,6 +141,7 @@ export function PdfPrintView({ report }: { report: PetReport }) {
   const otherItems = timeline.items.filter((i) => !["vaccine", "consultation", "cancelled", "no_show"].includes(i.kind));
 
   const generatedAt = fmtDateTime(new Date().toISOString());
+  const sex = pet.gender === "M" || pet.gender === "male" ? "Macho" : pet.gender === "F" || pet.gender === "female" ? "Hembra" : pet.gender;
 
   return (
     <>
@@ -152,7 +153,14 @@ export function PdfPrintView({ report }: { report: PetReport }) {
           @page { margin: 15mm 18mm; size: A4; }
         }
         body { font-family: -apple-system, Arial, sans-serif; color: #222; background: #fff; }
-        .page { max-width: 800px; margin: 0 auto; padding: 24px; }
+        .page { max-width: 800px; margin: 0 auto; padding: 24px; overflow-wrap: anywhere; }
+        .no-print { flex-wrap: wrap; }
+        .no-print button { min-height: 44px; }
+        @media screen and (max-width: 480px) { .page { padding: 16px; } .tag-grid { grid-template-columns: minmax(0,1fr); } }
+        .report-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 20px; }
+        .report-heading > div { min-width: 0; }
+        .report-basics { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0 32px; }
+        @media screen and (max-width: 480px) { .report-heading { flex-direction: column; gap: 12px; } .report-heading > div:last-child { text-align: left !important; } .report-basics { grid-template-columns: minmax(0,1fr); } }
         .section-title {
           font-size: 13px; font-weight: 700; text-transform: uppercase;
           letter-spacing: 0.06em; color: #444; border-bottom: 1.5px solid #ddd;
@@ -162,7 +170,7 @@ export function PdfPrintView({ report }: { report: PetReport }) {
           border: 1px solid #e5e5e5; border-radius: 6px;
           padding: 10px 12px; margin-bottom: 8px; break-inside: avoid;
         }
-        .record-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .record-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 4px; }
         .record-icon { font-size: 14px; }
         .record-title { font-weight: 600; font-size: 13px; }
         .record-date { font-size: 11px; color: #777; margin-left: auto; }
@@ -198,14 +206,14 @@ export function PdfPrintView({ report }: { report: PetReport }) {
 
       <div className="page">
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+        <div className="report-heading">
           <div>
             <div style={{ fontSize: 22, fontWeight: 700 }}>
               {petEmoji(pet.type)} {pet.name}
             </div>
             <div style={{ fontSize: 13, color: "#555", marginTop: 2 }}>
               {petTypeLabel(pet.type)}{pet.breed ? ` · ${pet.breed}` : ""}
-              {pet.gender ? ` · ${pet.gender === "M" ? "Macho" : pet.gender === "F" ? "Hembra" : pet.gender}` : ""}
+              {pet.gender ? ` · ${sex}` : ""}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -219,13 +227,13 @@ export function PdfPrintView({ report }: { report: PetReport }) {
         <hr style={{ border: "none", borderTop: "2px solid #222", marginBottom: 16 }} />
 
         {/* Datos básicos */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 32px" }}>
+        <div className="report-basics">
           <div>
             <div className="section-title">Datos de la mascota</div>
             <Field label="Nombre" value={pet.name} />
             <Field label="Especie" value={petTypeLabel(pet.type)} />
             <Field label="Raza" value={pet.breed} />
-            <Field label="Género" value={pet.gender === "M" ? "Macho" : pet.gender === "F" ? "Hembra" : pet.gender} />
+            <Field label="Sexo" value={sex} />
             <Field label="Fecha de nacimiento" value={fmtDate(pet.birthDate)} />
             <Field label="Peso actual" value={pet.weight ? `${pet.weight} kg` : null} />
             <Field label="Esterilizado/a" value={pet.sterilized === true ? "Sí" : pet.sterilized === false ? "No" : null} />

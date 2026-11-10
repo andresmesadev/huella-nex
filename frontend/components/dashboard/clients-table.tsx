@@ -44,7 +44,7 @@ function ClientPets({ client }: { client: DashboardClient }) {
       {client.pets.map(pet => (
         <li key={pet.id} className="inline-flex max-w-full items-start gap-1.5 rounded-lg border border-primary/15 bg-primary/5 px-2.5 py-1.5 text-sm">
           <PawPrint aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-          <span className="min-w-0 break-words whitespace-normal">{pet.name}</span>
+          <span className="min-w-0 [overflow-wrap:anywhere] whitespace-normal">{pet.name}</span>
         </li>
       ))}
     </ul>
@@ -181,7 +181,7 @@ export function ClientsTable() {
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             {(
-              <div className="w-full sm:w-80"><label htmlFor="clients-search" className="mb-1 block text-sm font-medium">Buscar cliente</label><div className="relative w-full">
+              <div className="min-w-0 w-full sm:w-72 xl:w-80"><label htmlFor="clients-search" className="mb-1 block text-sm font-medium">Buscar cliente</label><div className="relative w-full">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="clients-search"
@@ -189,12 +189,12 @@ export function ClientsTable() {
                   onChange={(e) => setQuery(e.target.value)}
                   aria-label="Buscar cliente por nombre o teléfono"
                   placeholder="Nombre o teléfono del cliente"
-                  className="pl-9 pr-8"
+                  className="h-11 pl-9 pr-12"
                 />
                 {query && (
                   <button
                     onClick={() => setQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-0 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary hover:text-foreground"
                     aria-label="Limpiar búsqueda"
                   >
                     <X className="h-4 w-4" />
@@ -215,7 +215,7 @@ export function ClientsTable() {
           ) : error ? (
             <div role="alert" className="flex flex-col items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-6 text-center text-sm text-destructive">
               <p>{error}</p>
-              <Button type="button" variant="outline" size="sm" onClick={() => setVersion((v) => v + 1)}>
+              <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => setVersion((v) => v + 1)}>
                 Reintentar
               </Button>
             </div>
@@ -231,9 +231,9 @@ export function ClientsTable() {
             />
           ) : (
             <>
-            <div className="space-y-3 lg:hidden">{clients.map((client) => (
+            <div className="space-y-3 lg:hidden [&_button]:min-h-11">{clients.map((client) => (
               <article key={client.id} className="min-w-0 rounded-xl border p-4">
-                <h3 className="break-words font-semibold">{client.name || "Cliente sin nombre"}</h3>
+                <h3 className="[overflow-wrap:anywhere] font-semibold">{client.name || "Cliente sin nombre"}</h3>
                 <p className="text-sm text-muted-foreground">{formatPhone(client.phone)}</p>
                 <div className="mt-3"><p className="mb-2 text-xs font-semibold text-muted-foreground">Mascotas</p><ClientPets client={client} /></div>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -265,7 +265,7 @@ export function ClientsTable() {
                             {(client.name?.trim()?.[0] ?? "#").toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <div className="break-words font-medium">
+                            <div className="[overflow-wrap:anywhere] font-medium">
                               {client.name ?? formatPhone(client.phone)}
                             </div>
                             {client.name ? (
@@ -287,14 +287,14 @@ export function ClientsTable() {
                           <button
                             title="Ver cliente"
                             onClick={() => handleOpenClient(client)}
-                            className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                            className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-primary"
                           >
                             <Eye className="h-4 w-4" /> Ver
                           </button>
                           <button
                             title="Editar cliente"
                             onClick={() => handleOpenClient(client, true)}
-                            className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                            className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-primary"
                           >
                             <Pencil className="h-4 w-4" /> Editar
                           </button>

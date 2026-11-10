@@ -45,7 +45,7 @@ function emptyPet(): PetDraft {
 }
 
 const SELECT_CLASS =
-  "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  "flex min-h-11 min-w-0 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 const TEXTAREA_CLASS =
   "w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none disabled:cursor-not-allowed disabled:opacity-50";
@@ -134,16 +134,16 @@ function NewOwnerPetsContent({ onOpenChange, onCreated }: Props) {
 
   return (
     <>
-      <FormDialogContent>
-        <FormDialogHeader>
-          <div className="mb-1 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/15 ring-1 ring-sky-500/25">
+      <FormDialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl gap-0">
+        <FormDialogHeader className="py-4 sm:py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50">
               <Users className="h-4 w-4 text-sky-700" />
             </div>
             <div className="min-w-0">
-              <DialogTitle>Nuevo propietario + mascota(s)</DialogTitle>
+              <DialogTitle className="text-lg [overflow-wrap:anywhere] sm:text-xl">Nuevo propietario y mascotas</DialogTitle>
               <DialogDescription>
-                Registra al propietario y sus mascotas en un solo paso.
+                Completa el contacto y agrega una o varias mascotas.
               </DialogDescription>
             </div>
           </div>
@@ -151,68 +151,54 @@ function NewOwnerPetsContent({ onOpenChange, onCreated }: Props) {
 
         <form id="new-owner-pets-form" className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit} noValidate aria-busy={saving}>
           {/* Scroll interno para contenido largo */}
-          <FormDialogBody>
-            <div className="space-y-6">
+          <FormDialogBody className="py-4 sm:py-5 [&_button]:min-h-11 [&_button]:whitespace-normal [&_input]:min-h-11 [&_input]:min-w-0 [&_select]:min-h-11 [&_select]:min-w-0 [&_p]:[overflow-wrap:anywhere]">
+            <div className="space-y-5">
               <FormSubmissionError message={feedback.submitError} />
               {/* ── Propietario ── */}
-              <FormSection title="Contacto del propietario">
+              <FormSection title="Contacto del propietario" className="rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
+                <div className="grid min-w-0 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label htmlFor="op-name" className="text-xs font-medium text-muted-foreground">Nombre *</label>
+                  <label htmlFor="op-name" className="text-sm font-semibold">Nombre *</label>
                   <Input id="op-name" value={ownerName} onChange={(e) => { setOwnerName(e.target.value); feedback.clearField("op-name"); }} placeholder="Nombre completo" autoFocus disabled={saving} aria-required="true" aria-invalid={Boolean(feedback.errors["op-name"])} aria-describedby={feedback.errors["op-name"] ? "op-name-error" : undefined} />
                   <FieldError id="op-name" message={feedback.errors["op-name"]} />
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label htmlFor="op-phone" className="text-xs font-medium text-muted-foreground">Teléfono *</label>
+                    <label htmlFor="op-phone" className="text-sm font-semibold">Teléfono *</label>
                     <Input id="op-phone" value={phone} onChange={(e) => { setPhone(e.target.value); feedback.clearField("op-phone"); }} placeholder="573001234567" inputMode="tel" disabled={saving} aria-required="true" aria-invalid={Boolean(feedback.errors["op-phone"])} aria-describedby={feedback.errors["op-phone"] ? "op-phone-error" : undefined} />
                     <FieldError id="op-phone" message={feedback.errors["op-phone"]} />
                   </div>
-                  <div className="space-y-2"><label htmlFor="op-phone-alt" className="text-sm font-semibold">Otros teléfonos (opcional)</label><Input id="op-phone-alt" value={phoneAlt} onChange={e => setPhoneAlt(e.target.value)} placeholder="Separa los números con /" inputMode="tel" disabled={saving} /></div>
-                  <div className="space-y-2"><label htmlFor="op-address" className="text-sm font-semibold">Dirección (opcional)</label><Input id="op-address" autoComplete="street-address" value={address} onChange={e => setAddress(e.target.value)} disabled={saving} /></div>
-                  <div className="space-y-2"><label htmlFor="op-neighborhood" className="text-sm font-semibold">Barrio (opcional)</label><Input id="op-neighborhood" maxLength={200} value={neighborhood} onChange={e => setNeighborhood(e.target.value)} placeholder="Ej. Robledo Miramar" disabled={saving} /></div>
-                  {access?.capabilities.administration && <div className="space-y-2 sm:col-span-2"><label htmlFor="op-notes" className="text-sm font-semibold">Notas del propietario (opcional)</label><textarea id="op-notes" rows={2} value={notes} onChange={e => setNotes(e.target.value)} disabled={saving} className={TEXTAREA_CLASS} /></div>}
                 </div>
+                <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+                  <div className="min-w-0 space-y-2"><label htmlFor="op-phone-alt" className="text-sm font-semibold">Otros teléfonos (opcional)</label><Input id="op-phone-alt" value={phoneAlt} onChange={e => setPhoneAlt(e.target.value)} placeholder="Separa los números con /" inputMode="tel" disabled={saving} /></div>
+                  <div className="min-w-0 space-y-2"><label htmlFor="op-address" className="text-sm font-semibold">Dirección (opcional)</label><Input id="op-address" autoComplete="street-address" value={address} onChange={e => setAddress(e.target.value)} disabled={saving} /></div>
+                  <div className="min-w-0 space-y-2"><label htmlFor="op-neighborhood" className="text-sm font-semibold">Barrio (opcional)</label><Input id="op-neighborhood" maxLength={200} value={neighborhood} onChange={e => setNeighborhood(e.target.value)} placeholder="Ej. Robledo Miramar" disabled={saving} /></div>
+
+                </div>
+                {access?.capabilities.administration && <details><summary className="min-h-11 cursor-pointer content-center text-sm font-semibold">Notas del propietario (opcional)</summary><textarea id="op-notes" aria-label="Notas del propietario (opcional)" rows={2} value={notes} onChange={e => setNotes(e.target.value)} disabled={saving} className={TEXTAREA_CLASS} /></details>}
               </FormSection>
 
               {/* ── Mascotas ── */}
-              <FormSection title={`Mascota${pets.length > 1 ? "s" : ""}`}>
+              <section className="space-y-4 border-t pt-4" aria-label="Mascotas del propietario"><h3 className="text-base font-semibold">Mascotas ({pets.length})</h3>
                 {pets.map((pet, index) => (
-                  <div key={pet.uid} className="space-y-3 rounded-xl border border-black/[0.06] bg-accent/20 p-4">
+                  <section key={pet.uid} aria-label={`Mascota ${index + 1}`} className="min-w-0 space-y-3 rounded-xl border p-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mascota {index + 1}</span>
+                      <span className="text-sm font-semibold">Mascota {index + 1}</span>
                       {pets.length > 1 && (
-                        <button type="button" aria-label={`Quitar mascota ${index + 1}`} onClick={() => removePet(pet.uid)} disabled={saving} className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:bg-destructive/10 hover:text-destructive">
+                        <button type="button" aria-label={`Quitar mascota ${index + 1}`} onClick={() => removePet(pet.uid)} disabled={saving} className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
 
+                    <div className="grid min-w-0 items-start gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                      <label htmlFor={`pet-name-${pet.uid}`} className="text-xs font-medium text-muted-foreground">Nombre *</label>
+                      <label htmlFor={`pet-name-${pet.uid}`} className="text-sm font-semibold">Nombre *</label>
                       <Input id={`pet-name-${pet.uid}`} value={pet.name} onChange={(e) => updatePet(pet.uid, "name", e.target.value)} placeholder="ej. Max" disabled={saving} aria-required="true" aria-invalid={Boolean(feedback.errors[`pet-name-${pet.uid}`])} aria-describedby={feedback.errors[`pet-name-${pet.uid}`] ? `pet-name-${pet.uid}-error` : undefined} />
                       <FieldError id={`pet-name-${pet.uid}`} message={feedback.errors[`pet-name-${pet.uid}`]} />
                     </div>
 
-                    {access?.capabilities.administration && <fieldset className="min-w-0 space-y-3 rounded-xl border bg-background p-3">
-                      <legend className="px-1 text-sm font-semibold">Peluquería y domicilio · Mascota {index + 1}</legend>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="space-y-1.5">
-                          <label htmlFor={`pet-groomingPrice-${pet.uid}`} className="text-xs font-medium">Valor del servicio (COP) (opcional)</label>
-                          <Input id={`pet-groomingPrice-${pet.uid}`} type="number" min="0" max="99999999.99" step="0.01" value={pet.groomingPrice} onChange={e => updatePet(pet.uid, "groomingPrice", e.target.value)} placeholder="Por confirmar" disabled={saving} {...feedback.fieldProps(`pet-groomingPrice-${pet.uid}`)} />
-                          <FieldError id={`pet-groomingPrice-${pet.uid}`} message={feedback.errors[`pet-groomingPrice-${pet.uid}`]} />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label htmlFor={`pet-groomingTransportPrice-${pet.uid}`} className="text-xs font-medium">Valor del domicilio (COP) (opcional)</label>
-                          <Input id={`pet-groomingTransportPrice-${pet.uid}`} type="number" min="0" max="99999999.99" step="0.01" value={pet.groomingTransportPrice} onChange={e => updatePet(pet.uid, "groomingTransportPrice", e.target.value)} placeholder="Por confirmar" disabled={saving} {...feedback.fieldProps(`pet-groomingTransportPrice-${pet.uid}`)} />
-                          <FieldError id={`pet-groomingTransportPrice-${pet.uid}`} message={feedback.errors[`pet-groomingTransportPrice-${pet.uid}`]} />
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Domicilio adicional al servicio, con recogida y entrega. Vacío: por confirmar. 0: gratuito.</p>
-                    </fieldset>}
-
-                    <div className="grid gap-2 sm:grid-cols-2">
                       <div className="space-y-1.5">
-                        <label htmlFor={`pet-type-${pet.uid}`} className="text-xs font-medium text-muted-foreground">Especie *</label>
+                        <label htmlFor={`pet-type-${pet.uid}`} className="text-sm font-semibold">Especie *</label>
                         <select id={`pet-type-${pet.uid}`} value={pet.type} onChange={(e) => updatePet(pet.uid, "type", e.target.value)} className={SELECT_CLASS} disabled={saving}>
                           <option value="dog">Perro</option>
                           <option value="cat">Gato</option>
@@ -221,15 +207,16 @@ function NewOwnerPetsContent({ onOpenChange, onCreated }: Props) {
                           <option value="other">Otro</option>
                         </select>
                       </div>
-                      <div className="space-y-1.5">
-                        <label htmlFor={`pet-breed-${pet.uid}`} className="text-xs font-medium text-muted-foreground">Raza (opcional)</label>
-                        <Input id={`pet-breed-${pet.uid}`} value={pet.breed} onChange={(e) => updatePet(pet.uid, "breed", e.target.value)} placeholder="opcional" disabled={saving} />
-                      </div>
                     </div>
 
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid min-w-0 items-end gap-3 sm:grid-cols-3">
                       <div className="space-y-1.5">
-                        <label htmlFor={`pet-gender-${pet.uid}`} className="text-xs font-medium text-muted-foreground">Género (opcional)</label>
+                        <label htmlFor={`pet-breed-${pet.uid}`} className="text-sm font-semibold">Raza (opcional)</label>
+                        <Input id={`pet-breed-${pet.uid}`} value={pet.breed} onChange={(e) => updatePet(pet.uid, "breed", e.target.value)} placeholder="opcional" disabled={saving} />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label htmlFor={`pet-gender-${pet.uid}`} className="text-sm font-semibold">Sexo (opcional)</label>
                         <select id={`pet-gender-${pet.uid}`} value={pet.gender} onChange={(e) => updatePet(pet.uid, "gender", e.target.value)} className={SELECT_CLASS} disabled={saving}>
                           <option value="">Sin especificar</option>
                           <option value="male">Macho</option>
@@ -237,17 +224,37 @@ function NewOwnerPetsContent({ onOpenChange, onCreated }: Props) {
                         </select>
                       </div>
                       <div className="space-y-1.5">
-                        <label htmlFor={`pet-weight-${pet.uid}`} className="text-xs font-medium text-muted-foreground">Peso (kg) · Profesional (opcional)</label>
+                        <label htmlFor={`pet-weight-${pet.uid}`} className="text-sm font-semibold">Peso (kg) · Profesional (opcional)</label>
                         <Input id={`pet-weight-${pet.uid}`} type="number" step="0.1" min="0" disabled={!access?.capabilities.administration || saving} value={pet.weight} onChange={(e) => updatePet(pet.uid, "weight", e.target.value)} placeholder="ej. 12.5" aria-invalid={Boolean(feedback.errors[`pet-weight-${pet.uid}`])} aria-describedby={feedback.errors[`pet-weight-${pet.uid}`] ? `pet-weight-${pet.uid}-error` : undefined} />
                         <FieldError id={`pet-weight-${pet.uid}`} message={feedback.errors[`pet-weight-${pet.uid}`]} />
                       </div>
                     </div>
 
+
+                    {access?.capabilities.administration && <fieldset className="min-w-0 space-y-3 border-0 border-t pt-3">
+                      <legend className="pr-2 text-sm font-semibold">Peluquería y domicilio</legend>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label htmlFor={`pet-groomingPrice-${pet.uid}`} className="text-sm font-semibold">Valor del servicio (COP) (opcional)</label>
+                          <Input id={`pet-groomingPrice-${pet.uid}`} type="number" min="0" max="99999999.99" step="0.01" value={pet.groomingPrice} onChange={e => updatePet(pet.uid, "groomingPrice", e.target.value)} placeholder="Por confirmar" disabled={saving} {...feedback.fieldProps(`pet-groomingPrice-${pet.uid}`)} />
+                          <FieldError id={`pet-groomingPrice-${pet.uid}`} message={feedback.errors[`pet-groomingPrice-${pet.uid}`]} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label htmlFor={`pet-groomingTransportPrice-${pet.uid}`} className="text-sm font-semibold">Valor del domicilio (COP) (opcional)</label>
+                          <Input id={`pet-groomingTransportPrice-${pet.uid}`} type="number" min="0" max="99999999.99" step="0.01" value={pet.groomingTransportPrice} onChange={e => updatePet(pet.uid, "groomingTransportPrice", e.target.value)} placeholder="Por confirmar" disabled={saving} {...feedback.fieldProps(`pet-groomingTransportPrice-${pet.uid}`)} />
+                          <FieldError id={`pet-groomingTransportPrice-${pet.uid}`} message={feedback.errors[`pet-groomingTransportPrice-${pet.uid}`]} />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Domicilio adicional al servicio, con recogida y entrega. Vacío: por confirmar. 0: gratuito.</p>
+                    </fieldset>}
+
+
+
                     <div className="space-y-1.5">
-                      <label htmlFor={`pet-notes-${pet.uid}`} className="text-xs font-medium text-muted-foreground">{access?.capabilities.administration ? "Notas" : "Alertas para el manejo"} (opcional)</label>
+                      <label htmlFor={`pet-notes-${pet.uid}`} className="text-sm font-semibold">{access?.capabilities.administration ? "Notas" : "Alertas para el manejo"} (opcional)</label>
                       <textarea id={`pet-notes-${pet.uid}`} rows={2} value={pet.notes} onChange={(e) => updatePet(pet.uid, "notes", e.target.value)} placeholder="Alergias, comportamiento… (opcional)" disabled={saving} className={TEXTAREA_CLASS} />
                     </div>
-                  </div>
+                  </section>
                 ))}
 
                 <button
@@ -258,17 +265,17 @@ function NewOwnerPetsContent({ onOpenChange, onCreated }: Props) {
                 >
                   <Plus className="h-3.5 w-3.5" /> Agregar otra mascota
                 </button>
-              </FormSection>
+              </section>
             </div>
           </FormDialogBody>
         </form>
 
-        <FormDialogFooter>
+        <FormDialogFooter className="bg-muted/30 py-3 sm:py-4">
           <Button type="button" variant="outline" onClick={() => discard(() => onOpenChange(false))} disabled={saving}>
             Cancelar
           </Button>
           <Button type="submit" form="new-owner-pets-form" disabled={saving}>
-            {saving ? "Creando…" : "Crear propietario + mascota(s)"}
+            {saving ? "Creando…" : "Crear propietario y mascotas"}
           </Button>
         </FormDialogFooter>
       </FormDialogContent>

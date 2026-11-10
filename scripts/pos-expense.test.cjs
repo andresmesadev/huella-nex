@@ -9,7 +9,7 @@ function load(name, imports = {}) {
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../frontend/lib/' + name + '.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, context);
   return context.exports;
 }
-const { expenseAmountError, matchesExpense, isExpenseRecord, readPendingExpense, pendingExpenseKey } = load('pos-expense', { './pos-checkout': load('pos-checkout') });
+const { expenseAmountError, matchesExpense, isExpenseRecord, readPendingExpense, pendingExpenseKey } = load('pos-expense', { './pos-checkout': load('pos-checkout'), './expenses': load('expenses') });
 const { filterExpenses, expenseFormDirty, isExpenseHistoryRow } = load('expense-history');
 const command = { category: 'supplies', description: 'Champú', responsible: 'Ana', amount: 12500.29, paymentMethod: 'transfer', notes: 'Factura 123', date: '2026-10-03T15:12:01.123Z' };
 const row = { ...command, id: 'expense-a', status: 'active', createdAt: command.date, voidReason: null, voidedAt: null };

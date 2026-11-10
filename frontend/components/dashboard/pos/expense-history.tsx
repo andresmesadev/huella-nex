@@ -5,7 +5,7 @@ import { History, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTenant } from "@/lib/use-tenant";
-import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@/lib/expenses";
+import { EXPENSE_CATEGORY_LABELS, EXPENSE_FORM_CATEGORIES, type ExpenseCategory } from "@/lib/expenses";
 import { PAYMENT_METHOD_LABELS, type PaymentMethod } from "@/lib/transactions";
 import { formatPosMoney } from "@/lib/pos-checkout";
 import { validHistoryRange } from "@/lib/pos-history";
@@ -14,7 +14,7 @@ import { type ReportDetail } from "@/lib/pos-reports";
 import { useFinancialHistory } from "./use-financial-history";
 import { HistoryPages } from "./history-pages";
 
-const selectClass = "mt-2 block h-11 w-full rounded-lg border bg-white px-3 text-sm";
+const selectClass = "mt-2 block h-11 w-full min-w-0 rounded-lg border bg-white px-3 text-sm";
 const dateLabel = (date: string) => new Date(date).toLocaleString("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 
 export function ExpenseHistory({ reportDetail }: { reportDetail?: ReportDetail }) {
@@ -48,10 +48,10 @@ export function ExpenseHistory({ reportDetail }: { reportDetail?: ReportDetail }
   const total = data?.total ?? 0;
   const activeTotal = data?.summary.activeTotal ?? 0;
 
-  return <section aria-label="Consultar gastos" className="overflow-hidden rounded-2xl border bg-white">
+  return <section aria-label="Consultar gastos" className="min-w-0 overflow-hidden rounded-2xl border bg-card [&_input]:min-h-11 [&_button]:min-h-11">
     <header className="border-b p-5 sm:p-6"><h3 className="flex items-center gap-2 font-semibold"><History className="h-5 w-5 text-primary" />Consulta de gastos</h3><p className="mt-1 text-sm text-muted-foreground">Revisa gastos anteriores y el motivo de sus anulaciones. Fechas y horas de Colombia.</p></header>
     <div className="space-y-4 border-b p-5 sm:p-6">
-      <form noValidate onSubmit={consult} className="flex flex-wrap items-end gap-3">
+      <form noValidate onSubmit={consult} aria-label="Consultar gastos por fecha" className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
         <div className="min-w-0 flex-1"><label htmlFor="expense-history-from" className="mb-2 block text-sm font-medium">Desde</label><Input id="expense-history-from" type="date" max={lastAllowed} value={from} onChange={event => setFrom(event.target.value)} /></div>
         <div className="min-w-0 flex-1"><label htmlFor="expense-history-to" className="mb-2 block text-sm font-medium">Hasta</label><Input id="expense-history-to" type="date" max={lastAllowed} value={to} onChange={event => setTo(event.target.value)} /></div>
         <Button type="submit" disabled={loading}><Search />{loading ? "Consultando…" : "Consultar gastos"}</Button>
@@ -59,18 +59,18 @@ export function ExpenseHistory({ reportDetail }: { reportDetail?: ReportDetail }
       {rangeError && <p role="alert" className="text-sm text-destructive">{rangeError}</p>}
       <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
         <div><label htmlFor="expense-history-search" className="mb-2 block text-sm font-medium">Buscar por descripción o responsable</label><Input id="expense-history-search" type="search" placeholder="Ej. Champú o Ana García" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} /></div>
-        <label className="text-sm font-medium">Categoría<select className={selectClass} value={category} onChange={event => { setCategory(event.target.value as ExpenseCategory | "all"); setPage(1); }}><option value="all">Todas las categorías</option>{Object.entries(EXPENSE_CATEGORY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <label className="text-sm font-medium">Estado<select className={selectClass} value={status} onChange={event => { setStatus(event.target.value as typeof status); setPage(1); }}><option value="all">Activos y anulados</option><option value="active">Activos</option><option value="voided">Anulados</option></select></label>
+        <label className="min-w-0 text-sm font-medium">Categoría<select className={selectClass} value={category} onChange={event => { setCategory(event.target.value as ExpenseCategory | "all"); setPage(1); }}><option value="all">Todas las categorías</option>{EXPENSE_FORM_CATEGORIES.map(value => <option key={value} value={value}>{EXPENSE_CATEGORY_LABELS[value]}</option>)}</select></label>
+        <label className="min-w-0 text-sm font-medium">Estado<select className={selectClass} value={status} onChange={event => { setStatus(event.target.value as typeof status); setPage(1); }}><option value="all">Activos y anulados</option><option value="active">Activos</option><option value="voided">Anulados</option></select></label>
       </div>
       {(query || category !== "all" || status !== "all") && <Button type="button" variant="outline" onClick={() => { setQuery(""); setCategory("all"); setStatus("all"); setPage(1); }}>Limpiar filtros</Button>}
     </div>
     {loading ? <p role="status" className="p-6 text-sm text-muted-foreground">Consultando registros…</p> : error ? <div role="alert" className="space-y-3 p-6"><p className="text-sm text-destructive">{error}</p><Button type="button" variant="outline" onClick={() => setRevision(value => value + 1)}>Reintentar</Button></div> : <>
       <div role="status" className="space-y-2 border-b bg-muted/20 px-5 py-4 text-sm"><p>{total} {total === 1 ? "registro encontrado" : "registros encontrados"} · Gastos activos del período: <strong>{formatPosMoney(activeTotal)}</strong></p><p className="text-xs text-muted-foreground">Período consultado: {range.from} al {range.to}. El total incluye todas las páginas con los filtros aplicados. Los anulados no suman.</p></div>
-      {!visible.length ? <div className="p-8 text-center"><p className="font-semibold">No hay gastos con estos criterios</p><p className="mt-1 text-sm text-muted-foreground">Prueba con otras fechas o limpia los filtros.</p></div> : <ul className="divide-y">{visible.map(row => <li key={row.id} className="space-y-3 p-5 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><p className="break-words font-semibold">{row.description}</p><p className="mt-1 text-sm text-muted-foreground">{dateLabel(row.date)}</p></div><div className="space-y-1 text-right"><p className={`font-semibold tabular-nums ${row.status === "voided" ? "text-muted-foreground" : "text-rose-700"}`}>{formatPosMoney(row.amount)}</p><span className={`inline-block rounded-full px-2 py-0.5 text-xs ${row.status === "voided" ? "bg-slate-100 text-slate-600" : "bg-teal-50 text-teal-800"}`}>{row.status === "voided" ? "Anulado" : "Activo"}</span></div></div>
-        <p className="break-words text-sm text-muted-foreground">{EXPENSE_CATEGORY_LABELS[row.category] ?? row.category} · {PAYMENT_METHOD_LABELS[row.paymentMethod as PaymentMethod] ?? row.paymentMethod} · Responsable: {row.responsible || "No registrado"}</p>
-        {row.status === "voided" && <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs font-semibold">Motivo de anulación</p><p className="mt-1 whitespace-pre-wrap break-words text-sm">{row.voidReason || "No registrado"}</p>{row.voidedAt && <p className="mt-2 text-xs text-muted-foreground">Anulado: {dateLabel(row.voidedAt)}</p>}</div>}
-        <details><summary className="cursor-pointer text-xs font-semibold text-primary">Ver notas y referencia</summary>{row.notes && <p className="mt-2 whitespace-pre-wrap break-words text-sm">{row.notes}</p>}<p className="mt-2 break-all text-xs text-muted-foreground">Registro: {row.id}</p></details>
+      {!visible.length ? <div className="p-8 text-center"><p className="font-semibold">No hay gastos con estos criterios</p><p className="mt-1 text-sm text-muted-foreground">Prueba con otras fechas o limpia los filtros.</p></div> : <ul aria-label="Gastos encontrados" className="divide-y">{visible.map(row => <li key={row.id} className="space-y-3 p-5 sm:p-6">
+        <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><div className="min-w-0 flex-1"><p className="wrap-anywhere font-semibold">{row.description}</p><p className="mt-1 text-sm text-muted-foreground">{dateLabel(row.date)}</p></div><div className="flex flex-wrap items-center gap-3 sm:block sm:space-y-1 sm:text-right"><p className={`font-semibold tabular-nums ${row.status === "voided" ? "text-muted-foreground" : "text-rose-700"}`}>{formatPosMoney(row.amount)}</p><span className={`inline-block rounded-full px-2 py-0.5 text-xs ${row.status === "voided" ? "bg-slate-100 text-slate-600" : "bg-teal-50 text-teal-800"}`}>{row.status === "voided" ? "Anulado" : "Activo"}</span></div></div>
+        <p className="wrap-anywhere text-sm text-muted-foreground">{EXPENSE_CATEGORY_LABELS[row.category] ?? row.category} · {PAYMENT_METHOD_LABELS[row.paymentMethod as PaymentMethod] ?? row.paymentMethod} · Responsable: {row.responsible || "No registrado"}</p>
+        {row.status === "voided" && <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs font-semibold">Motivo de anulación</p><p className="mt-1 whitespace-pre-wrap wrap-anywhere text-sm">{row.voidReason || "No registrado"}</p>{row.voidedAt && <p className="mt-2 text-xs text-muted-foreground">Anulado: {dateLabel(row.voidedAt)}</p>}</div>}
+        <details><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-primary focus-visible:outline-2 focus-visible:outline-primary">Ver notas y referencia</summary>{row.notes && <p className="mt-2 whitespace-pre-wrap wrap-anywhere text-sm">{row.notes}</p>}<p className="mt-2 break-all text-xs text-muted-foreground">Registro: {row.id}</p></details>
       </li>)}</ul>}
       {data && <HistoryPages data={data} onPage={setPage} onSize={size => { setPageSize(size); setPage(1); }} />}
     </>}

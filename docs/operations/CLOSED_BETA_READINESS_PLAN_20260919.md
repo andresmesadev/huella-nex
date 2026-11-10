@@ -1,5 +1,10 @@
 # Plan de preparación para beta cerrada
 
+**Actualización del 06/11 — ítem 9:** [cerrado para dashboard manual
+3.0.0](STABILITY_48H_CLOSURE_20261106.md), tras verificar 48 horas continuas,
+577 muestras correctas y cero huecos. Los estados inferiores son históricos;
+recuperación independiente y activación de WhatsApp conservan sus pendientes.
+
 
 > Actualización editorial de marca — 28/10/2026: se usa Huella Nex por solicitud de Andrés. Se conservan las fechas, versiones, decisiones y condiciones originales; esta edición no registra nuevas aprobaciones ni autorizaciones de clientes.
 

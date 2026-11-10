@@ -142,7 +142,7 @@ test('billing server page reauthorizes before reading status and never trusts su
 test('billing frame excludes the operational provider and offers explicit sign-out', () => {
   const Provider = 'OperationalProvider'; let route = '/dashboard/billing';
   const Frame = load('frontend/components/dashboard/dashboard-frame.tsx', {
-    react: { Suspense: 'Suspense' }, 'next/link': { default: 'Link' }, 'next/navigation': { usePathname: () => route },
+    react: { Suspense: 'Suspense', useEffect() {} }, 'next/link': { default: 'Link' }, 'next/navigation': { usePathname: () => route },
     '@/components/brand/product-brand': { ProductBrand: 'Brand' }, '@/lib/workspace-session': { clearWorkspaceSession() {}, workspaceStorage() {} }, '@/lib/pos-draft': { clearSaleDrafts() {} },
     './dashboard-sidebar': { DashboardSidebar: 'Sidebar' }, './dashboard-topbar': { DashboardTopbar: 'Topbar' }, './breadcrumb-nav': { BreadcrumbNav: 'Breadcrumb' },
     './dashboard-access-provider': { DashboardAccessProvider: Provider }, './operation-help': { OperationHelp: 'Help' }, './dashboard-loading': { DashboardLoading: 'Loading' },

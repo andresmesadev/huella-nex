@@ -28,6 +28,7 @@ import {
   isGroomingAppointment,
   type TodayAppointment,
 } from "@/lib/appointments";
+import { formatCOP } from "@/lib/transactions";
 import { getPetEmoji } from "@/lib/pets";
 import { GroomingTransportEditor } from "./grooming-transport-editor";
 import { AppointmentPaymentLink } from './appointment-payment-link';
@@ -65,7 +66,11 @@ function AppointmentDetailContent({ appointment, onClose, onUpdated, onDeleted, 
   const previousDayArrival = appointment.status === "arrived" && new Date(appointment.date).toLocaleDateString("en-CA", { timeZone: "America/Bogota" }) < new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
   const own = access?.capabilities.administration || !appointment.staffId || appointment.staffId === access?.staffId;
   const transitions = getStatusTransitions(appointment.status).filter(t => access?.capabilities.administration || (access?.role === "receptionist" ? ["confirmed", "arrived", "cancelled", "no_show"].includes(t.next) : own && ["arrived", "in_progress", "completed"].includes(t.next))).filter((transition) => (!graceExpired || !["confirmed", "arrived"].includes(transition.next)) && (!previousDayArrival || transition.next !== "in_progress"));
+  const primaryTransitions = transitions.filter(item => !["cancelled", "no_show"].includes(item.next));
+  const secondaryTransitions = transitions.filter(item => ["cancelled", "no_show"].includes(item.next));
   const canEditPrice = isGroomingAppointment(appointment) && Boolean(access?.capabilities.appointmentPrice && own) && !readOnly && !["completed", "cancelled", "no_show"].includes(appointment.status);
+  const groomingDetail = appointment.serviceCategory === "grooming" || appointment.serviceType === "grooming";
+  const canSeePrice = Boolean(access?.capabilities.cash || access?.capabilities.appointmentPrice);
   const groomingPrice = appointment.serviceCategory === 'grooming' || appointment.serviceType === 'grooming';
   const canSavePetPrice = Boolean(access?.capabilities.administration && appointment.petId && appointment.serviceId && !groomingPrice && (!appointment.transport || appointment.transport.mode === 'none'));
   const canRecord = access?.capabilities.clinical && own && VET_SERVICE_TYPES.includes(appointment.serviceType?.toLowerCase()) &&
@@ -156,50 +161,60 @@ function AppointmentDetailContent({ appointment, onClose, onUpdated, onDeleted, 
             <div className="flex min-w-0 items-start gap-3">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent/60 text-2xl" aria-hidden="true">{getPetEmoji(appointment.petType)}</span>
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2"><DialogTitle className="min-w-0 break-words text-xl font-bold tracking-tight sm:text-2xl">Cita de {appointment.petName}</DialogTitle><Badge variant="outline" className={`shrink-0 ${statusBadgeClass(appointment.status)}`}>{formatStatus(appointment.status)}</Badge></div>
-                <DialogDescription className="mt-1 break-words text-sm text-muted-foreground">{appointment.serviceName || formatService(appointment.serviceType)}</DialogDescription>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2"><DialogTitle className="min-w-0 [overflow-wrap:anywhere] text-xl font-bold tracking-tight sm:text-2xl">Cita de {appointment.petName}</DialogTitle><Badge variant="outline" className={`shrink-0 ${statusBadgeClass(appointment.status)}`}>{formatStatus(appointment.status)}</Badge></div>
+                <DialogDescription className="mt-1 [overflow-wrap:anywhere] text-sm text-muted-foreground">{appointment.serviceName || formatService(appointment.serviceType)}</DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
           <div data-appointment-body className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-background/70 px-4 py-4 sm:px-6 sm:py-5">
-            <div className={`grid items-start gap-4 ${appointment.serviceCategory === "grooming" || appointment.serviceType === "grooming" ? "md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" : ""}`}>
-              <CaseSummary appointment={appointment} showPrice compact actions={canEditPrice && !editingPrice && <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => { setPrice(appointment.priceResolution?.manualOverride?.toString() ?? servicePrice?.toString() ?? ""); setError(null); setEditingPrice(true); }}>{appointment.finalPrice == null ? "Definir precio" : "Cambiar precio"}</Button>} />
-              {(appointment.serviceCategory === "grooming" || appointment.serviceType === "grooming") && <GroomingTransportEditor key={`${appointment.id}:${JSON.stringify(appointment.transport)}`} appointment={appointment} onUpdated={onUpdated} readOnly={readOnly} onEditStateChange={setTransportEdit} />}
-            </div>
-
-            {canEditPrice && editingPrice && <form onSubmit={savePrice} className="rounded-2xl border border-teal-200 bg-teal-50/60 p-4 sm:p-5">
-              <h3 className="font-semibold text-slate-950">Precio para {appointment.petName}</h3>
+            <div data-appointment-cards className="grid items-stretch gap-4 md:grid-cols-2">
+              <div className="flex min-w-0 flex-col gap-4"><CaseSummary className="flex-1" appointment={appointment} showPrice={groomingDetail} compact actions={canEditPrice && !editingPrice && <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => { setPrice(appointment.priceResolution?.manualOverride?.toString() ?? servicePrice?.toString() ?? ""); setError(null); setEditingPrice(true); }}>{appointment.finalPrice == null ? "Definir precio" : "Cambiar precio"}</Button>} />
+            {canEditPrice && editingPrice && <form onSubmit={savePrice} className="rounded-xl border border-teal-200 bg-teal-50/60 p-4 sm:p-5">
+              <h3 className="font-semibold text-slate-950">Precio del servicio</h3>
               <p className="mt-1 text-sm text-slate-600">{groomingPrice && appointment.petId
                 ? `Al guardar se actualizarán esta cita y el valor habitual de peluquería en el expediente de ${appointment.petName}. Los cobros anteriores conservan sus importes.`
                 : canSavePetPrice
                 ? `Se guardará para ${appointment.petName} en ${appointment.serviceName ?? formatService(appointment.serviceType)} y se usará en próximas citas del mismo servicio que no tengan precio fijado. También fija el precio de esta cita. Puedes editar la tarifa desde su ficha.`
                 : "El valor se guardará solo para esta cita. Las tarifas del catálogo y de futuras visitas las administra el responsable del negocio."}</p>
-              <label htmlFor="appointment-price" className="mt-4 block text-sm font-semibold text-slate-800">Valor de esta cita (COP)</label>
+              <label htmlFor="appointment-price" className="mt-4 block text-sm font-semibold text-slate-800">Valor del servicio (COP)</label>
               <div className="mt-1 flex max-w-xs items-center overflow-hidden rounded-lg border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-teal-600"><span className="px-3 text-slate-500" aria-hidden="true">$</span><input id="appointment-price" disabled={busy} type="number" inputMode="decimal" min="0" max="99999999.99" step="0.01" required autoFocus value={price} onChange={(event) => setPrice(event.target.value)} placeholder="Ej. 45000" className="min-h-11 w-full bg-transparent pr-3 text-slate-950 outline-none disabled:opacity-60" /></div>
               <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap"><Button type="submit" className="min-h-11" disabled={busy}>{busy ? "Guardando…" : "Guardar precio"}</Button><Button type="button" className="min-h-11" variant="outline" disabled={busy} onClick={() => { setEditingPrice(false); setError(null); }}>Cancelar</Button></div>
             </form>}
 
+              </div>
+              {groomingDetail ? <GroomingTransportEditor key={`${appointment.id}:${JSON.stringify(appointment.transport)}`} appointment={appointment} onUpdated={onUpdated} readOnly={readOnly} onEditStateChange={setTransportEdit} /> : <section aria-label="Cobro de la atención" className="flex min-w-0 flex-col gap-4 rounded-xl border bg-white p-4 sm:p-5">
+                <h3 className="text-sm font-semibold">{canSeePrice ? "Cobro de la atención" : "Atención veterinaria"}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">La historia clínica y el registro del pago son pasos independientes.</p>
+                {canSeePrice && <div className="mt-auto rounded-lg bg-accent/60 p-3"><p className="text-xs text-muted-foreground">Valor de referencia (COP)</p><p className="mt-1 text-xl font-semibold tabular-nums text-primary">{appointment.finalPrice == null ? "Se define al registrar el pago" : formatCOP(appointment.finalPrice)}</p></div>}
+                {canSeePrice && <p className="text-xs text-muted-foreground">Revisa los servicios y productos al registrar el cobro en Punto de venta.</p>}
+              </section>}
+            </div>
+
             {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
-            {canRemove && <section className="rounded-2xl border border-border bg-white p-4">
+            {!readOnly && (secondaryTransitions.length > 0 || canRemove) && <details open={removing} className="rounded-xl border bg-white px-4 py-2">
+              <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold">Otras acciones</summary>
+              {secondaryTransitions.length > 0 && <div className="flex flex-wrap gap-2 border-t py-3">{secondaryTransitions.map(transition => <Button key={transition.next} type="button" variant="outline" className="min-h-11 whitespace-normal" disabled={busy || transportEdit.saving} onClick={() => discard(() => void updateStatus(transition.next))}>{transition.label}</Button>)}</div>}
+            {canRemove && <section className="border-t bg-white py-3">
               {!removing ? <Button type="button" variant="ghost" className="min-h-11 text-destructive" disabled={busy || transportEdit.saving} onClick={() => discard(() => { setRemoving(true); setError(null); })}>Eliminar cita</Button> : <div className="space-y-3">
                 <h3 className="font-semibold">Cita creada por error</h3><p className="text-sm text-muted-foreground">Solo se elimina si no tiene historia, cobros, comisiones ni otros registros asociados.</p>
                 <label htmlFor="appointment-removal-reason" className="block text-sm font-semibold">Motivo de la eliminación</label><textarea id="appointment-removal-reason" autoFocus maxLength={500} disabled={busy} value={removalReason} onChange={event => setRemovalReason(event.target.value)} placeholder="Ej. Cita duplicada o mascota seleccionada por error" className="min-h-24 w-full rounded-xl border bg-background p-3 text-sm" />
                 <Button type="button" className="min-h-11" variant="outline" disabled={busy} onClick={() => { setRemoving(false); setRemovalReason(''); }}>Volver a la ficha</Button>
               </div>}
             </section>}
+            </details>}
             {graceExpired && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Pasaron 30 minutos sin llegada registrada. Esta cita se marcará automáticamente como “No asistió”.</p>}
             {previousDayArrival && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Esta cita figura como “Llegó” en un día anterior. Verifica si hubo atención antes de cerrarla.</p>}
 
             {!readOnly && access?.capabilities.contacts && appointment.petId && <Link prefetch={false} href={homeHref(`/dashboard/contacto?view=mascotas&pet=${encodeURIComponent(appointment.petId)}`, tenant)} onClick={event => { event.preventDefault(); discard(() => { onClose(); router.push(homeHref(`/dashboard/contacto?view=mascotas&pet=${encodeURIComponent(appointment.petId!)}`, tenant)); }); }} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4 hover:text-foreground">Ver ficha de {appointment.petName}</Link>}
           </div>
           <DialogFooter className="max-h-[40dvh] shrink-0 flex-col items-stretch gap-3 overflow-y-auto border-border bg-white px-4 py-4 sm:flex-row sm:items-end sm:px-6">
-            {!readOnly && !removing && (transitions.length > 0 || canRecord) && (
+            {!readOnly && !removing && (primaryTransitions.length > 0 || canRecord) && (
               <section className="min-w-0 flex-1" aria-label="Acciones de la cita">
                 <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Siguiente paso</h3>
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap [&>button:only-child]:col-span-2 [&_button]:min-h-11 [&_button]:min-w-0 [&_button]:whitespace-normal sm:[&_button]:flex-1">
-                  {transitions.map((transition) => (
-                    <Button key={transition.next} type="button" variant={transition.variant ?? "default"} disabled={busy} onClick={() => updateStatus(transition.next)}>
+                  {primaryTransitions.map((transition) => (
+                    <Button key={transition.next} type="button" variant={transition.variant ?? "default"} disabled={busy || transportEdit.saving} onClick={() => discard(() => void updateStatus(transition.next))}>
                       {busy ? "Guardando…" : transition.label}
                     </Button>
                   ))}
@@ -209,7 +224,7 @@ function AppointmentDetailContent({ appointment, onClose, onUpdated, onDeleted, 
               </section>
             )}
 
-            <div className={`flex flex-wrap items-center justify-between gap-2 [&_a]:min-h-11 ${!readOnly && !removing && (transitions.length > 0 || canRecord) ? "sm:shrink-0" : "w-full"}`}>{removing ? <Button type="button" className="min-h-11 whitespace-normal" variant="destructive" disabled={busy || !removalReason.trim()} onClick={() => void removeAppointment()}>{busy ? 'Eliminando…' : 'Eliminar cita creada por error'}</Button> : <AppointmentPaymentLink appointment={appointment} />}<Button type="button" variant="outline" className="min-h-11 flex-1 sm:ml-auto sm:flex-none" disabled={busy || transportEdit.saving} onClick={() => discard(onClose)}>Cerrar ficha</Button></div>
+            <div className={`flex flex-wrap items-center justify-between gap-2 [&_a]:min-h-11 ${!readOnly && !removing && (primaryTransitions.length > 0 || canRecord) ? "sm:shrink-0" : "w-full"}`}>{removing ? <Button type="button" className="min-h-11 whitespace-normal" variant="destructive" disabled={busy || !removalReason.trim()} onClick={() => void removeAppointment()}>{busy ? 'Eliminando…' : 'Eliminar cita creada por error'}</Button> : <AppointmentPaymentLink appointment={appointment} />}<Button type="button" variant="outline" className="min-h-11 flex-1 sm:ml-auto sm:flex-none" disabled={busy || transportEdit.saving} onClick={() => discard(onClose)}>Cerrar ficha</Button></div>
           </DialogFooter>
         </DialogContent>
       )}

@@ -100,7 +100,7 @@ export function ContactsImporter() {
   // ── Vista: resultado ────────────────────────────────────────────────────────
   if (summary) {
     return (
-      <div className="max-w-xl space-y-4">
+      <div className="max-w-2xl space-y-4 [&_button]:min-h-11 [&_button]:whitespace-normal [&_select]:min-h-11">
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
           <div className="mb-4 flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-emerald-700" />
@@ -162,12 +162,12 @@ export function ContactsImporter() {
     const withAddress = contacts.filter((c) => c.address).length;
 
     return (
-      <div className="max-w-xl space-y-4">
+      <div className="max-w-2xl space-y-4 [&_button]:min-h-11 [&_button]:whitespace-normal [&_select]:min-h-11">
         <div className="rounded-xl border border-black/[0.06] bg-card p-4">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-medium">{fileName}</p>
+              <p className="min-w-0 [overflow-wrap:anywhere] text-sm font-medium">{fileName}</p>
             </div>
             <span className="text-xs text-muted-foreground">{contacts.length} propietarios</span>
           </div>
@@ -192,11 +192,11 @@ export function ContactsImporter() {
           <div className="max-h-64 divide-y divide-black/[0.04] overflow-y-auto rounded-lg border border-black/[0.06]">
             {contacts.map((c, i) => (
               <div key={i} className="px-3 py-2.5 text-sm">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-700">
                     {(c.owner_name?.[0] ?? "#").toUpperCase()}
                   </div>
-                  <span className="font-medium truncate">{c.owner_name || <span className="italic text-muted-foreground">Sin nombre</span>}</span>
+                  <span className="min-w-0 [overflow-wrap:anywhere] font-medium">{c.owner_name || <span className="italic text-muted-foreground">Sin nombre</span>}</span>
                   <span className="ml-auto text-xs text-muted-foreground shrink-0">{c.phone || "—"}</span>
                 </div>
                 {c.pets.length > 0 && (
@@ -238,12 +238,12 @@ export function ContactsImporter() {
           </p>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={handleImport} disabled={importing || missingSpecies > 0} className="gap-2">
             <Users className="h-4 w-4" />
             {importing
               ? "Importando… esto puede tardar unos minutos"
-              : `Importar ${contacts.length} propietarios y ${totalPets} mascotas`}
+              : `Importar ${contacts.length} ${contacts.length === 1 ? "propietario" : "propietarios"} y ${totalPets} ${totalPets === 1 ? "mascota" : "mascotas"}`}
           </Button>
           <Button variant="outline" onClick={reset} disabled={importing}>Cancelar</Button>
         </div>
@@ -256,7 +256,7 @@ export function ContactsImporter() {
 
   // ── Vista: drop zone ────────────────────────────────────────────────────────
   return (
-    <div className="max-w-xl space-y-4">
+    <div className="max-w-2xl space-y-4 [&_button]:min-h-11 [&_button]:whitespace-normal [&_select]:min-h-11">
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}

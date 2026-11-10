@@ -224,7 +224,7 @@ const VALID_PET_TYPES = ["dog", "cat", "other"];
 router.post("/pets", async (req, res) => {
   try {
     const { tenantId } = req.tenant;
-    const { name, type, ownerPhone, ownerName, breed, notes, operationalAlerts } = req.body ?? {};
+    const { name, type, ownerPhone, ownerName, breed, gender, weight, notes, operationalAlerts } = req.body ?? {};
     if (req.access && !req.access.capabilities.administration && notes) return res.status(403).json({ error: "Registra las observaciones de manejo en Alertas operativas; las notas clínicas requieren un profesional." });
 
     const cleanName = typeof name === "string" ? name.trim() : "";
@@ -236,6 +236,10 @@ router.post("/pets", async (req, res) => {
       return res.status(400).json({ error: `Tipo inválido. Valores: ${VALID_PET_TYPES.join(", ")}` });
     }
     if (!cleanPhone) return res.status(400).json({ error: "El teléfono del dueño es requerido" });
+
+    if (gender != null && !["", "male", "female"].includes(gender)) return res.status(400).json({ error: "Sexo inválido." });
+    if (weight != null && (typeof weight !== "number" || !Number.isFinite(weight) || weight < 0)) return res.status(400).json({ error: "El peso debe ser un número mayor o igual a cero." });
+    if (weight != null && req.access && !req.access.capabilities.administration) return res.status(403).json({ error: "Tu perfil no puede registrar el peso." });
 
     // find-or-create del dueño (scoped al tenant)
     let owner = await prisma.user.findFirst({
@@ -264,6 +268,8 @@ router.post("/pets", async (req, res) => {
         tenantId: tenantId ?? null,
         ownerId: owner.id,
         breed: breed?.trim() || null,
+        gender: gender || null,
+        weight: weight ?? null,
         notes: notes?.trim() || null,
         operationalAlerts: typeof operationalAlerts === "string" ? operationalAlerts.trim().slice(0, 2000) : null,
       },

@@ -1,4 +1,5 @@
 "use client";
+import { EXPENSE_CATEGORY_LABELS, EXPENSE_FORM_CATEGORIES } from "@/lib/expenses";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -19,7 +20,7 @@ const LABELS: Record<string, string> = {
   lotCode: "Código de lote", expiresOn: "Vencimiento", reason: "Motivo", cursor: "Continuación del resultado anterior",
 };
 const CHOICES: Record<string, [string, string][]> = {
-  expenseCategory: [["other", "Otro"], ["supplies", "Insumos"], ["utilities", "Servicios públicos"], ["rent", "Arriendo"], ["salary", "Salario"], ["equipment", "Equipos"], ["marketing", "Marketing"]],
+  expenseCategory: EXPENSE_FORM_CATEGORIES.map(key => [key, EXPENSE_CATEGORY_LABELS[key]]),
   paymentMethod: [["cash", "Efectivo"], ["transfer", "Transferencia"], ["card", "Tarjeta"], ["other", "Otro"]],
   status: [["", "Todos"], ["low", "Stock bajo"], ["expiring", "Próximos a vencer"], ["expired", "Vencidos"]],
   use: [["", "Áreas permitidas"], ["retail", "Venta"], ["veterinary", "Veterinaria"], ["grooming", "Peluquería"]],
@@ -63,6 +64,6 @@ export function ResultDetails({ value, depth = 0 }: { value: unknown; depth?: nu
   if (value === null || value === undefined) return <span className="text-slate-500">Sin dato</span>;
   if (typeof value === "boolean") return <span>{value ? "Sí" : "No"}</span>;
   if (Array.isArray(value)) return value.length ? <div className="space-y-3">{value.map((item, index) => <div key={index} className="rounded-lg border border-slate-200 p-3"><ResultDetails value={item} depth={depth + 1} /></div>)}</div> : <span className="text-slate-500">Sin resultados</span>;
-  if (typeof value === "object") return <dl className="space-y-2">{Object.entries(value).filter(([key]) => !HIDDEN.test(key)).map(([key, item]) => <div key={key} className={depth ? "text-sm" : "text-sm sm:grid sm:grid-cols-[12rem_1fr] sm:gap-4"}><dt className="font-medium text-slate-600">{RESULT_LABELS[key] || key.replace(/([a-z])([A-Z])/g, "$1 $2")}</dt><dd className="min-w-0 break-words text-slate-900"><ResultDetails value={item} depth={depth + 1} /></dd></div>)}</dl>;
-  return <span className="whitespace-pre-wrap break-words">{VALUES[String(value)] || String(value)}</span>;
+  if (typeof value === "object") return <dl className="space-y-2">{Object.entries(value).filter(([key]) => !HIDDEN.test(key)).map(([key, item]) => <div key={key} className={depth ? "text-sm" : "text-sm sm:grid sm:grid-cols-[12rem_1fr] sm:gap-4"}><dt className="font-medium text-slate-600">{RESULT_LABELS[key] || key.replace(/([a-z])([A-Z])/g, "$1 $2")}</dt><dd className="min-w-0 [overflow-wrap:anywhere] text-foreground"><ResultDetails value={item} depth={depth + 1} /></dd></div>)}</dl>;
+  return <span className="whitespace-pre-wrap [overflow-wrap:anywhere]">{VALUES[String(value)] || String(value)}</span>;
 }

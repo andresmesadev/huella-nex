@@ -29,14 +29,14 @@ function Editor({ product, source, onClose, onSaved }: Props) {
     if (!feedback.validate(event.currentTarget, {}, custom)) return;
     if (await operation.execute("correct_entry", `/api/dashboard/inventory/products/${product.id}/entries/${source.id}/corrections`, { quantity: Number(quantity), unitCost: cost.trim().replace(",", "."), expectedStockRevision: product.stockRevision, reason: reason.trim() }, `Corregir entrada · ${product.name}`)) setSaved(true);
   }
-  return <FormDialogContent className="max-w-xl">
-    <FormDialogHeader><DialogTitle>Corregir entrada</DialogTitle><DialogDescription>{product.name} · {source.lotCodeSnapshot ?? "Sin lote"}</DialogDescription></FormDialogHeader>
-    <form onSubmit={submit} noValidate aria-busy={operation.busy} className="flex min-h-0 flex-1 flex-col">
-      <FormDialogBody>
+  return <FormDialogContent className="max-h-[calc(100dvh-2rem)] gap-0 max-w-xl">
+    <FormDialogHeader className="py-4 sm:py-5 [&_h2]:[overflow-wrap:anywhere]"><DialogTitle>Corregir entrada</DialogTitle><DialogDescription className="[overflow-wrap:anywhere]">{product.name} · {source.lotCodeSnapshot ?? "Sin lote"}</DialogDescription></FormDialogHeader>
+    <form aria-label="Corrección de entrada" onSubmit={submit} noValidate aria-busy={operation.busy} className="flex min-h-0 flex-1 flex-col">
+      <FormDialogBody className="space-y-4 py-4 sm:py-5 [&_input:not([type=checkbox])]:min-h-11 [&_input]:min-w-0 [&_select]:min-w-0 [&_p]:[overflow-wrap:anywhere]">
         <InventoryOperationStatus operation={operation} focusFeedback />
         <p className="rounded-xl bg-muted/40 p-4 text-sm">Entrada original: <strong>{source.quantity} unidades</strong> a <strong>{formatPosMoney(Number(source.entryUnitCost ?? 0))}</strong> por unidad. El original se conservará junto con la corrección.</p>
         <fieldset disabled={locked} className="space-y-5">
-          <FormSection title="Datos correctos de la entrada">
+          <FormSection className="rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0" title="Datos correctos de la entrada">
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField id="entry-correction-quantity" label="Cantidad recibida correcta" error={feedback.errors["entry-correction-quantity"]} hint="Escribe 0 para cancelar esta entrada."><Input id="entry-correction-quantity" required type="number" min={0} max={2147483647} step={1} {...feedback.fieldProps("entry-correction-quantity")} value={quantity} onChange={e => { setQuantity(e.target.value); feedback.clearField("entry-correction-quantity"); }} /></FormField>
               <FormField id="entry-correction-cost" label="Costo unitario correcto (COP)" error={feedback.errors["entry-correction-cost"]}><Input id="entry-correction-cost" required inputMode="decimal" {...feedback.fieldProps("entry-correction-cost", true)} value={cost} onChange={e => { setCost(e.target.value); feedback.clearField("entry-correction-cost"); }} /></FormField>
@@ -46,7 +46,7 @@ function Editor({ product, source, onClose, onSaved }: Props) {
         </fieldset>
         {saved ? <p className="text-sm text-teal-900">Corrección guardada. Cierra para consultar las existencias actualizadas.</p> : <div className="rounded-xl border bg-teal-50/40 p-4 text-sm"><p>Saldo físico: <strong>{product.physical}</strong> → <strong>{after !== null && after >= BigInt(0) ? after.toString() : "Revisar cantidad"} unidades</strong></p><p className="mt-2 text-muted-foreground">El lote y su vencimiento se conservan. Si ya hubo salidas del lote, revisa las existencias con Conteo físico.</p></div>}
       </FormDialogBody>
-      <FormDialogFooter><Button type="button" variant="outline" disabled={operation.busy} onClick={() => close(onClose)}>{saved || ownPending ? "Cerrar" : "Cancelar"}</Button>{!saved && <Button type="submit" disabled={locked || !operation.ready}>{operation.busy ? "Guardando…" : "Guardar corrección"}</Button>}</FormDialogFooter>
+      <FormDialogFooter className="bg-muted/30 py-3 sm:py-4"><Button type="button" variant="outline" disabled={operation.busy} onClick={() => close(onClose)}>{saved || ownPending ? "Cerrar" : "Cancelar"}</Button>{!saved && <Button type="submit" disabled={locked || !operation.ready}>{operation.busy ? "Guardando…" : "Guardar corrección"}</Button>}</FormDialogFooter>
     </form>
   </FormDialogContent>;
 }

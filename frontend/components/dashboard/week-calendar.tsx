@@ -100,8 +100,8 @@ function ApptBlock({ appt, topPx, heightPx, lane, lanes, onClick }: {
     <button
       onClick={onClick}
       style={{ top: topPx, height: Math.max(heightPx, 32), left: `calc(${lane * 100 / lanes}% + 2px)`, width: `calc(${100 / lanes}% - 4px)` }}
-      aria-label={`${appt.petName}, propietario ${appt.clientName ?? appt.clientPhone}, servicio ${appt.serviceName ?? appt.serviceType}`}
-      title={`${appt.petName} · ${appt.clientName ?? appt.clientPhone} · ${appt.serviceName ?? appt.serviceType}`}
+      aria-label={`${appt.petName}, propietario ${appt.clientName ?? appt.clientPhone}, servicio ${appt.serviceName ?? appt.serviceType}, ${formatStatus(appt.status)}`}
+      title={`${appt.petName} · ${appt.clientName ?? appt.clientPhone} · ${appt.serviceName ?? appt.serviceType} · ${formatStatus(appt.status)}`}
       className={`absolute z-0 overflow-hidden rounded border-l-4 px-2 py-1 text-left text-xs leading-[13px] ${bg} hover:z-10 hover:shadow-md focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-teal-700 transition-shadow`}
     >
       <span className="block truncate font-semibold">
@@ -163,7 +163,7 @@ function TimeGrid({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border bg-background">
+    <div role="region" aria-label="Calendario de citas" tabIndex={0} className="overflow-x-auto rounded-xl border border-border bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
       <div style={{ minWidth: columns.length === 1 ? "100%" : Math.max(480, columns.length * 180 + 48) }}>
         {/* Column headers */}
         <div className="grid border-b sticky top-0 bg-background z-10" style={{ gridTemplateColumns: `3rem repeat(${columns.length}, 1fr)` }}>
@@ -540,53 +540,53 @@ export function WeekCalendar({
       {owner && <section aria-label="Filtro de propietario" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 p-4"><div><h2 className="font-semibold text-teal-950">Agenda de {owner.name}</h2><p className="mt-1 text-sm text-teal-900">Solo sus citas del período seleccionado, en todas las vistas.</p></div><Button variant="outline" className="min-h-11 bg-white" onClick={clearOwnerFilter}>Ver toda la agenda</Button></section>}
 
       {/* Toolbar */}
-      <div className="mb-4 space-y-3 rounded-2xl border border-border bg-white p-3 shadow-sm sm:p-4">
+      <div className="mb-4 space-y-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={prevPeriod} aria-label="Período anterior">
-              <ChevronLeft className="h-4 w-4" />
+          <div role="group" aria-label="Cambiar período de agenda" className="order-2 flex items-center gap-2 sm:order-1">
+            <Button variant="outline" size="icon" className="size-11" onClick={prevPeriod} aria-label="Período anterior">
+              <ChevronLeft aria-hidden="true" className="h-4 w-4" />
             </Button>
             <button
               type="button"
               onClick={goToday}
-              className="min-h-10 rounded-lg border border-border px-4 text-sm font-semibold transition-colors hover:bg-muted"
+              className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               Hoy
             </button>
-            <Button variant="outline" size="icon" onClick={nextPeriod} aria-label="Período siguiente">
-              <ChevronRight className="h-4 w-4" />
+            <Button variant="outline" size="icon" className="size-11" onClick={nextPeriod} aria-label="Período siguiente">
+              <ChevronRight aria-hidden="true" className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-base font-bold capitalize text-foreground sm:text-lg">{periodLabel}</span>
-            {!preview && access?.capabilities.schedule && <Button type="button" size="sm" onClick={() => setCreating(true)}>
+          <div className="order-1 flex w-full flex-wrap items-center justify-between gap-3 sm:order-2 sm:w-auto sm:flex-1 sm:justify-end">
+            <span aria-live="polite" aria-atomic="true" className="text-base font-bold text-foreground sm:text-lg">{periodLabel}</span>
+            {!preview && access?.capabilities.schedule && <Button type="button" size="sm" className="min-h-11" onClick={() => setCreating(true)}>
               <CalendarPlus className="mr-2 h-4 w-4" /> Nueva cita
             </Button>}
           </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
-          <div aria-label="Vista de agenda" className="flex max-w-full overflow-x-auto rounded-lg border border-border p-1">
+          <div role="group" aria-label="Vista de agenda" className="grid w-full grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1 sm:flex sm:w-auto">
             {(["month", "week", "day", "scheduler"] as const).map((v) => (
               <button
                 key={v}
                 type="button"
                 onClick={() => setView(v)}
                 aria-pressed={view === v}
-                className={`min-h-9 shrink-0 rounded-md px-3 text-sm font-semibold transition-colors ${view === v ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                className={`min-h-11 shrink-0 rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
               >
                 {v === "month" ? "Mes" : v === "week" ? "Semana" : v === "day" ? "Día" : "Por profesional"}
               </button>
             ))}
           </div>
-          <div aria-label="Formato de hora" className="flex shrink-0 overflow-hidden rounded-lg border border-border p-1">
+          <div role="group" aria-label="Formato de hora" className="flex shrink-0 gap-1 rounded-xl bg-muted/60 p-1">
             {(["12h", "24h"] as const).map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setClock(c)}
                 aria-pressed={clock === c}
-                className={`min-h-9 rounded-md px-3 text-sm font-semibold transition-colors ${clock === c ? "bg-teal-700 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                className={`min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${clock === c ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
               >
                 {c}
               </button>
@@ -635,7 +635,7 @@ export function WeekCalendar({
       {view === "day" && (
         <>
           {/* Day selector within week */}
-          <div className="flex gap-1 mb-3 overflow-x-auto">
+          <div role="group" aria-label="Días de la semana" className="mb-3 flex gap-1 overflow-x-auto pb-1">
             {weekDays.map((ymd, i) => {
               const d = new Date(`${ymd}T12:00:00Z`);
               const isActive = ymd === currentDay;
@@ -644,8 +644,12 @@ export function WeekCalendar({
               return (
                 <button
                   key={ymd}
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-current={isToday ? "date" : undefined}
+                  aria-label={`${DAY_NAMES_FULL[i]}, ${ymd}: ${count} citas`}
                   onClick={() => setCurrentDay(ymd)}
-                  className={`flex flex-col items-center rounded-xl px-3 py-2 min-w-[48px] transition-colors ${isActive ? "bg-primary text-primary-foreground" : isToday ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+                  className={`flex flex-col items-center rounded-xl px-3 py-2 min-h-14 min-w-[48px] shrink-0 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${isActive ? "bg-primary text-primary-foreground" : isToday ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
                 >
                   <span className="text-[10px] font-medium">{DAY_NAMES_SHORT[i]}</span>
                   <span className="text-lg font-bold leading-tight">{d.getUTCDate()}</span>
@@ -670,7 +674,7 @@ export function WeekCalendar({
       {view === "scheduler" && (
         <>
           {/* Day selector */}
-          <div className="flex gap-1 mb-3 overflow-x-auto">
+          <div role="group" aria-label="Días de la semana" className="mb-3 flex gap-1 overflow-x-auto pb-1">
             {weekDays.map((ymd, i) => {
               const d = new Date(`${ymd}T12:00:00Z`);
               const isActive = ymd === currentDay;
@@ -679,8 +683,12 @@ export function WeekCalendar({
               return (
                 <button
                   key={ymd}
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-current={isToday ? "date" : undefined}
+                  aria-label={`${DAY_NAMES_FULL[i]}, ${ymd}: ${count} citas`}
                   onClick={() => setCurrentDay(ymd)}
-                  className={`flex flex-col items-center rounded-xl px-3 py-2 min-w-[48px] transition-colors ${isActive ? "bg-primary text-primary-foreground" : isToday ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+                  className={`flex flex-col items-center rounded-xl px-3 py-2 min-h-14 min-w-[48px] shrink-0 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${isActive ? "bg-primary text-primary-foreground" : isToday ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
                 >
                   <span className="text-[10px] font-medium">{DAY_NAMES_SHORT[i]}</span>
                   <span className="text-lg font-bold leading-tight">{d.getUTCDate()}</span>
@@ -709,7 +717,7 @@ export function WeekCalendar({
       )}
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-3">
+      <div role="group" aria-label="Estados de las citas" className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
         {(["pending","confirmed","arrived","in_progress","completed","no_show"] as const).map((s) => (
           <span key={s} className="flex items-center gap-1.5">
             <span className={`h-2 w-2 rounded-full ${STATUS_DOT[s]}`} />

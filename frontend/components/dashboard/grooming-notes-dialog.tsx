@@ -12,9 +12,9 @@ import { type GroomingVisit } from "@/lib/grooming";
 import { GroomingPetSummary } from "@/components/dashboard/grooming-pet-summary";
 import { ConsumptionButton } from "@/components/dashboard/inventory/consumption-button";
 
-export function GroomingNotesDialog({ visit, tenantId, onClose, onSaved, onStart, starting = false, startError }: {
+export function GroomingNotesDialog({ visit, tenantId, onClose, onSaved, onStart, starting = false, startError, compact = false, readOnly = false }: {
   visit: GroomingVisit; tenantId?: string; onClose: () => void; onSaved: (visit: GroomingVisit) => void;
-  onStart?: () => void; starting?: boolean; startError?: string | null;
+  readOnly?: boolean; compact?: boolean; onStart?: () => void; starting?: boolean; startError?: string | null;
 }) {
   const access = useDashboardAccess();
   const [current, setCurrent] = useState(visit);
@@ -28,7 +28,7 @@ export function GroomingNotesDialog({ visit, tenantId, onClose, onSaved, onStart
   const [historyBusy, setHistoryBusy] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const dirty = notes !== (current.groomingNotes ?? "");
-  const canWrite = Boolean(access?.capabilities.administration || (access?.staffId && visit.staffId === access.staffId)) && Boolean(visit.petId) && !["cancelled", "no_show"].includes(visit.status);
+  const canWrite = !readOnly && Boolean(access?.capabilities.administration || (access?.staffId && visit.staffId === access.staffId)) && Boolean(visit.petId) && !["cancelled", "no_show"].includes(visit.status);
 
   useEffect(() => {
     function warn(event: BeforeUnloadEvent) {
@@ -63,6 +63,7 @@ export function GroomingNotesDialog({ visit, tenantId, onClose, onSaved, onStart
   }
 
   async function save() {
+    if (!canWrite || saving) return;
     setSaving(true);
     setError(null);
     try {
@@ -84,22 +85,22 @@ export function GroomingNotesDialog({ visit, tenantId, onClose, onSaved, onStart
 
   return <>
     <Dialog open onOpenChange={(open) => { if (!open) requestClose(); }}>
-      <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl" showClose={!saving && !starting}>
-        <DialogHeader className="border-b px-6 py-5 sm:px-8">
-          <div className="flex items-center gap-3 pr-7"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800"><Scissors className="size-5" /></span><DialogTitle className="text-xl">Notas de la atención de {visit.petName}</DialogTitle></div>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl" showClose={!saving && !starting}>
+        <DialogHeader className="shrink-0 border-b px-5 py-5 pr-14 sm:px-8 sm:pr-14">
+          <div className="flex items-center gap-3 pr-7"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800"><Scissors className="size-5" /></span><DialogTitle className="min-w-0 [overflow-wrap:anywhere] text-lg sm:text-xl">{compact ? onStart ? `Preparar a ${visit.petName}` : `Cuidados y notas de ${visit.petName}` : `Notas de la atención de ${visit.petName}`}</DialogTitle></div>
           <DialogDescription className="pt-2">Registro del baño o corte y cuidados para próximas visitas.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
-          <CaseSummary appointment={current} showPrice />
+        <div className="min-h-0 space-y-5 overflow-y-auto px-5 py-5 [&_button]:min-h-11 [&_p]:[overflow-wrap:anywhere] sm:px-8">
+          {compact ? <details className="rounded-xl border px-4 py-1"><summary className="min-h-11 cursor-pointer content-center text-sm font-semibold">Datos de la cita</summary><CaseSummary appointment={current} showPrice /></details> : <CaseSummary appointment={current} showPrice />}
           <GroomingPetSummary visit={visit} tenantId={tenantId} />
           {canWrite && ["in_progress", "completed"].includes(visit.status) && <ConsumptionButton area="grooming" appointmentId={visit.id} />}
-          <div role="status" className="rounded-xl bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">{canWrite ? "Escribe o pega aquí tus notas sobre el baño, corte, productos y cuidados. Después pulsa Guardar cambios." : !visit.petId ? "Solo lectura: vincula una mascota a esta cita desde Agenda para poder guardar notas." : `Solo lectura: esta cita figura como «${formatStatus(visit.status)}». Puedes seleccionar y copiar las notas existentes. Para registrar un baño o corte, abre la cita en la que sí se prestó el servicio.`}</div>
-          <div className="space-y-2">
+          {(!compact || !canWrite) && <div role="status" className="rounded-xl bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">{canWrite ? "Escribe o pega aquí tus notas sobre el baño, corte, productos y cuidados. Después pulsa Guardar cambios." : readOnly ? "Estás consultando las notas. Para modificarlas, abre la mascota con Editar desde el listado." : !visit.petId ? "Solo lectura: vincula una mascota a esta cita desde Agenda para poder guardar notas." : `Solo lectura: esta cita figura como «${formatStatus(visit.status)}». Puedes seleccionar y copiar las notas existentes. Para registrar un baño o corte, abre la cita en la que sí se prestó el servicio.`}</div>}
+          <details open={!compact || !onStart || Boolean(current.groomingNotes)} className="rounded-xl border p-4"><summary className="min-h-11 cursor-pointer content-center text-sm font-semibold">Notas de esta visita (opcionales)</summary><div className="mt-3 space-y-2">
             <label htmlFor="grooming-notes" className="text-sm font-semibold">Notas de esta visita</label>
-            {canWrite && <div className="space-y-2"><p className="text-xs text-muted-foreground">Ayudas opcionales: agrega un encabezado y escribe lo que corresponda.</p><div className="flex flex-wrap gap-2">{["Corte realizado", "Productos utilizados", "Observaciones y cuidados"].map((label) => <Button key={label} size="sm" variant="outline" disabled={saving || notes.length + label.length + 4 > 6000} onClick={() => { setNotes((text) => `${text}${text ? "\n\n" : ""}${label}: `); document.getElementById("grooming-notes")?.focus(); }}>{label}</Button>)}</div></div>}
-            <textarea id="grooming-notes" value={notes} readOnly={!canWrite || saving || starting} aria-readonly={!canWrite || saving || starting} onChange={(event) => { if (canWrite && !saving && !starting) setNotes(event.target.value); }} maxLength={6000} rows={9} placeholder={canWrite ? "Escribe las notas o pega el texto aquí…" : "Esta visita no tiene notas guardadas."} className="w-full resize-y select-text rounded-xl border border-border bg-white p-4 text-sm leading-relaxed placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal-600 read-only:bg-slate-50" />
+            {canWrite && !compact && <div className="space-y-2"><p className="text-xs text-muted-foreground">Ayudas opcionales: agrega un encabezado y escribe lo que corresponda.</p><div className="flex flex-wrap gap-2">{["Corte realizado", "Productos utilizados", "Observaciones y cuidados"].map((label) => <Button key={label} size="sm" variant="outline" disabled={saving || notes.length + label.length + 4 > 6000} onClick={() => { setNotes((text) => `${text}${text ? "\n\n" : ""}${label}: `); document.getElementById("grooming-notes")?.focus(); }}>{label}</Button>)}</div></div>}
+            <textarea id="grooming-notes" value={notes} readOnly={!canWrite || saving || starting} aria-readonly={!canWrite || saving || starting} onChange={(event) => { if (canWrite && !saving && !starting) setNotes(event.target.value); }} maxLength={6000} rows={compact ? 4 : 9} placeholder={canWrite ? "Escribe las notas o pega el texto aquí…" : "Esta visita no tiene notas guardadas."} className="w-full resize-y select-text rounded-xl border border-border bg-white p-4 text-sm leading-relaxed placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal-600 read-only:bg-slate-50" />
             <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground"><span aria-live="polite">{dirty ? "Tienes cambios sin guardar" : current.groomingNotesUpdatedAt ? `Guardado: ${formatColombiaDateTime(current.groomingNotesUpdatedAt)}` : canWrite ? "Las notas se guardan en esta visita" : "Sin cambios: vista de solo lectura"}</span><span>{notes.length}/6000</span></div>
-          </div>
+          </div></details>
           {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error} Tu texto sigue aquí. Si la nota cambió, cierra y vuelve a abrir la cita para consultar la versión vigente antes de corregirla.</p>}
           {startError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{startError}</p>}
           {visit.petId && <details className="rounded-xl border p-4" onToggle={(event) => { if (event.currentTarget.open && !historyLoaded && !historyBusy && !historyError) void loadHistory(); }}>
@@ -113,9 +114,9 @@ export function GroomingNotesDialog({ visit, tenantId, onClose, onSaved, onStart
             </div>
           </details>}
         </div>
-        <DialogFooter className="shrink-0 flex-wrap border-t bg-white px-6 py-4 sm:px-8"><Button variant="outline" onClick={requestClose} disabled={saving || historyBusy || starting}>Cerrar</Button>{onStart && <Button onClick={onStart} disabled={saving || starting}>{starting ? "Iniciando…" : "Iniciar baño o corte"}</Button>}<Button onClick={() => void save()} disabled={!canWrite || saving || starting || !dirty} title={!canWrite ? "Esta visita es de solo lectura" : !dirty ? "Escribe o pega una nota para guardar" : "Guardar las notas de esta visita"}>{saving ? "Guardando…" : "Guardar cambios"}</Button></DialogFooter>
+        <DialogFooter className="shrink-0 flex-wrap border-t bg-white px-5 py-4 [&_button]:min-h-11 [&_button]:whitespace-normal sm:px-8"><Button variant="outline" onClick={requestClose} disabled={saving || historyBusy || starting}>Cerrar</Button>{onStart && <Button onClick={onStart} disabled={saving || starting || (compact && dirty)}>{starting ? "Iniciando…" : "Iniciar baño o corte"}</Button>}{canWrite && (!compact || dirty) && <Button onClick={() => void save()} disabled={!canWrite || saving || starting || !dirty} title={!canWrite ? "Esta visita es de solo lectura" : !dirty ? "Escribe o pega una nota para guardar" : "Guardar las notas de esta visita"}>{saving ? "Guardando…" : "Guardar cambios"}</Button>}{compact && dirty && onStart && <p className="w-full text-xs text-amber-900">Guarda tus notas antes de iniciar el baño o corte.</p>}</DialogFooter>
       </DialogContent>
     </Dialog>
-    <Dialog open={discardOpen} onOpenChange={setDiscardOpen}><DialogContent><DialogHeader><DialogTitle>¿Cerrar sin guardar?</DialogTitle><DialogDescription>Las notas que escribiste en esta visita todavía no se han guardado.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setDiscardOpen(false)}>Seguir escribiendo</Button><Button variant="destructive" onClick={onClose}>Descartar y cerrar</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog open={discardOpen} onOpenChange={setDiscardOpen}><DialogContent className="w-[calc(100%-2rem)] [&_button]:min-h-11"><DialogHeader className="pr-14"><DialogTitle>¿Cerrar sin guardar?</DialogTitle><DialogDescription>Las notas que escribiste en esta visita todavía no se han guardado.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setDiscardOpen(false)}>Seguir escribiendo</Button><Button variant="destructive" onClick={onClose}>Descartar y cerrar</Button></DialogFooter></DialogContent></Dialog>
   </>;
 }

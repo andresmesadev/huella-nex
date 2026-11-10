@@ -6,10 +6,7 @@ import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
@@ -17,12 +14,14 @@ import { useDashboardAccess } from "@/components/dashboard/dashboard-access-prov
 import { proxyUrl } from "@/lib/api";
 import { useTenant } from "@/lib/use-tenant";
 import { formatPhone } from "@/lib/pets";
+import { ProtectedDialog, useDialogEditGuard } from "./protected-dialog";
+import { FormDialogContent, FormDialogHeader, FormDialogBody, FormDialogFooter } from "./form-layout";
 import { NewOwnerPetsSheet } from "@/components/dashboard/new-owner-pets-sheet";
 
 type Owner = { id: string; name: string | null; phone: string; pets?: { id: string; name: string }[] };
 
 const SELECT_CLASS =
-  "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  "flex h-11 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 const TEXTAREA_CLASS =
   "w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none disabled:cursor-not-allowed disabled:opacity-50";
@@ -35,7 +34,7 @@ type Props = {
 
 type Step = "search" | "found" | "not-found";
 
-export function AddPetToOwnerFlow({ open, onOpenChange, onCreated }: Props) {
+function AddPetContent({ onOpenChange, onCreated, onNewOwner }: Props & { onNewOwner: () => void }) {
   const { toast } = useToast();
   const tenant = useTenant();
   const access = useDashboardAccess();
@@ -44,7 +43,7 @@ export function AddPetToOwnerFlow({ open, onOpenChange, onCreated }: Props) {
   const [phoneQuery, setPhoneQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [owner, setOwner] = useState<Owner | null>(null);
-  const [newOwnerOpen, setNewOwnerOpen] = useState(false);
+  const [matches, setMatches] = useState<Owner[]>([]);
 
   // Pet form state
   const [petName, setPetName] = useState("");
@@ -54,6 +53,9 @@ export function AddPetToOwnerFlow({ open, onOpenChange, onCreated }: Props) {
   const [petWeight, setPetWeight] = useState("");
   const [petNotes, setPetNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const dirty = Boolean(petName || petBreed || petGender || petWeight || petNotes || petType !== "dog");
+  const discard = useDialogEditGuard(dirty, saving);
 
   function resetPetForm() {
     setPetName("");
@@ -79,15 +81,15 @@ export function AddPetToOwnerFlow({ open, onOpenChange, onCreated }: Props) {
 
     setSearching(true);
     try {
-      const qs = new URLSearchParams({ search: q, limit: "1" });
+      const qs = new URLSearchParams({ search: q, limit: "8" });
       if (tenant) qs.set("tenantId", tenant);
       const url = proxyUrl(`/api/dashboard/clients?${qs.toString()}`);
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error();
       const data = await res.json() as Owner[];
       if (Array.isArray(data) && data.length > 0) {
-        setOwner(data[0]);
-        setStep("found");
+        setMatches(data);
+        setStep("search");
       } else {
         setOwner(null);
         setStep("not-found");
@@ -119,6 +121,8 @@ export function AddPetToOwnerFlow({ open, onOpenChange, onCreated }: Props) {
           ownerPhone: owner.phone,
           ownerName: owner.name ?? undefined,
           breed: petBreed || undefined,
+          gender: petGender || undefined,
+          weight: access?.capabilities.administration && petWeight ? Number(petWeight) : undefined,
           notes: access?.capabilities.administration ? petNotes || undefined : undefined,
           operationalAlerts: access?.capabilities.administration ? undefined : petNotes || undefined,
         }),
@@ -138,240 +142,64 @@ export function AddPetToOwnerFlow({ open, onOpenChange, onCreated }: Props) {
     }
   }
 
-  return (
-    <>
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="flex max-h-[92vh] w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-xl">
-          {step === "search" && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Agregar mascota</DialogTitle>
-                <DialogDescription>
-                  Busca al propietario por teléfono o nombre.
-                </DialogDescription>
-              </DialogHeader>
+  return <FormDialogContent className="max-h-[calc(100dvh-2rem)] max-w-2xl gap-0">
+    <FormDialogHeader className="py-4 sm:py-5">
+      <DialogTitle className="text-lg sm:text-xl">{step === "found" ? "Nueva mascota" : "Agregar mascota"}</DialogTitle>
+      <DialogDescription>{step === "found" ? "Confirma el propietario y completa los datos de su mascota." : "Busca y selecciona al propietario antes de agregar su mascota."}</DialogDescription>
+    </FormDialogHeader>
+    <FormDialogBody className="space-y-4 py-4 [&_input]:min-h-11 [&_button]:min-h-11 [&_button]:whitespace-normal">
+      {step !== "found" && <>
+        <form onSubmit={handleSearch} className="space-y-3">
+          <label htmlFor="apt-phone" className="block text-sm font-semibold">Teléfono o nombre del propietario</label>
+          <div className="flex gap-2">
+            <Input id="apt-phone" value={phoneQuery} onChange={event => { setPhoneQuery(event.target.value); setMatches([]); setStep("search"); }} placeholder="Ej. 3001234567 o Ana García" autoFocus disabled={searching} />
+            <Button type="submit" className="shrink-0" disabled={searching || !phoneQuery.trim()}><Search className="size-4" /><span>{searching ? "Buscando…" : "Buscar"}</span></Button>
+          </div>
+        </form>
+        {matches.length > 0 && <section aria-label="Propietarios encontrados" className="space-y-2">
+          <p className="text-sm text-muted-foreground">Selecciona al propietario correcto.</p>
+          {matches.map(match => <button type="button" key={match.id} onClick={() => { setOwner(match); resetPetForm(); setStep("found"); }} className="flex min-h-11 w-full flex-col gap-1 rounded-lg border p-3 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary">
+            <span className="text-sm font-semibold [overflow-wrap:anywhere]">{match.name ?? "Sin nombre"}</span><span className="text-xs text-muted-foreground">{formatPhone(match.phone)}</span>
+          </button>)}
+          {matches.length === 8 && <p className="text-xs text-muted-foreground">Si no lo ves, busca con el teléfono o un nombre más completo.</p>}
+        </section>}
+        {step === "not-found" && <p role="status" className="rounded-lg bg-muted p-3 text-sm [overflow-wrap:anywhere]">No encontramos propietarios con «{phoneQuery}». Revisa la búsqueda o registra uno nuevo.</p>}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3"><p className="text-sm text-muted-foreground">¿Es su primera visita?</p><Button variant="outline" onClick={onNewOwner}>Nuevo propietario y mascotas</Button></div>
+      </>}
+      {step === "found" && owner && <>
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted/50 p-3">
+          <div className="min-w-0 flex-1"><p className="text-xs text-muted-foreground">Propietario seleccionado</p><p className="text-sm font-semibold [overflow-wrap:anywhere]">{owner.name ?? formatPhone(owner.phone)}</p><p className="text-xs text-muted-foreground">{formatPhone(owner.phone)}</p></div>
+          <Button variant="outline" disabled={saving} onClick={() => discard(() => { resetPetForm(); setStep("search"); })}><ArrowLeft className="size-4" />Cambiar</Button>
+        </div>
+        <form id="add-pet-form" onSubmit={handleAddPet} className="space-y-4" aria-busy={saving}>
+          <fieldset disabled={saving} className="min-w-0 space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-name" className="text-sm font-semibold">Nombre *</label><Input id="apt-pet-name" value={petName} onChange={e => setPetName(e.target.value)} placeholder="Ej. Max" required /></div>
+              <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-type" className="text-sm font-semibold">Especie *</label><select id="apt-pet-type" value={petType} onChange={e => setPetType(e.target.value)} className={SELECT_CLASS}><option value="dog">Perro</option><option value="cat">Gato</option><option value="other">Otro</option></select></div>
+            </div>
+            <div className="grid items-end gap-3 sm:grid-cols-3">
+              <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-breed" className="text-sm font-semibold">Raza (opcional)</label><Input id="apt-pet-breed" value={petBreed} onChange={e => setPetBreed(e.target.value)} placeholder="Sin especificar" /></div>
+              <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-gender" className="text-sm font-semibold">Sexo (opcional)</label><select id="apt-pet-gender" value={petGender} onChange={e => setPetGender(e.target.value)} className={SELECT_CLASS}><option value="">Sin especificar</option><option value="male">Macho</option><option value="female">Hembra</option></select></div>
+              <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-weight" className="text-sm font-semibold">Peso (kg) (opcional)</label><Input id="apt-pet-weight" type="number" step="0.1" min="0" disabled={!access?.capabilities.administration || saving} value={petWeight} onChange={e => setPetWeight(e.target.value)} placeholder="Ej. 12.5" /></div>
+            </div>
+            <div className="space-y-1.5"><label htmlFor="apt-pet-notes" className="text-sm font-semibold">{access?.capabilities.administration ? "Notas y cuidados" : "Alertas para el manejo"} (opcional)</label><textarea id="apt-pet-notes" rows={2} value={petNotes} onChange={e => setPetNotes(e.target.value)} placeholder="Alergias, comportamiento o precauciones" className={TEXTAREA_CLASS} /></div>
+          </fieldset>
+        </form>
+      </>}
+    </FormDialogBody>
+    <FormDialogFooter className="bg-muted/30 py-3 sm:py-4">
+      <Button variant="outline" onClick={() => discard(handleClose)} disabled={saving || searching}>Cancelar</Button>
+      {step === "found" && <Button type="submit" form="add-pet-form" disabled={saving}>{saving ? "Guardando…" : "Agregar mascota"}</Button>}
+    </FormDialogFooter>
+  </FormDialogContent>;
+}
 
-              <form onSubmit={handleSearch} className="space-y-4 px-4 pb-6">
-                <div className="space-y-1.5">
-                  <label htmlFor="apt-phone" className="text-sm font-medium">
-                    Teléfono o nombre del propietario
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="apt-phone"
-                      value={phoneQuery}
-                      onChange={(e) => setPhoneQuery(e.target.value)}
-                      placeholder="573001234567 o Juan Pérez"
-                      inputMode="tel"
-                      autoFocus
-                      disabled={searching}
-                    />
-                    <Button type="submit" size="icon" disabled={searching || !phoneQuery.trim()} aria-label="Buscar">
-                      <Search className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <div className="h-px flex-1 bg-border" />
-                  <span>o</span>
-                  <div className="h-px flex-1 bg-border" />
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    onOpenChange(false);
-                    setNewOwnerOpen(true);
-                  }}
-                >
-                  Crear propietario + mascota(s) nuevo
-                </Button>
-              </form>
-            </>
-          )}
-
-          {step === "found" && owner && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Nueva mascota</DialogTitle>
-                <DialogDescription>
-                  Agregando mascota a este propietario.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="px-4 pb-6 space-y-5">
-                {/* Tarjeta del propietario */}
-                <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-sm font-semibold text-violet-700">
-                    {(owner.name?.trim()?.[0] ?? "#").toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-sm">{owner.name ?? formatPhone(owner.phone)}</p>
-                    <p className="truncate text-xs text-muted-foreground">{formatPhone(owner.phone)}</p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 text-xs"
-                    onClick={() => { setStep("search"); resetPetForm(); }}
-                  >
-                    <ArrowLeft className="mr-1 h-3.5 w-3.5" />
-                    Cambiar
-                  </Button>
-                </div>
-
-                {/* Formulario de mascota */}
-                <form onSubmit={handleAddPet} className="space-y-3">
-                  <div className="space-y-1.5">
-                    <label htmlFor="apt-pet-name" className="text-sm font-medium">Nombre *</label>
-                    <Input
-                      id="apt-pet-name"
-                      value={petName}
-                      onChange={(e) => setPetName(e.target.value)}
-                      placeholder="Ej. Max"
-                      autoFocus
-                      disabled={saving}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1.5">
-                      <label htmlFor="apt-pet-type" className="text-sm font-medium">Especie *</label>
-                      <select
-                        id="apt-pet-type"
-                        value={petType}
-                        onChange={(e) => setPetType(e.target.value)}
-                        className={SELECT_CLASS}
-                        disabled={saving}
-                      >
-                        <option value="dog">Perro</option>
-                        <option value="cat">Gato</option>
-                        <option value="other">Otro</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label htmlFor="apt-pet-breed" className="text-sm font-medium">Raza</label>
-                      <Input
-                        id="apt-pet-breed"
-                        value={petBreed}
-                        onChange={(e) => setPetBreed(e.target.value)}
-                        placeholder="Opcional"
-                        disabled={saving}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1.5">
-                      <label htmlFor="apt-pet-gender" className="text-sm font-medium">Género</label>
-                      <select
-                        id="apt-pet-gender"
-                        value={petGender}
-                        onChange={(e) => setPetGender(e.target.value)}
-                        className={SELECT_CLASS}
-                        disabled={saving}
-                      >
-                        <option value="">Sin especificar</option>
-                        <option value="male">Macho</option>
-                        <option value="female">Hembra</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label htmlFor="apt-pet-weight" className="text-sm font-medium">Peso (kg)</label>
-                      <Input
-                        disabled={!access?.capabilities.administration || saving} id="apt-pet-weight"
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        value={petWeight}
-                        onChange={(e) => setPetWeight(e.target.value)}
-                        placeholder="Ej. 12.5"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label htmlFor="apt-pet-notes" className="text-sm font-medium">{access?.capabilities.administration ? "Notas" : "Alertas para el manejo"}</label>
-                    <textarea
-                      id="apt-pet-notes"
-                      rows={2}
-                      value={petNotes}
-                      onChange={(e) => setPetNotes(e.target.value)}
-                      placeholder="Alergias, comportamiento, etc. (opcional)"
-                      disabled={saving}
-                      className={TEXTAREA_CLASS}
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-2">
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={saving}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit" disabled={saving}>
-                      {saving ? "Guardando…" : "Agregar mascota"}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            </>
-          )}
-
-          {step === "not-found" && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Propietario no encontrado</DialogTitle>
-                <DialogDescription>
-                  No existe un propietario con &ldquo;{phoneQuery}&rdquo; en este tenant.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4 px-4 pb-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1"
-                  onClick={() => setStep("search")}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Buscar de nuevo
-                </Button>
-
-                <div className="rounded-lg border border-dashed p-4 text-center space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    ¿Quieres registrar a este propietario y su(s) mascota(s)?
-                  </p>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      onOpenChange(false);
-                      setNewOwnerOpen(true);
-                    }}
-                  >
-                    Crear propietario + mascota(s)
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <NewOwnerPetsSheet
-        open={newOwnerOpen}
-        onOpenChange={setNewOwnerOpen}
-        onCreated={() => {
-          onCreated();
-          setStep("search");
-          setPhoneQuery("");
-        }}
-      />
-    </>
-  );
+export function AddPetToOwnerFlow(props: Props) {
+  const [newOwnerOpen, setNewOwnerOpen] = useState(false);
+  return <>
+    <ProtectedDialog open={props.open} onOpenChange={props.onOpenChange}>
+      {props.open && <AddPetContent {...props} onNewOwner={() => { props.onOpenChange(false); setNewOwnerOpen(true); }} />}
+    </ProtectedDialog>
+    <NewOwnerPetsSheet open={newOwnerOpen} onOpenChange={setNewOwnerOpen} onCreated={() => props.onCreated()} />
+  </>;
 }

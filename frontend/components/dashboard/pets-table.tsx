@@ -210,7 +210,7 @@ export function PetsTable({
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             {(
-              <div className="w-full sm:w-80"><label htmlFor="pets-search" className="mb-1 block text-sm font-medium">Buscar mascota o propietario</label><div className="relative w-full">
+              <div className="min-w-0 w-full sm:w-72 xl:w-80"><label htmlFor="pets-search" className="mb-1 block text-sm font-medium">Buscar mascota o propietario</label><div className="relative w-full">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="pets-search"
@@ -218,12 +218,12 @@ export function PetsTable({
                   onChange={(e) => setQuery(e.target.value)}
                   aria-label="Buscar mascota por nombre, propietario, raza o teléfono"
                   placeholder="Mascota, propietario, raza o teléfono"
-                  className="pl-9 pr-8"
+                  className="h-11 pl-9 pr-12"
                 />
                 {query && (
                   <button
                     onClick={() => setQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-0 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary hover:text-foreground"
                     aria-label="Limpiar búsqueda"
                   >
                     <X className="h-4 w-4" />
@@ -244,7 +244,7 @@ export function PetsTable({
           ) : error ? (
             <div role="alert" className="flex flex-col items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-6 text-center text-sm text-destructive">
               <p>{error}</p>
-              <Button type="button" variant="outline" size="sm" onClick={() => { void loadPets(); }}>
+              <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => { void loadPets(); }}>
                 Reintentar
               </Button>
             </div>
@@ -254,17 +254,17 @@ export function PetsTable({
             <EmptyState icon={<PawPrint className="h-7 w-7" />} title="No hay mascotas registradas" description="Agrega una mascota y vincúlala a su propietario desde Nueva mascota." />
           ) : (
             <>
-            <div className="space-y-3 md:hidden">{pets.map((pet) => <article key={pet.id} className="rounded-xl border p-4"><h3 className="font-semibold">{getPetEmoji(pet.type)} {pet.name}</h3><p className="text-sm text-muted-foreground">{formatPetType(pet.type)} · {pet.breed || "Raza sin registrar"}</p><p className="mt-2 text-sm">Propietario: {pet.owner.name || "Sin nombre"}</p><p className="text-sm text-muted-foreground">{formatPhone(pet.owner.phone)}</p><p className="mt-2 text-xs text-muted-foreground">{access?.capabilities.clinical ? `${pet._count.medicalRecords ?? 0} registros · ` : ""}{pet._count.appointments} citas</p><div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" onClick={() => handleSelectPet(pet)}>Ver ficha</Button><Button variant="outline" onClick={() => handleSelectPet(pet, true)}>Editar</Button>{access?.capabilities.administration && <Button variant="ghost" aria-label={`Eliminar mascota ${pet.name}`} disabled={deleting === pet.id} onClick={(e) => handleDeletePet(e, pet)}><Trash2 className="h-4 w-4" /></Button>}</div></article>)}</div>
-            <div className="hidden overflow-x-auto md:block">
-            <Table>
+            <div className="space-y-3 xl:hidden [&_button]:min-h-11">{pets.map((pet) => <article key={pet.id} className="min-w-0 rounded-xl border p-4 [overflow-wrap:anywhere]"><h3 className="font-semibold">{getPetEmoji(pet.type)} {pet.name}</h3><p className="text-sm text-muted-foreground">{formatPetType(pet.type)} · {pet.breed || "Raza sin registrar"}</p><p className="mt-2 text-sm">Propietario: {pet.owner.name || "Sin nombre"}</p><p className="text-sm text-muted-foreground">{formatPhone(pet.owner.phone)}</p><p className="mt-2 text-xs text-muted-foreground">{access?.capabilities.clinical ? `${pet._count.medicalRecords ?? 0} registros · ` : ""}{pet._count.appointments} citas</p><div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" onClick={() => handleSelectPet(pet)}>Ver ficha</Button><Button variant="outline" onClick={() => handleSelectPet(pet, true)}>Editar</Button>{access?.capabilities.administration && <Button variant="ghost" aria-label={`Eliminar mascota ${pet.name}`} disabled={deleting === pet.id} onClick={(e) => handleDeletePet(e, pet)}><Trash2 className="h-4 w-4" /></Button>}</div></article>)}</div>
+            <div className="hidden overflow-x-auto xl:block">
+            <Table className="table-fixed [&_td]:whitespace-normal [&_td]:[overflow-wrap:anywhere]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mascota</TableHead>
-                  <TableHead>Especie</TableHead>
-                  <TableHead>Dueño</TableHead>
-                  {access?.capabilities.clinical && <TableHead>Registros</TableHead>}
-                  <TableHead>Citas</TableHead>
-                  <TableHead className="text-right">Expediente</TableHead>
+                  <TableHead className="w-[26%]">Mascota</TableHead>
+                  <TableHead className="w-20">Especie</TableHead>
+                  <TableHead className="w-auto">Dueño</TableHead>
+                  {access?.capabilities.clinical && <TableHead className="w-[72px]">Registros</TableHead>}
+                  <TableHead className="w-16">Citas</TableHead>
+                  <TableHead className="w-52 text-right">Expediente</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -275,11 +275,11 @@ export function PetsTable({
                     onClick={() => handleSelectPet(pet)}
                   >
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-base">
                           {getPetEmoji(pet.type)}
                         </div>
-                        <div><p>{pet.name}</p><p className="text-xs font-normal text-muted-foreground">{pet.breed || "Raza sin registrar"}</p></div>
+                        <div className="min-w-0"><p>{pet.name}</p><p className="text-xs font-normal text-muted-foreground">{pet.breed || "Raza sin registrar"}</p></div>
                       </div>
                     </TableCell>
                     <TableCell>{formatPetType(pet.type)}</TableCell>
@@ -298,18 +298,18 @@ export function PetsTable({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-nowrap items-center justify-end gap-1 [&_button]:shrink-0 [&_button]:whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <button
                           title="Ver expediente"
                           onClick={() => handleSelectPet(pet)}
-                          className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                          className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-primary"
                         >
                           <Eye className="h-4 w-4" /> Ver
                         </button>
                         <button
                           title="Editar mascota"
                           onClick={() => handleSelectPet(pet, true)}
-                          className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                          className="inline-flex min-h-11 items-center gap-1 rounded px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-primary"
                         >
                           <Pencil className="h-4 w-4" /> Editar
                         </button>

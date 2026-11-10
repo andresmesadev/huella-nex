@@ -115,7 +115,7 @@ function PetMedicalSheetContent({
 }) {
   const access = useDashboardAccess();
   const admin = Boolean(access?.capabilities.administration);
-  const canManageRecords = admin && Boolean(access?.capabilities.clinical);
+  const canManageRecords = initialEdit && admin && Boolean(access?.capabilities.clinical);
   const { toast } = useToast();
   const tenant = useTenant();
   const [timeline, setTimeline]           = useState<PetTimelineData | null>(null);
@@ -249,7 +249,7 @@ function PetMedicalSheetContent({
         setOwnerPhone(profileForm.ownerPhone.trim());
       }
 
-      setEditingProfile(false);
+      setEditingProfile(groomingPriceEdit.dirty);
       setSavedAt(new Date());
       onRecordAdded?.();
       toast("Ficha guardada.", "success");
@@ -301,14 +301,14 @@ function PetMedicalSheetContent({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 flex-wrap items-start justify-between gap-4 border-b border-black/[0.06] py-5 pl-6 pr-14">
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-border py-4 pl-4 pr-14 sm:pl-6">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-xl ring-1 ring-amber-500/25">
             {getPetEmoji(pet.type)}
           </div>
           <div className="min-w-0">
-            <DialogTitle className="text-base font-semibold tracking-tight">{petName}</DialogTitle>
-            <DialogDescription className="break-words text-sm text-muted-foreground">
+            <DialogTitle className="[overflow-wrap:anywhere] text-base font-semibold tracking-tight">{petName}</DialogTitle>
+            <DialogDescription className="[overflow-wrap:anywhere] text-sm text-muted-foreground">
               {formatPetType(pet.type)}
               {ownerName ? ` · ${ownerName}` : ""}
               {ownerPhone ? ` · ${ownerPhone}` : ""}
@@ -316,6 +316,7 @@ function PetMedicalSheetContent({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {access?.capabilities.schedule && !editingProfile && <Button className="min-h-11 gap-2" disabled={dirty || busy} onClick={() => setNewAppointment(true)}><CalendarPlus className="size-4" />Nueva cita</Button>}
           <Badge variant="outline" className="text-xs tabular-nums">
             {timeline?.items.length ?? "–"} eventos
           </Badge>
@@ -323,7 +324,7 @@ function PetMedicalSheetContent({
             {pet._count.appointments} citas
           </Badge>
           <a href={`/print/pets/${pet.id}${tenantQuery(tenant)}`} target="_blank" rel="noopener noreferrer">
-            <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
+            <Button size="sm" variant="outline" className="min-h-11 gap-1.5 text-xs">
               <Download className="h-3.5 w-3.5" />
               PDF
             </Button>
@@ -332,62 +333,80 @@ function PetMedicalSheetContent({
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SavedChangesStatus dirty={dirty} saving={busy} savedAt={savedAt} />
-          {access?.capabilities.schedule && <Button className="gap-2" disabled={dirty || busy} onClick={() => setNewAppointment(true)}><CalendarPlus className="h-4 w-4" />Nueva cita para {petName}</Button>}
-        </div>
-        {dirty && <p className="text-xs text-muted-foreground">Guarda o cancela los cambios antes de agendar.</p>}
-        <dl aria-label="Resumen de la mascota" className="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-4">
-          {[["Especie", formatPetType(pet.type)], ["Raza", profile.breed || "Sin registrar"], ["Edad", formatPetAge(profile.birthDate)], ["Peso registrado", profile.weight != null ? `${profile.weight} kg` : "Sin registrar"]].map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold">{value}</dd></div>)}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 [&_button]:min-h-11 [&_input]:min-w-0 [&_p]:[overflow-wrap:anywhere] sm:px-6">
+        {(dirty || busy || savedAt) && <SavedChangesStatus dirty={dirty} saving={busy} savedAt={savedAt} />}
+        <dl aria-label="Resumen de la mascota" className="grid grid-cols-2 gap-y-4 rounded-xl border bg-white px-4 py-4 sm:grid-cols-4 [&>div]:px-2 [&>div:nth-child(even)]:border-l sm:[&>div+div]:border-l">
+          {[["Especie", formatPetType(pet.type)], ["Raza", profile.breed || "Sin registrar"], ["Edad", formatPetAge(profile.birthDate)], ["Peso registrado", profile.weight != null ? `${profile.weight} kg` : "Sin registrar"]].map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 [overflow-wrap:anywhere] text-sm font-semibold">{value}</dd></div>)}
         </dl>
         {allergies.length > 0 && <section aria-label="Alergias registradas" className="rounded-xl border border-rose-200 bg-rose-50 p-4">
           <h3 className="flex items-center gap-2 font-semibold text-rose-900"><AlertCircle className="size-4" />Alergias registradas</h3>
-          <ul className="mt-2 divide-y divide-rose-200">{allergies.map((item) => <li key={item.id} className="flex flex-wrap items-start justify-between gap-3 py-3"><div className="min-w-0 flex-1"><p className="break-words text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs text-rose-900">Registrada el <time dateTime={item.date}>{formatRecordDate(item.date, Boolean(item.recordId && !item.appointmentId && /T00:00:00(?:\.000)?Z$/.test(item.date)))}</time></p>{item.detail && <p className="mt-1 whitespace-pre-wrap break-words text-sm">{item.detail}</p>}</div><Button type="button" variant="outline" className="min-h-11 border-rose-200 bg-white text-rose-950" aria-label={`Ver detalle de ${item.title}`} onClick={() => setSelectedAllergy(item)}>Ver detalle</Button></li>)}</ul>
+          <ul className="mt-2 divide-y divide-rose-200">{allergies.map((item) => <li key={item.id} className="flex flex-wrap items-start justify-between gap-3 py-3"><div className="min-w-0 flex-1"><p className="[overflow-wrap:anywhere] text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs text-rose-900">Registrada el <time dateTime={item.date}>{formatRecordDate(item.date, Boolean(item.recordId && !item.appointmentId && /T00:00:00(?:\.000)?Z$/.test(item.date)))}</time></p>{item.detail && <p className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{item.detail}</p>}</div><Button type="button" variant="outline" className="min-h-11 border-rose-200 bg-white text-rose-950" aria-label={`Ver detalle de ${item.title}`} onClick={() => setSelectedAllergy(item)}>Ver detalle</Button></li>)}</ul>
           <p className="mt-2 text-xs text-rose-800">Antecedentes registrados. El profesional debe confirmar su vigencia antes de la atención.</p>
         </section>}
         {error && <p role="alert" className="text-sm text-destructive">No se pudieron comprobar los antecedentes de alergias. Reintenta la carga del historial.</p>}
         {(profile.notes || operationalAlerts.trim()) && <section aria-label="Cuidados importantes" className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="flex items-center gap-2 font-semibold"><AlertCircle className="h-4 w-4 text-amber-700" />Cuidados importantes</h3><Button size="sm" variant="outline" disabled={busy || !admin} onClick={() => { if (!editingProfile) setProfileForm(savedProfile); setEditingProfile(true); setActiveTab("ficha"); }}>Editar cuidados</Button></div>
-          {operationalAlerts.trim() && <p className="mt-2 whitespace-pre-wrap break-words text-sm">{operationalAlerts}</p>}
-          {profile.notes && <p className="mt-2 whitespace-pre-wrap break-words text-sm">{profile.notes}</p>}
+          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="flex items-center gap-2 font-semibold"><AlertCircle className="h-4 w-4 text-amber-700" />Cuidados importantes</h3></div>
+          {operationalAlerts.trim() && <p className="mt-2 whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{operationalAlerts}</p>}
+          {profile.notes && <p className="mt-2 whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{profile.notes}</p>}
         </section>}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-5">
-          <TabsList aria-label="Secciones de la ficha" className={cn("grid h-auto! w-full grid-cols-2 gap-1", (admin || access?.capabilities.grooming) && "sm:grid-cols-3")}>
-            <TabsTrigger value="ficha" className="min-h-11">Datos y cuidados</TabsTrigger>
-            <TabsTrigger value="historial" className="min-h-11">Historial y citas</TabsTrigger>
-            {(admin || access?.capabilities.grooming) && <TabsTrigger value="peluqueria" className="min-h-11">Peluquería</TabsTrigger>}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
+          <TabsList variant="line" aria-label="Secciones de la ficha" className={cn("grid h-auto! w-full grid-cols-2 gap-1 border-b px-0 pb-1 [&_button]:rounded-none [&_button]:data-active:text-primary [&_button]:after:bg-primary", (admin || access?.capabilities.grooming) && "grid-cols-3")}>
+            <TabsTrigger value="ficha" className="min-h-11 min-w-0 whitespace-normal">Datos y cuidados</TabsTrigger>
+            <TabsTrigger value="historial" className="min-h-11 min-w-0 whitespace-normal">Historial y citas</TabsTrigger>
+            {(admin || access?.capabilities.grooming) && <TabsTrigger value="peluqueria" className="min-h-11 min-w-0 whitespace-normal">Peluquería</TabsTrigger>}
           </TabsList>
           <TabsContent value="ficha" forceMount className="data-[state=inactive]:hidden">
-          <section className="mb-4 rounded-xl border bg-teal-50/40 p-4"><h3 className="font-semibold">Propietario</h3><p className="mt-1 text-sm">{ownerName || "Sin nombre registrado"}</p><p className="text-sm text-muted-foreground">{ownerPhone || "Sin teléfono registrado"}</p><p className="mt-2 text-sm font-medium">Dirección</p><p className="break-words text-sm text-muted-foreground">{pet.owner?.address || "Sin dirección registrada en el cliente"}</p><p className="mt-2 text-sm font-medium">Barrio</p><p className="break-words text-sm text-muted-foreground">{pet.owner?.neighborhood || "Sin barrio registrado en el cliente"}</p></section>
+          <section aria-label="Contacto del propietario" className="mb-4 rounded-xl border bg-white p-4"><h3 className="mb-3 text-sm font-semibold">Contacto del propietario</h3>
+            <dl className="grid min-w-0 gap-3 sm:grid-cols-3">
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Propietario</dt><dd className="mt-1 text-sm font-semibold [overflow-wrap:anywhere]">{ownerName || "Sin nombre registrado"}</dd><dd className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{ownerPhone || "Sin teléfono registrado"}</dd></div>
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Dirección</dt><dd className="mt-1 text-sm [overflow-wrap:anywhere]">{pet.owner?.address || "Sin dirección registrada"}</dd></div>
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Barrio</dt><dd className="mt-1 text-sm [overflow-wrap:anywhere]">{pet.owner?.neighborhood || "Sin barrio registrado"}</dd></div>
+            </dl>
+          </section>
         {/* Ficha */}
         <div className="rounded-2xl border border-primary/15 bg-card [&_input]:h-11 [&_select]:h-11">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-4 sm:px-5">
             <h3 className="flex items-center gap-2 text-sm font-semibold"><PawPrint aria-hidden="true" className="h-4 w-4 text-primary" />Datos y cuidados de la mascota</h3>
-            {admin && !editingProfile && (
-              <Button variant="outline" size="sm" className="min-h-10"
-                type="button"
-                  onClick={() => { setProfileForm(savedProfile); setEditingProfile(true); }}
-              >
-                Editar
-              </Button>
-            )}
+
           </div>
 
           {editingProfile && (
             <fieldset disabled={savingProfile} aria-label="Identificación de la mascota" className="space-y-4 p-4 sm:p-5">
               {/* Identificación */}
-              <h3 className="text-sm font-semibold">Identificación</h3>
-              <div className="grid grid-cols-1 gap-3">
+              <h3 className="text-sm font-semibold">Datos de la mascota</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label htmlFor="pet-name" className="text-sm font-semibold">Nombre de la mascota</label>
                   <Input id="pet-name" value={profileForm.petName}
                     onChange={(e) => setProfileForm((f) => ({ ...f, petName: e.target.value }))}
                     placeholder="Ej. Max" />
                 </div>
+                <div className="min-w-0 space-y-1.5"><label htmlFor="pet-species" className="text-sm font-semibold">Especie</label><Input id="pet-species" value={formatPetType(pet.type)} readOnly className="bg-muted/40" /></div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid min-w-0 items-end gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <label htmlFor="pet-breed" className="text-sm font-semibold">Raza</label>
+                  <Input id="pet-breed" placeholder="Ej. Golden Retriever" value={profileForm.breed}
+                    onChange={(e) => setProfileForm((f) => ({ ...f, breed: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="pet-gender" className="text-sm font-semibold">Sexo</label>
+                  <select id="pet-gender" value={profileForm.gender}
+                    onChange={(e) => setProfileForm((f) => ({ ...f, gender: e.target.value }))}
+                    className={SELECT_CLASS}>
+                    <option value="">Sin especificar</option>
+                    <option value="male">Macho</option>
+                    <option value="female">Hembra</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="pet-weight" className="text-sm font-semibold">Peso (kg)</label>
+                  <Input id="pet-weight" type="number" step="0.1" min="0" placeholder="Ej. 12.5" value={profileForm.weight}
+                    onChange={(e) => setProfileForm((f) => ({ ...f, weight: e.target.value }))} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3 border-t pt-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label htmlFor="pet-owner-name" className="text-sm font-semibold">Nombre del propietario</label>
                   <Input id="pet-owner-name" value={profileForm.ownerName}
@@ -405,7 +424,7 @@ function PetMedicalSheetContent({
             </fieldset>
           )}
 
-          {admin && <div className="px-4 py-3 sm:px-5"><PetGroomingPrices petId={pet.id} onEditStateChange={setGroomingPriceEdit} /></div>}
+          {admin && <div className="px-4 py-3 sm:px-5"><PetGroomingPrices key={editingProfile ? "editing" : "reading"} editable={editingProfile} petId={pet.id} onEditStateChange={setGroomingPriceEdit} /></div>}
 
           {editingProfile ? (
             <fieldset disabled={savingProfile} aria-label="Datos clínicos" className="space-y-4 p-4 sm:p-5">
@@ -413,31 +432,14 @@ function PetMedicalSheetContent({
                 <h3 className="flex items-center gap-2 text-sm font-semibold"><Stethoscope aria-hidden="true" className="h-4 w-4 text-primary" />Datos clínicos</h3>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <label htmlFor="pet-breed" className="text-sm font-semibold">Raza</label>
-                  <Input id="pet-breed" placeholder="Ej. Golden Retriever" value={profileForm.breed}
-                    onChange={(e) => setProfileForm((f) => ({ ...f, breed: e.target.value }))} />
-                </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="pet-gender" className="text-sm font-semibold">Sexo</label>
-                  <select id="pet-gender" value={profileForm.gender}
-                    onChange={(e) => setProfileForm((f) => ({ ...f, gender: e.target.value }))}
-                    className={SELECT_CLASS}>
-                    <option value="">Sin especificar</option>
-                    <option value="male">Macho</option>
-                    <option value="female">Hembra</option>
-                  </select>
-                </div>
+
+
                 <div className="space-y-1.5">
                   <label htmlFor="pet-birth" className="text-sm font-semibold">Fecha de nacimiento</label>
                   <Input id="pet-birth" type="date" value={profileForm.birthDate}
                     onChange={(e) => setProfileForm((f) => ({ ...f, birthDate: e.target.value }))} />
                 </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="pet-weight" className="text-sm font-semibold">Peso (kg)</label>
-                  <Input id="pet-weight" type="number" step="0.1" min="0" placeholder="Ej. 12.5" value={profileForm.weight}
-                    onChange={(e) => setProfileForm((f) => ({ ...f, weight: e.target.value }))} />
-                </div>
+
                 <div className="space-y-1.5">
                   <label htmlFor="pet-sterilized" className="text-sm font-semibold">Esterilizado/a</label>
                   <select id="pet-sterilized" value={profileForm.sterilized}
@@ -454,14 +456,7 @@ function PetMedicalSheetContent({
                     onChange={(e) => setProfileForm((f) => ({ ...f, notes: e.target.value }))} />
                 </div>
               </div>
-              <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-                <Button className="min-h-11" variant="outline" onClick={() => discard(() => { setProfileForm(savedProfile); setEditingProfile(false); }, profileDirty)} disabled={savingProfile}>
-                  Cancelar
-                </Button>
-                <Button className="min-h-11" onClick={handleSaveProfile} disabled={savingProfile}>
-                  {savingProfile ? "Guardando…" : "Guardar ficha"}
-                </Button>
-              </div>
+
             </fieldset>
           ) : (
             <div className="divide-y divide-black/[0.04]">
@@ -475,9 +470,9 @@ function PetMedicalSheetContent({
                   profile.sterilized != null ? ["Esterilizado/a", profile.sterilized ? "Sí" : "No"] : null,
                 ] as ([string, string] | null)[]
               ).filter((row): row is [string, string] => row !== null).map(([label, value]) => (
-                <div key={label} className="flex items-center gap-4 px-4 py-2.5 text-sm">
+                <div key={label} className="grid min-w-0 gap-1 px-4 py-3 text-sm min-[400px]:grid-cols-[8rem_minmax(0,1fr)] min-[400px]:gap-4">
                   <span className="w-32 shrink-0 text-muted-foreground">{label}</span>
-                  <span className="font-medium">{value}</span>
+                  <span className="[overflow-wrap:anywhere] font-medium">{value}</span>
                 </div>
               ))}
               {!profile.breed && !profile.gender && !profile.birthDate &&
@@ -490,7 +485,7 @@ function PetMedicalSheetContent({
 
           {editingProfile && <div className="mt-4"><OperationalAlerts pet={{ ...pet, operationalAlerts }} onSaved={value => { setOperationalAlerts(value); onRecordAdded?.(); }} /></div>}
           </TabsContent>
-          <TabsContent value="peluqueria"><PetGroomingHistory petId={pet.id} appointments={timeline?.items ?? []} onSaved={() => { setSavedAt(new Date()); onRecordAdded?.(); }} /></TabsContent>
+          <TabsContent value="peluqueria"><PetGroomingHistory readOnly={!initialEdit} petId={pet.id} appointments={timeline?.items ?? []} onSaved={() => { setSavedAt(new Date()); onRecordAdded?.(); }} /></TabsContent>
           <TabsContent value="historial" forceMount className="space-y-5 data-[state=inactive]:hidden">
         {/* Botones de acción */}
         {canManageRecords && !activeForm && (
@@ -551,6 +546,14 @@ function PetMedicalSheetContent({
           </TabsContent>
         </Tabs>
       </div>
+      {editingProfile && activeTab === "ficha" && <div className="flex shrink-0 flex-col-reverse gap-2 border-t bg-white px-4 py-3 sm:flex-row sm:justify-end sm:px-6 [&_button]:whitespace-normal">
+                <Button className="min-h-11" variant="outline" onClick={() => discard(() => { setProfileForm(savedProfile); setEditingProfile(false); }, profileDirty || groomingPriceEdit.dirty)} disabled={savingProfile || groomingPriceEdit.saving}>
+                  Cancelar
+                </Button>
+                <Button className="min-h-11" onClick={handleSaveProfile} disabled={savingProfile || groomingPriceEdit.saving}>
+                  {savingProfile ? "Guardando…" : "Guardar ficha"}
+                </Button>
+      </div>}
 
       {activeForm && activeForm !== "consultation" && activeForm !== "grooming" && activeTab === "historial" && <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t bg-card px-6 py-4">
         <p className="text-sm text-muted-foreground">Registro de {petName} · {activeBtn?.label}</p>
@@ -572,7 +575,7 @@ function PetMedicalSheetContent({
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
           <DialogTitle>Detalle de alergia registrada</DialogTitle>
           <DialogDescription>Antecedente de {petName}. El profesional debe confirmar su vigencia antes de la atención.</DialogDescription>
-          {selectedAllergy && <dl className="space-y-4 text-sm"><div><dt className="font-semibold text-muted-foreground">Sustancia o alergia</dt><dd className="mt-1 break-words font-semibold">{selectedAllergy.title}</dd></div><div><dt className="font-semibold text-muted-foreground">Fecha del registro</dt><dd className="mt-1">{formatRecordDate(selectedAllergy.date, Boolean(selectedAllergy.recordId && !selectedAllergy.appointmentId && /T00:00:00(?:\.000)?Z$/.test(selectedAllergy.date)))}</dd></div>{selectedAllergy.staffName && <div><dt className="font-semibold text-muted-foreground">Profesional registrado</dt><dd className="mt-1">{selectedAllergy.staffName}</dd></div>}<div><dt className="font-semibold text-muted-foreground">Reacción y observaciones</dt><dd className="mt-1 whitespace-pre-wrap break-words">{selectedAllergy.detail || "Sin observaciones adicionales."}</dd></div></dl>}
+          {selectedAllergy && <dl className="space-y-4 text-sm"><div><dt className="font-semibold text-muted-foreground">Sustancia o alergia</dt><dd className="mt-1 [overflow-wrap:anywhere] font-semibold">{selectedAllergy.title}</dd></div><div><dt className="font-semibold text-muted-foreground">Fecha del registro</dt><dd className="mt-1">{formatRecordDate(selectedAllergy.date, Boolean(selectedAllergy.recordId && !selectedAllergy.appointmentId && /T00:00:00(?:\.000)?Z$/.test(selectedAllergy.date)))}</dd></div>{selectedAllergy.staffName && <div><dt className="font-semibold text-muted-foreground">Profesional registrado</dt><dd className="mt-1">{selectedAllergy.staffName}</dd></div>}<div><dt className="font-semibold text-muted-foreground">Reacción y observaciones</dt><dd className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere]">{selectedAllergy.detail || "Sin observaciones adicionales."}</dd></div></dl>}
           <div className="flex justify-end"><Button variant="outline" className="min-h-11" onClick={() => setSelectedAllergy(null)}>Cerrar detalle</Button></div>
         </DialogContent>
       </Dialog>
@@ -587,12 +590,12 @@ function PetMedicalSheetContent({
 
 export function PetMedicalSheet({ pet, open, onOpenChange, onRecordAdded, initialEdit = false }: PetMedicalSheetProps) {
   const access = useDashboardAccess();
-  if (access && !access.capabilities.administration && !access.capabilities.clinical) return <OperationalPetSheet pet={pet} open={open} onOpenChange={onOpenChange} onUpdated={onRecordAdded} />;
+  if (access && !access.capabilities.administration && !access.capabilities.clinical) return <OperationalPetSheet readOnly={!initialEdit} pet={pet} open={open} onOpenChange={onOpenChange} onUpdated={onRecordAdded} />;
   return (
     <ProtectedDialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showClose
-        className="flex h-[92vh] w-full max-w-[95vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl"
+        className="flex h-[calc(100dvh-2rem)] w-[calc(100%-1.5rem)] max-w-[95vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl"
       >
         {open && pet ? (
           <PetMedicalSheetContent key={`${pet.id}-${initialEdit}`} pet={pet} onRecordAdded={onRecordAdded} initialEdit={initialEdit} />

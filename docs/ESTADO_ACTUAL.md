@@ -1,5 +1,21 @@
 # Estado actual del proyecto
 
+**10 de noviembre — candidato 3.0.4 preparado:** refinamiento del dashboard y
+página pública, reportes por fechas, gastos y fichas de mascota. Navegador
+aislado, lint/build y pruebas dirigidas aprobados; publicación sujeta a CI de
+Linux y verificación de producción. Figma pendiente por límite Starter,
+aceptado expresamente por Andrés.
+[Alcance y comprobaciones](history/RELEASE_3_0_4_20261110.md).
+
+**6 de noviembre — estabilidad de 48 horas de 3.0.0 cerrada para dashboard
+manual:** analizador original `health_window_passed`, salida 0; 577 muestras
+del 30/10 18:32:56 al 01/11 18:32:56 Colombia, cero fallos/huecos/versiones
+inesperadas. Contenedores sin reinicios; cinco lecturas autenticadas actuales
+200 y actividad real contrastada. Logs conservan rechazos CORS a sondeos y una
+conexión abortada, con sus límites documentados. Se cierran ítem 9/BETA-03 en
+este alcance; recuperación independiente BETA-02 continúa pendiente.
+[Acta y evidencia](operations/STABILITY_48H_CLOSURE_20261106.md).
+
 **30 de octubre — Huella Nex 3.0.0 publicada a las 18:32 Colombia:** código
 `edae4d3`, seis trabajos CI aprobados, respaldo cifrado verificado y dos
 migraciones aditivas aplicadas (68 en total). Backend/frontend 3.0.0 y salud

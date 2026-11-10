@@ -1,5 +1,12 @@
 # Operación real desde el 19/10 y continuidad de la observación
 
+**Cierre posterior — 06/11:** 3.0.0 aprobó la ventana del 30/10 al 01/11:
+48 horas, 577 muestras HTTP 200, cero fallos/huecos/cambios de versión;
+`health_window_passed`, salida 0. Se cierra el ítem 9 para dashboard manual,
+con contraste operacional y límites de logs/WhatsApp/recuperación en el
+[acta de cierre](STABILITY_48H_CLOSURE_20261106.md). Las series y revisiones
+inferiores conservan sus fallos y estados históricos.
+
 **Comprobación en VPS — 30/10:** la ventana 2.58.2 terminó el 29/10 a las
 16:35 Colombia: 577 muestras, 48 horas, cero huecos y dos fallos iniciales de
 OpenAI; veredicto `incident`. No se cierra automáticamente el criterio de

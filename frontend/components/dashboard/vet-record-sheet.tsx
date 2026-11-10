@@ -66,10 +66,10 @@ function VetRecordSummary({ record, meta, professional, actions, onManageFollowu
         <p className="mt-1 text-sm text-slate-600">{professional}{record.weight ? ` · ${record.weight} kg` : ""}{record.nextControlAt ? ` · Control: ${record.nextControlAt}` : ""}</p>
       </div>
       <dl className="divide-y divide-slate-100 px-5">
-        {sections.map(([label, value]) => <div key={label} className="py-3"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-900">{value || "Sin registrar"}</dd></div>)}
+        {sections.map(([label, value]) => <div key={label} className="py-3"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] text-sm leading-relaxed text-slate-900">{value || "Sin registrar"}</dd></div>)}
       </dl>
       {actions.length > 0 && <div className="border-t border-slate-200 px-5 py-3"><h4 className="text-xs font-semibold text-slate-500">Próximas acciones pendientes</h4><ul className="mt-2 space-y-1 text-sm text-slate-800">{actions.map((action) => <li key={action.id}>{NEXT_ACTION_TYPES.find((item) => item.value === action.type)?.label ?? action.type} · {new Date(action.dueAt).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })}</li>)}</ul></div>}
-      {onManageFollowup && <div className="border-t border-slate-200 px-5 py-3"><button type="button" onClick={onManageFollowup} className="text-sm font-semibold text-teal-700 hover:underline">Agregar o gestionar seguimiento</button></div>}
+      {onManageFollowup && <div className="border-t border-slate-200 px-5 py-3"><button type="button" onClick={onManageFollowup} className="min-h-11 text-sm font-semibold text-teal-700 hover:underline">Agregar o gestionar seguimiento</button></div>}
       {meta && <div className="border-t border-slate-200 bg-slate-50 px-5 py-3 text-xs text-slate-600">
         <p>Creado: {formatColombiaDateTime(meta.createdAt)} · {meta.createdByStaffName ?? "Autor individual no registrado"}</p>
         <p className="mt-1">Última edición: {formatColombiaDateTime(meta.updatedAt)} · {meta.updatedByStaffName ?? "Editor individual no registrado"}</p>
@@ -244,6 +244,10 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
     setFormDirty(true);
     setSaved(false);
     setForm((f) => ({ ...f, [key]: value }));
+    // Clear only a resolved field-validation message; keep server/conflict feedback.
+    if ((error === "Completa al menos un campo de la evaluación, diagnóstico o plan antes de guardar." && ["reason", "findings", "diagnosis", "treatment", "recommendations"].includes(key) && value.trim()) ||
+        (error === "Selecciona al profesional responsable de la consulta." && key === "staffId" && value) ||
+        (error === "El peso debe ser un número mayor que cero." && key === "weight" && (!value || (Number.isFinite(Number(value)) && Number(value) > 0)))) setError(null);
   };
 
   // Load staff list and existing record when sheet opens
@@ -401,17 +405,17 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
           <div className="flex items-start gap-4">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-2xl" aria-hidden="true">{getPetEmoji(appointment.petType)}</span>
             <div className="min-w-0">
-              <DialogTitle className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Historia clínica de {appointment.petName}</DialogTitle>
+              <DialogTitle className="[overflow-wrap:anywhere] text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Historia clínica de {appointment.petName}</DialogTitle>
               <DialogDescription className="mt-1 text-sm">Registro de esta consulta veterinaria</DialogDescription>
             </div>
           </div>
 
         </DialogHeader>
 
-        {!loading && !viewMode && !readOnly && <nav aria-label="Secciones de la historia clínica" className="flex shrink-0 gap-2 overflow-x-auto border-b border-slate-200 bg-slate-50 px-5 py-2 sm:px-8">
-          {[{ key: "datos", label: "Datos" }, { key: "evaluacion", label: "Evaluación" }, { key: "plan", label: "Diagnóstico y plan" }, { key: "seguimiento", label: "Seguimiento" }].map((section) => <button type="button" key={section.key} onClick={() => jumpToSection(section.key)} className="min-h-9 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600">{section.label}</button>)}
+        {!loading && !viewMode && !readOnly && <nav aria-label="Secciones de la historia clínica" className="grid shrink-0 grid-cols-2 gap-2 border-b border-slate-200 bg-slate-50 px-5 py-2 sm:flex sm:flex-wrap sm:px-8">
+          {[{ key: "datos", label: "Datos" }, { key: "evaluacion", label: "Evaluación" }, { key: "plan", label: "Diagnóstico y plan" }, { key: "seguimiento", label: "Seguimiento" }].map((section) => <button type="button" key={section.key} onClick={() => jumpToSection(section.key)} className="min-h-11 shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600">{section.label}</button>)}
         </nav>}
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto bg-white px-5 py-6 sm:px-8">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto bg-white px-5 py-6 [&_button]:min-h-11 [&_input]:min-h-11 [&_input]:min-w-0 [&_p]:[overflow-wrap:anywhere] sm:px-8">
           <div className="mx-auto max-w-3xl space-y-6">
             <CaseSummary appointment={appointment} />
             {preview && (
@@ -456,7 +460,7 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
                   value={form.staffId}
                   onChange={(e) => set("staffId")(e.target.value)}
                   disabled={Boolean(clinicianId)}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+                  className="h-11 min-w-0 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
                 >
                   <option value="">Sin asignar</option>
                   {staff.map((s) => (
@@ -502,7 +506,7 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
                 <CalendarDays className="mt-0.5 size-5 shrink-0 text-teal-700" aria-hidden="true" />
                 <div><h3 id="consulta-seguimiento" className="text-base font-bold text-slate-950">Seguimiento</h3><p className="mt-1 text-sm text-slate-500">Indica cuándo revisar la evolución y qué acciones quedan pendientes.</p></div>
               </div>
-              {!viewMode && <fieldset disabled={readOnly || saving} className="space-y-2 sm:max-w-xs">
+              {!viewMode && <fieldset disabled={readOnly || saving} className="min-w-0 space-y-2 sm:max-w-xs">
                 <label htmlFor={controlInputId} className="text-sm font-semibold text-slate-800">Próximo control recomendado</label>
                 <Input
                   id={controlInputId}
@@ -657,8 +661,8 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
           {saved && <p role="status" className="mb-3 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900">La atención quedó guardada en la historia de esta consulta.</p>}
           {!preview && (formDirty || actionDirty) && <p role="status" className="mb-2 text-xs font-medium text-amber-800">{formDirty ? "Hay cambios en la historia sin guardar." : "Hay una acción de seguimiento sin agregar."} {actionDirty && formDirty ? "También tienes una acción sin agregar." : ""}</p>}
           <div className="mx-auto flex max-w-3xl flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-slate-500">El registro se vincula a esta cita y podrás consultarlo en la historia de la mascota.</p>
-            <div className="flex shrink-0 gap-2">
+            <p className="text-xs text-slate-500">{appointment.status === "in_progress" && !readOnly ? "Guardar consulta conserva la historia. Al terminar, vuelve al listado y pulsa Finalizar cita." : "El registro se vincula a esta cita y podrás consultarlo en la historia de la mascota."}</p>
+            <div className="grid w-full grid-cols-2 gap-2 [&_button]:min-h-11 [&_button]:whitespace-normal sm:flex sm:w-auto sm:shrink-0">
               <Button variant="outline" disabled={busy} onClick={() => handleOpenChange(false)}>Cerrar</Button>
               {readOnly ? null : hasRecord && viewMode ? <Button onClick={() => { setViewMode(false); setSaved(false); }} disabled={preview || busy}>Editar registro</Button> : <Button onClick={handleSave} disabled={loading || busy || preview || recordLoadFailed}>
                 {preview ? "Vista de ejemplo" : saving ? "Guardando…" : hasRecord && appointment.status === "completed" ? "Guardar corrección" : hasRecord ? "Guardar cambios" : "Guardar consulta"}
@@ -668,7 +672,7 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
         </div>
       </DialogContent>
       <Dialog open={exitRequested} onOpenChange={next => { setExitRequested(next); if (!next) pendingHref.current = null; }}>
-        <DialogContent role="alertdialog" showClose={false} className="max-w-md border-slate-200 bg-white p-6 text-slate-950">
+        <DialogContent role="alertdialog" showClose={false} className="w-[calc(100%-2rem)] max-w-md border-slate-200 bg-white p-6 text-slate-950 [&_button]:min-h-11">
           <DialogHeader className="border-0 p-0">
             <DialogTitle>¿Cerrar sin guardar?</DialogTitle>
             <DialogDescription>Hay cambios pendientes en la historia o una acción de seguimiento sin agregar. Si cierras, se perderán esos cambios.</DialogDescription>

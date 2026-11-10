@@ -151,19 +151,6 @@ function ClientSheetContent({ clientId, initialEdit = false, onUpdated, onNaviga
     );
   }
 
-  const handleEdit = () => {
-    feedback.clear();
-    setEditForm({
-      name: client?.name ?? "",
-      phone: client?.phone ?? "",
-      phoneAlt: client?.phoneAlt ?? "",
-      address: client?.address ?? "",
-      neighborhood: client?.neighborhood ?? "",
-      notes: client?.notes ?? "",
-    });
-    setEditing(true);
-  };
-
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!client || saving || !feedback.validate(event.currentTarget, { "edit-client-phone": "Escribe el teléfono principal." })) return;
@@ -214,7 +201,7 @@ function ClientSheetContent({ clientId, initialEdit = false, onUpdated, onNaviga
         <div className="flex items-start gap-3 pr-6">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-800"><UserRound className="size-6" /></span>
         <div className="min-w-0">
-        <DialogTitle className="flex flex-col items-start gap-1">
+        <DialogTitle className="flex min-w-0 flex-col items-start gap-1 [overflow-wrap:anywhere]">
           <span>{client.name || "Cliente sin nombre"}</span>
           {client.name ? (
             <span className="text-base font-normal text-muted-foreground">
@@ -228,55 +215,49 @@ function ClientSheetContent({ clientId, initialEdit = false, onUpdated, onNaviga
         </div></div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <SavedChangesStatus dirty={dirty} saving={saving} savedAt={savedAt} />
-          {access?.capabilities.schedule && <Button disabled={dirty || saving || client.pets.length === 0} onClick={() => { setAppointmentPetId(client.pets.length === 1 ? client.pets[0].id : undefined); setNewAppointment(true); }} className="gap-2"><CalendarPlus className="h-4 w-4" />Nueva cita</Button>}
+          {access?.capabilities.schedule && <Button disabled={dirty || saving || client.pets.length === 0} onClick={() => { setAppointmentPetId(client.pets.length === 1 ? client.pets[0].id : undefined); setNewAppointment(true); }} className="min-h-11 gap-2"><CalendarPlus className="h-4 w-4" />Nueva cita</Button>}
         </div>
         {dirty && <p className="text-xs text-muted-foreground">Guarda o cancela los cambios antes de agendar.</p>}
       </FormDialogHeader>
 
-      <FormDialogBody>
+      <FormDialogBody className="[&_button]:min-h-11 [&_input]:min-w-0 [&_p]:[overflow-wrap:anywhere]">
         {/* Ficha del cliente */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-medium text-muted-foreground">Contacto y notas del propietario</h3>
-            {!editing && (
-              <Button size="sm" variant="outline" onClick={handleEdit}>Editar</Button>
-            )}
           </div>
           {editing ? (
             <form id="edit-client-form" onSubmit={handleSave} noValidate aria-busy={saving} className="space-y-4 [&_input]:h-11">
               <FormSubmissionError message={feedback.submitError} />
               <fieldset disabled={saving} className="min-w-0 space-y-4">
-                <FormSection title={<span className="inline-flex items-center gap-2"><UserRound aria-hidden="true" className="h-4 w-4 text-primary" />Contacto principal</span>} className="space-y-5 rounded-2xl border-primary/15 p-4 sm:p-5">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <FormField id="edit-client-name" label="Nombre" optional className="sm:col-span-2"><Input id="edit-client-name" autoComplete="name" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} placeholder="Nombre del propietario" /></FormField>
+                <FormSection title="Contacto del propietario" className="rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                    <FormField id="edit-client-name" label="Nombre" optional><Input id="edit-client-name" autoComplete="name" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} placeholder="Nombre del propietario" /></FormField>
                     <FormField id="edit-client-phone" label="Teléfono principal" error={feedback.errors["edit-client-phone"]}><Input id="edit-client-phone" required type="tel" autoComplete="tel" {...feedback.fieldProps("edit-client-phone")} value={editForm.phone} onChange={e => { feedback.clearField("edit-client-phone"); setEditForm(f => ({ ...f, phone: e.target.value })); }} /></FormField>
-                    <FormField id="edit-client-phoneAlt" label="Otros teléfonos" optional><Input id="edit-client-phoneAlt" type="tel" value={editForm.phoneAlt} onChange={e => setEditForm(f => ({ ...f, phoneAlt: e.target.value }))} placeholder="Separa los números con /" /></FormField>
                   </div>
-                  <section aria-label="Ubicación del propietario" className="space-y-3 border-t border-border pt-4">
-                    <h4 className="flex items-center gap-2 text-sm font-semibold"><MapPin aria-hidden="true" className="h-4 w-4 text-primary" />Ubicación</h4>
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <FormField id="edit-client-address" label="Dirección" optional className="sm:col-span-2"><Input id="edit-client-address" autoComplete="street-address" value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} placeholder="Calle, número, apartamento o indicaciones" /></FormField>
-                      <FormField id="edit-client-neighborhood" label="Barrio" optional><Input id="edit-client-neighborhood" maxLength={200} value={editForm.neighborhood} onChange={e => setEditForm(f => ({ ...f, neighborhood: e.target.value }))} placeholder="Ej. Robledo Miramar" /></FormField>
-                    </div>
-                  </section>
-                  {access?.capabilities.administration && <div className="border-t border-border pt-4"><FormField id="edit-client-notes" label="Notas del propietario" optional><Textarea id="edit-client-notes" rows={3} className="min-h-24 resize-y bg-background/40 leading-relaxed" value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} /></FormField></div>}
+                  <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+                    <FormField id="edit-client-phoneAlt" label="Otros teléfonos" optional><Input id="edit-client-phoneAlt" type="tel" value={editForm.phoneAlt} onChange={e => setEditForm(f => ({ ...f, phoneAlt: e.target.value }))} placeholder="Separa los números con /" /></FormField>
+                    <FormField id="edit-client-address" label="Dirección" optional><Input id="edit-client-address" autoComplete="street-address" value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} placeholder="Calle, número, apartamento o indicaciones" /></FormField>
+                    <FormField id="edit-client-neighborhood" label="Barrio" optional><Input id="edit-client-neighborhood" maxLength={200} value={editForm.neighborhood} onChange={e => setEditForm(f => ({ ...f, neighborhood: e.target.value }))} placeholder="Ej. Robledo Miramar" /></FormField>
+                  </div>
+                  {access?.capabilities.administration && <details open={Boolean(client.notes)}><summary className="min-h-11 cursor-pointer content-center text-sm font-semibold">Notas del propietario (opcional)</summary><div className="pt-2"><FormField id="edit-client-notes" label="Notas del propietario" optional><Textarea id="edit-client-notes" rows={3} className="min-h-24 resize-y bg-background/40 leading-relaxed" value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} /></FormField></div></details>}
                 </FormSection>
               </fieldset>
             </form>
           ) : (
             <div className="rounded-xl border p-4 text-sm">
               <dl className="grid gap-4 sm:grid-cols-2">
-                <div><dt className="text-xs text-muted-foreground">Teléfono principal</dt><dd className="mt-1 break-words font-medium">{formatPhone(client.phone)}</dd></div>
-                <div><dt className="text-xs text-muted-foreground">Otros teléfonos</dt><dd className="mt-1 space-y-1 break-words">{client.phoneAlt ? client.phoneAlt.split(/\s*\/\s*|[;\n|]+/).filter(Boolean).map((phone, index) => <span key={index} className="block">{formatPhone(phone.trim())}</span>) : "Sin registrar"}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Teléfono principal</dt><dd className="mt-1 [overflow-wrap:anywhere] font-medium">{formatPhone(client.phone)}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Otros teléfonos</dt><dd className="mt-1 space-y-1 [overflow-wrap:anywhere]">{client.phoneAlt ? client.phoneAlt.split(/\s*\/\s*|[;\n|]+/).filter(Boolean).map((phone, index) => <span key={index} className="block">{formatPhone(phone.trim())}</span>) : "Sin registrar"}</dd></div>
               </dl>
-              <section aria-label="Ubicación del propietario" className="mt-4 border-t pt-4"><h4 className="mb-3 flex items-center gap-2 font-semibold"><MapPin aria-hidden="true" className="h-4 w-4 text-primary" />Ubicación</h4><dl className="grid gap-4 sm:grid-cols-3"><div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Dirección</dt><dd className="mt-1 break-words">{client.address || "Sin registrar"}</dd></div><div><dt className="text-xs text-muted-foreground">Barrio</dt><dd className="mt-1 break-words">{client.neighborhood || "Sin registrar"}</dd></div></dl></section>
-              <div hidden={!access?.capabilities.administration} className="mt-4 border-t pt-4"><h4 className="font-semibold">Notas del propietario</h4><p className="mt-2 whitespace-pre-wrap break-words text-muted-foreground">{client.notes || "Todavía no hay notas del propietario."}</p></div>
+              <section aria-label="Ubicación del propietario" className="mt-4 border-t pt-4"><h4 className="mb-3 flex items-center gap-2 font-semibold"><MapPin aria-hidden="true" className="h-4 w-4 text-primary" />Ubicación</h4><dl className="grid gap-4 sm:grid-cols-3"><div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Dirección</dt><dd className="mt-1 [overflow-wrap:anywhere]">{client.address || "Sin registrar"}</dd></div><div><dt className="text-xs text-muted-foreground">Barrio</dt><dd className="mt-1 [overflow-wrap:anywhere]">{client.neighborhood || "Sin registrar"}</dd></div></dl></section>
+              <div hidden={!access?.capabilities.administration} className="mt-4 border-t pt-4"><h4 className="font-semibold">Notas del propietario</h4><p className="mt-2 whitespace-pre-wrap [overflow-wrap:anywhere] text-muted-foreground">{client.notes || "Todavía no hay notas del propietario."}</p></div>
             </div>
           )}
         </section>
 
         <section className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-semibold">Mascotas ({client.pets.length})</h3>
             <button
               type="button"
@@ -296,8 +277,8 @@ function ClientSheetContent({ clientId, initialEdit = false, onUpdated, onNaviga
                   key={pet.id}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/[0.06] bg-card px-3 py-2.5"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-base ring-1 ring-amber-500/20">
+                  <div className="flex min-w-0 items-start gap-2.5 [&_p]:[overflow-wrap:anywhere]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-base ring-1 ring-amber-500/20">
                       {getPetEmoji(pet.type)}
                     </div>
                     <div>
@@ -338,7 +319,7 @@ function ClientSheetContent({ clientId, initialEdit = false, onUpdated, onNaviga
           {client.latestConversationId && <Button asChild variant="outline"><Link href={conversationHref} onClick={(event) => { event.preventDefault(); discard(() => { onNavigate(); router.push(conversationHref); }); }}>Ver última conversación</Link></Button>}
         </section>
       </FormDialogBody>
-      {editing && <FormDialogFooter>
+      {editing && <FormDialogFooter className="bg-muted/30">
         <Button type="button" variant="outline" onClick={() => discard(() => setEditing(false))} disabled={saving}>Cancelar</Button>
         <Button type="submit" form="edit-client-form" disabled={saving}>{saving ? "Guardando…" : "Guardar cambios"}</Button>
       </FormDialogFooter>}
@@ -379,7 +360,7 @@ export function ClientSheet({
 }: ClientSheetProps) {
   return (
     <ProtectedDialog open={open} onOpenChange={onOpenChange}>
-      <FormDialogContent className="h-[92dvh] max-w-3xl">
+      <FormDialogContent className="h-[92dvh] max-w-3xl [&_input]:min-w-0">
         {open && clientId ? (
           <ClientSheetContent key={`${clientId}-${initialEdit}`} clientId={clientId} initialEdit={initialEdit} onUpdated={onUpdated} onNavigate={() => onOpenChange(false)} />
         ) : null}

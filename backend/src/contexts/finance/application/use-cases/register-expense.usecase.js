@@ -7,7 +7,7 @@ const { civilDateKey, civilDateLabel } = require("../../../shared/business-day")
 
 // Categorías propias del dominio Finanzas — no configurables desde Negocio
 // (decidido en la Etapa 3 de sistema-operativo-finanzas.md).
-const VALID_CATEGORIES = ["supplies", "utilities", "rent", "salary", "equipment", "marketing", "other"];
+const { EXPENSE_CATEGORIES: VALID_CATEGORIES } = require("../../../shared/expense-categories");
 
 /**
  * RegisterExpenseUseCase — Administración.

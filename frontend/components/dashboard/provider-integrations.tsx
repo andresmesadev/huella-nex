@@ -54,18 +54,18 @@ export function ProviderIntegrations({ tenantId }: { tenantId: string }) {
     void perform(async () => { await request('complete',{ state, ...await result }); await refresh(); setMessage('Conexión guardada para este establecimiento.'); });
   }
   const connection = status?.whatsapp.connection, ai = status?.ai;
-  return <div className="space-y-5">
+  return <div className="max-w-6xl space-y-5 [&_button]:min-h-11 [&_button]:whitespace-normal [&_input]:min-h-11 [&_select]:min-h-11">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <p className="text-sm text-muted-foreground">Cada negocio administra su línea. Los cobros de Meta se pagan directamente a Meta.</p>
       <Button variant="outline" disabled={busy} onClick={() => { void perform(async () => { await refresh(); setMessage('Estado actualizado.'); }); }}>Actualizar estado</Button>
     </div>
     {message && <p role="status" aria-live="polite" className="rounded-xl border border-border bg-muted p-4 text-sm">{message}</p>}
-    {!status ? <p>Cargando integraciones…</p> : <div className="grid items-start gap-5 xl:grid-cols-2">
+    {!status ? <p role="status">{message ? "La conexión no se pudo cargar. Usa Actualizar estado para reintentar." : "Cargando integraciones…"}</p> : <div className="grid items-stretch gap-5 xl:grid-cols-2">
       <section className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold"><MessageCircle className="size-5 text-primary" aria-hidden="true" />WhatsApp del negocio</h2>
         <div className="rounded-xl bg-muted/60 p-4">
           <p className="font-semibold">{connection?.status === 'enabled' ? 'Conexión registrada' : connection ? 'Desconectado de Huella Nex' : 'Sin conexión comercial registrada'}</p>
-          {connection && <p className="mt-1 text-sm">Número: {connection.displayPhone || connection.phoneNumberId}</p>}
+          {connection && <p className="mt-1 [overflow-wrap:anywhere] text-sm">Número: {connection.displayPhone || connection.phoneNumberId}</p>}
           {connection?.tokenExpiresAt && <p className="mt-1 text-sm text-muted-foreground">Autorización hasta: {new Date(connection.tokenExpiresAt).toLocaleDateString('es-CO')}</p>}
         </div>
         {!status.whatsapp.setup.ready && <p className="text-sm text-muted-foreground">La conexión de nuevos negocios aún no está habilitada por la plataforma. Una conexión anterior puede seguir operando con su configuración vigente.</p>}

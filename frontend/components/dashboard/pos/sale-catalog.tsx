@@ -133,14 +133,14 @@ export function SaleCatalog(props: Props) {
           const product = entry.kind === 'product' ? entry.product : null, service = entry.kind === 'service' ? entry.service : null;
           const disabled = props.disabled || !!(product && !catalogProductAvailable(product, props.quantities));
           const Icon = product ? Package : ShoppingBag;
-          return <button key={entry.key} id={`${resultsId}-${entry.key}`} type="button" role="option" aria-selected={activeIndex === index} disabled={disabled} onFocus={() => setActive(entry.key)} onClick={() => choose(entry)} className={`flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-3 text-left disabled:opacity-50 ${activeIndex === index ? 'border-primary bg-accent' : 'border-transparent hover:bg-muted'}`}>
+          return <button key={entry.key} id={`${resultsId}-${entry.key}`} type="button" role="option" aria-selected={activeIndex === index} disabled={disabled} onFocus={() => setActive(entry.key)} onClick={() => choose(entry)} className={`grid min-h-16 w-full grid-cols-[1.25rem_minmax(0,1fr)_1rem] items-start gap-x-3 gap-y-1 rounded-xl border px-3 py-3 text-left disabled:opacity-50 ${activeIndex === index ? 'border-primary bg-accent' : 'border-transparent hover:bg-muted'}`}>
             <Icon aria-hidden="true" className="size-5 shrink-0 text-primary" />
             <span className="min-w-0 flex-1"><strong className="block break-words text-sm">{product?.name ?? service?.name}</strong>
               <span className="block break-words text-xs text-muted-foreground">{product ? `Producto · ${product.internalCode} · ${product.presentation}` : `Servicio · ${service?.category === 'grooming' ? 'Peluquería' : service?.category === 'veterinary' ? 'Veterinaria' : 'Otros'}`}</span>
               {product && <span className="block text-xs text-muted-foreground">{product.available} disponibles{props.quantities[product.id] ? ` · ${props.quantities[product.id]} en carrito` : ''}</span>}
               {service && ['pet_agreed_price', 'pet_default_price'].includes(service.priceSource) && <span className="block text-xs text-primary">Tarifa de {props.petName || 'la mascota'}</span>}
             </span>
-            <strong className="shrink-0 text-sm tabular-nums">{product ? product.salePrice ? formatPosMoney(product.salePrice) : 'Sin precio' : service?.price ? formatPosMoney(service.price) : 'Definir precio'}</strong><Plus aria-hidden="true" className="size-4 shrink-0 text-primary" />
+            <strong className="col-start-2 row-start-2 text-sm tabular-nums">{product ? product.salePrice ? formatPosMoney(product.salePrice) : 'Sin precio' : service?.price ? formatPosMoney(service.price) : 'Definir precio'}</strong><Plus aria-hidden="true" className="col-start-3 row-start-1 size-4 shrink-0 text-primary" />
           </button>;
         })}
       </div>

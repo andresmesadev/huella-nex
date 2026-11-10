@@ -1,4 +1,4 @@
-export type ReportPeriod = "week" | "month" | "year";
+export type ReportPeriod = "week" | "month" | "year" | "custom";
 export type ReportComparison = "full" | "equivalent";
 export type MetricPoint = { value: number; prev: number; delta: number; pct: number | null };
 export type ReportMetadata = { period: ReportPeriod; offset: number; comparison: ReportComparison; comparisonClamped: boolean; rangeStart: string; rangeEnd: string; previousRangeStart: string; previousRangeEnd: string; asOf: string; partial: boolean; year: number };
@@ -22,7 +22,7 @@ const date = (value: unknown): value is string => typeof value === "string" && N
 const fail = () => { throw new Error("Respuesta incompleta"); };
 function metadata(value: unknown): ReportMetadata {
   const row = object(value);
-  if (typeof row.period !== "string" || !["week", "month", "year"].includes(row.period) || !number(row.offset) || !Number.isSafeInteger(row.offset) || row.offset > 0 || !count(row.year) || typeof row.partial !== "boolean") fail();
+  if (typeof row.period !== "string" || !["week", "month", "year", "custom"].includes(row.period) || !number(row.offset) || !Number.isSafeInteger(row.offset) || row.offset > 0 || !count(row.year) || typeof row.partial !== "boolean") fail();
   if (typeof row.comparison !== "string" || !["full", "equivalent"].includes(row.comparison) || typeof row.comparisonClamped !== "boolean") fail();
   for (const key of ["rangeStart", "rangeEnd", "previousRangeStart", "previousRangeEnd", "asOf"]) if (!date(row[key])) fail();
   if (Date.parse(String(row.rangeStart)) >= Date.parse(String(row.rangeEnd)) || Date.parse(String(row.previousRangeStart)) >= Date.parse(String(row.previousRangeEnd))) fail();
@@ -82,6 +82,7 @@ export function reportBarHeight(value: number, maximum: number) {
 }
 
 export function reportComparisonText(data: ReportMetadata) {
+  if (data.period === "custom") return `Se compara con los mismos días inmediatamente anteriores al rango seleccionado.${data.partial ? " El rango seleccionado está en curso." : ""}`;
   if (data.comparison === "equivalent") return `Se comparan los mismos días del calendario${data.partial ? " hasta hoy" : ""}.${data.comparisonClamped ? " El período anterior es más corto: se utiliza su último día disponible." : ""}`;
   return data.partial ? "El período actual está en curso; se compara lo registrado hasta ahora con el período anterior completo." : "La comparación corresponde al período anterior completo.";
 }
@@ -93,8 +94,13 @@ export function reportsAgree(summary?: ReportSummary, breakdown?: ReportBreakdow
   const keys = ["period", "offset", "comparison", "rangeStart", "rangeEnd", "previousRangeStart", "previousRangeEnd"] as const;
   return keys.every(key => summary[key] === breakdown[key]) && Math.round(summary.revenue.value * 100) === Math.round(breakdown.total * 100) && summary.transactionCount === breakdown.count;
 }
-export type ReportSelection = { period: ReportPeriod; offset: number; comparison: ReportComparison };
-export function readReportSelection(params: { period?: unknown; offset?: unknown; comparison?: unknown }): ReportSelection {
+export type ReportSelection = { period: ReportPeriod; offset: number; comparison: ReportComparison; from?: string; to?: string };
+export function validReportDates(from: unknown, to: unknown): from is string {
+  const civil = (value: unknown): value is string => typeof value === "string" && /^[1-9]\d{3}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+  return civil(from) && civil(to) && from <= to && (Date.parse(to) - Date.parse(from)) / 86400000 <= 365;
+}
+export function readReportSelection(params: { period?: unknown; offset?: unknown; comparison?: unknown; from?: unknown; to?: unknown }): ReportSelection {
+  if (params.period === "custom" && validReportDates(params.from, params.to)) return { period: "custom", offset: 0, comparison: "full", from: params.from, to: params.to as string };
   const period = typeof params.period === "string" && ["week", "month", "year"].includes(params.period) ? params.period as ReportPeriod : "month";
   const offset = typeof params.offset === "string" && /^-?\d+$/.test(params.offset) && Number(params.offset) >= -1200 && Number(params.offset) <= 0 ? Number(params.offset) : 0;
   const comparison = params.comparison === "equivalent" ? "equivalent" : "full";
@@ -106,10 +112,11 @@ export function readReportDetail(params: Record<string, unknown>): ReportDetail 
   const { from, to } = params;
   const civil = (value: unknown): value is string => typeof value === "string" && /^[1-9]\d{3}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
   if (!civil(from) || !civil(to) || from > to || (Date.parse(to) - Date.parse(from)) / 86400000 > 365) return;
-  return { from, to, kind: params.detail as ReportDetail["kind"], selection: readReportSelection({ period: params.reportPeriod, offset: params.reportOffset, comparison: params.comparison }) };
+  return { from, to, kind: params.detail as ReportDetail["kind"], selection: readReportSelection({ period: params.reportPeriod, offset: params.reportOffset, comparison: params.comparison, from, to }) };
 }
 export function reportReturnUrl(selection: ReportSelection, tenant?: string | null) {
   const params = new URLSearchParams({ tab: "reportes", period: selection.period, offset: String(selection.offset), comparison: selection.comparison });
+  if (selection.period === "custom" && validReportDates(selection.from, selection.to)) { params.set("from", selection.from); params.set("to", selection.to!); }
   if (tenant) params.set("tenant", tenant);
   return `/dashboard/pos?${params}`;
 }

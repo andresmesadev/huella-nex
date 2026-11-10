@@ -31,8 +31,8 @@ export function WhatsappLinkPanel({ tenant }: { tenant: string | null }) {
     const data = await response.json(); if (!response.ok) throw Error(data.error || "No se pudo verificar tu identidad."); return data.proof;
   }
   const activeLink = status?.links.find(l => l.state === "active");
-  return <section className="rounded-2xl border bg-white p-5 sm:p-6" aria-labelledby="whatsapp-link-title">
-    <h2 id="whatsapp-link-title" className="font-semibold">Tus empleados por WhatsApp</h2>
+  return <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 [overflow-wrap:anywhere] [&_button]:min-h-11 [&_button]:whitespace-normal" aria-labelledby="whatsapp-link-title">
+    <h2 id="whatsapp-link-title" className="font-semibold">Acceso privado por WhatsApp</h2>
     <p className="mt-2 text-sm text-slate-600">Vincula tu propio teléfono para consultar el negocio y preparar operaciones. Tu acceso conserva los permisos de tu cuenta.</p>
     {error && <p role="alert" className="mt-3 text-sm text-amber-900">{error}</p>}
     {!status ? <p role="status" className="mt-3 text-sm">Consultando tu vínculo…</p> : !status.enabled ? <p className="mt-3 text-sm text-slate-600">El canal privado aún no está habilitado en este entorno.</p> : <>

@@ -28,23 +28,22 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   // se streamea de forma independiente: la página aparece de inmediato con
   // skeletons que reservan el espacio, y cada bloque se rellena al estar listo.
   return (
-    <div className="mx-auto max-w-[1500px] space-y-8 pb-10">
+    <div className="mx-auto max-w-[1500px] space-y-6 pb-10">
       <section aria-labelledby="daily-overview-heading" className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="mb-1 text-xs font-semibold text-primary">Inicio · {ROLE_NAMES[access.professionalRole ?? access.role]}</p>
             <h2 id="daily-overview-heading" className="text-xl font-bold tracking-tight text-foreground md:text-2xl">Tu jornada de hoy</h2>
-            <p className="mt-1 text-sm capitalize text-muted-foreground">{dateLabel} · Hora de Colombia</p>
+            <p className="mt-1 text-sm capitalize text-muted-foreground">{dateLabel} · Hora de Colombia · {ROLE_NAMES[access.professionalRole ?? access.role]}</p>
           </div>
         </div>
       </section>
 
       <QuickActions tenant={tenant} access={access} />
-      {(session?.user?.isSuperAdmin ? tenant ?? session.user.tenantId : session?.user?.tenantId) && <ServiceStatusPanel key={tenant ?? session?.user?.tenantId} tenantId={(session?.user?.isSuperAdmin ? tenant ?? session.user.tenantId : session?.user?.tenantId)!} />}
 
       <Suspense fallback={<ListCardSkeleton titleWidth="w-40" />}>
         <HomeWorkspace access={access} headers={headers} tenant={tenant} date={date} review={review === "1"} />
       </Suspense>
+      {(session?.user?.isSuperAdmin ? tenant ?? session.user.tenantId : session?.user?.tenantId) && <ServiceStatusPanel key={tenant ?? session?.user?.tenantId} tenantId={(session?.user?.isSuperAdmin ? tenant ?? session.user.tenantId : session?.user?.tenantId)!} />}
 
     </div>
   );

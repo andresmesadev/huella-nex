@@ -109,7 +109,7 @@ function NewPetContent({ open, onOpenChange, onCreated, defaultOwnerPhone, defau
         </FormDialogHeader>
 
         <form id="new-pet-form" className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit} noValidate aria-busy={saving}>
-          <FormDialogBody>
+          <FormDialogBody className="[&_input]:min-h-11 [&_input]:min-w-0 [&_select]:min-h-11 [&_select]:min-w-0 [&_p]:[overflow-wrap:anywhere]">
           <fieldset disabled={saving} className="min-w-0 space-y-6">
             <FormSubmissionError message={feedback.submitError} />
             <FormSection title="Datos de la mascota">

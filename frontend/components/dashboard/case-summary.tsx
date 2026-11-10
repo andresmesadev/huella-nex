@@ -6,7 +6,7 @@ import { useDashboardAccess } from "./dashboard-access-provider";
 import { formatColombiaDateTime, formatService, formatStatus, statusBadgeClass, isGroomingAppointment, type TodayAppointment } from "@/lib/appointments";
 
 /** Operational identity only: clinical and grooming notes stay in their authorized screens. */
-export function CaseSummary({ appointment, showPrice = false, compact = false, actions }: { appointment: TodayAppointment; showPrice?: boolean; compact?: boolean; actions?: ReactNode }) {
+export function CaseSummary({ appointment, showPrice = false, compact = false, actions, className = "" }: { className?: string; appointment: TodayAppointment; showPrice?: boolean; compact?: boolean; actions?: ReactNode }) {
   const access = useDashboardAccess();
   const rows = [
     ["Mascota", appointment.petName],
@@ -23,11 +23,11 @@ export function CaseSummary({ appointment, showPrice = false, compact = false, a
     }
     visibleRows.push(["Total de esta cita (COP)", appointment.finalPrice == null ? isGroomingAppointment(appointment) ? "Sin precio definido" : "Se define al registrar el pago" : `$ ${appointment.finalPrice.toLocaleString("es-CO")}`]);
   }
-  return <section aria-label="Resumen de la atención" className={`rounded-xl border border-border p-4 ${compact ? "bg-white sm:p-5" : "bg-muted/30"}`}>
+  return <section aria-label="Resumen de la atención" className={`rounded-xl border border-border p-4 ${compact ? "bg-white sm:p-5" : "bg-muted/30"} ${className}`}>
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">{compact ? "Datos de la cita" : "Datos de esta visita"}</h3>{actions}{!compact && <Badge className={statusBadgeClass(appointment.status)}>{formatStatus(appointment.status)}</Badge>}</div>
     <dl className={`grid gap-x-5 gap-y-4 ${compact ? "grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}>{visibleRows.map(([label, value]) => {
       const total = compact && label === "Total de esta cita (COP)";
-      return <div key={label} className={`min-w-0 ${total ? "col-span-2 rounded-lg bg-accent/60 p-3" : ""}`}><dt className="text-xs text-muted-foreground">{label}</dt><dd className={`mt-1 break-words font-semibold ${total ? "text-xl tabular-nums text-primary" : "text-sm"}`}>{value}</dd></div>;
+      return <div key={label} className={`min-w-0 ${total ? "col-span-2 rounded-lg bg-accent/60 p-3" : ""}`}><dt className="text-xs text-muted-foreground">{label}</dt><dd className={`mt-1 [overflow-wrap:anywhere] font-semibold ${total ? "text-xl tabular-nums text-primary" : "text-sm"}`}>{value}</dd></div>;
     })}</dl>
   </section>;
 }

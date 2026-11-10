@@ -1460,7 +1460,7 @@ model TransactionItem {
 }
 
 // ── Egresos / Gastos (POS unificado) ──────────────────────────
-// category: "supplies" | "utilities" | "rent" | "salary" | "equipment" | "marketing" | "other"
+// Stable category keys validated in backend/src/contexts/shared/expense-categories.js (String preserves historical records).
 model Expense {
   id            String   @id @default(cuid())
   tenantId      String?

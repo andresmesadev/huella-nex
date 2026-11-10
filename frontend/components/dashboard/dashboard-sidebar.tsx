@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -31,6 +32,7 @@ import { homeForRole, ROLE_NAMES } from "@/lib/dashboard-access";
 import { useTenant } from "@/lib/use-tenant";
 import { homeHref } from "@/lib/home-workspace";
 import { ProductBrand } from "@/components/brand/product-brand";
+import { Dialog, DialogClose, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 // ── Estructura de navegación ──────────────────────────────────
 
@@ -85,22 +87,21 @@ function NavLink({
       href={homeHref(item.href, tenant)}
       prefetch={false}
       onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
       className={cn(
         "group relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700",
         active
-          ? "bg-teal-50 font-semibold text-teal-800"
-          : "text-sidebar-foreground/75 hover:bg-slate-100 hover:text-sidebar-foreground"
+          ? "bg-sidebar-accent font-semibold text-sidebar-primary"
+          : "text-sidebar-foreground/75 hover:bg-muted hover:text-sidebar-foreground"
       )}
     >
-      {active && (
-        <span className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-teal-700" />
-      )}
       <Icon
+        aria-hidden="true"
         className={cn(
           "h-[18px] w-[18px] shrink-0 transition-colors",
           active
-            ? "text-teal-700"
-            : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground"
+            ? "text-sidebar-primary"
+            : "text-muted-foreground group-hover:text-sidebar-foreground"
         )}
       />
       <span className="truncate">{item.label}</span>
@@ -128,7 +129,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       className="flex h-full flex-col bg-white text-sidebar-foreground"
     >
       {/* Marca */}
-      <Link prefetch={false} href={homeHref(homeForRole(teamRole), tenant)} onClick={onNavigate} className="flex items-center gap-3 border-b border-sidebar-border px-5 py-5 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-teal-700">
+      <Link prefetch={false} href={homeHref(homeForRole(teamRole), tenant)} onClick={onNavigate} className={cn("flex items-center gap-3 border-b border-sidebar-border px-5 py-5 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary", onNavigate && "pr-16")}>
         <ProductBrand size="md" subtitle="Tu espacio de trabajo" />
       </Link>
 
@@ -137,7 +138,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         {sections.map((section, i) => (
           <div key={section.heading ?? i} className="space-y-1">
             {section.heading && (
-              <p className="px-3 pb-2 text-xs font-semibold text-sidebar-foreground/55">
+              <p className="px-3 pb-2 text-xs font-semibold text-muted-foreground">
                 {section.heading}
               </p>
             )}
@@ -150,23 +151,22 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Perfil + logout */}
       <div
-        className="flex items-center gap-3 border-t border-sidebar-border px-4 py-3"
-        style={{ background: "#f7faf9" }}
+        className="flex items-center gap-3 border-t border-sidebar-border bg-muted/40 px-4 py-3"
       >
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sidebar-primary/30 to-sidebar-primary/10 text-[11px] font-bold text-sidebar-primary ring-1 ring-sidebar-primary/30">
+        <div aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-primary">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold">{userName}</p>
-          <p className="truncate text-[11px] text-sidebar-foreground/45">{role}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{role}</p>
         </div>
         <button
           type="button"
           onClick={() => { clearWorkspaceSession(workspaceStorage()); try { clearSaleDrafts(sessionStorage); } catch { /* Sign-out remains available if storage is blocked. */ } void signOut({ callbackUrl: "/login" }); }}
           aria-label="Cerrar sesión"
-          className="rounded-lg p-1.5 text-sidebar-foreground/40 transition-colors hover:bg-black/[0.06] hover:text-sidebar-foreground"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-sidebar-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut aria-hidden="true" className="h-4 w-4" />
         </button>
       </div>
     </div>
@@ -178,43 +178,43 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 export function DashboardSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) setMobileOpen(false);
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
+
   return (
     <>
       {/* Botón hamburguesa (móvil) */}
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-40 inline-flex size-11 items-center justify-center rounded-xl border border-border bg-white text-foreground shadow-sm lg:hidden"
-        aria-label="Abrir menú"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
+      <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
+        <DialogTrigger asChild>
+          <button type="button" className="fixed left-4 top-4 z-40 inline-flex size-11 items-center justify-center rounded-xl border border-border bg-card text-foreground lg:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="Abrir menú">
+            <Menu aria-hidden="true" className="h-5 w-5" />
+          </button>
+        </DialogTrigger>
+        <DialogPortal>
+          <DialogOverlay className="bg-black/40 backdrop-blur-none lg:hidden" />
+          <DialogPrimitive.Content aria-describedby={undefined} className="fixed inset-y-0 left-0 z-50 w-[min(20rem,calc(100vw-3rem))] border-r border-sidebar-border bg-sidebar outline-none lg:hidden">
+            <DialogTitle className="sr-only">Menú principal</DialogTitle>
+            <DialogClose asChild>
+              <button type="button" className="absolute right-3 top-4 z-10 inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="Cerrar menú">
+                <X aria-hidden="true" className="h-5 w-5" />
+              </button>
+            </DialogClose>
+            <SidebarContent onNavigate={() => setMobileOpen(false)} />
+          </DialogPrimitive.Content>
+        </DialogPortal>
+      </Dialog>
 
       {/* Desktop */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-sidebar-border lg:block">
         <SidebarContent />
       </aside>
 
-      {/* Drawer móvil */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setMobileOpen(false)}
-          />
-          <aside className="absolute inset-y-0 left-0 w-64 border-r border-sidebar-border shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="absolute right-3 top-4 z-10 rounded-lg p-1.5 text-sidebar-foreground/60 hover:bg-black/[0.06]"
-              aria-label="Cerrar menú"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <SidebarContent onNavigate={() => setMobileOpen(false)} />
-          </aside>
-        </div>
-      )}
     </>
   );
 }

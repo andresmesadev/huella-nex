@@ -251,38 +251,39 @@ function NewAppointmentContent({
     }
   }
 
-  const fieldClass = "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const fieldClass = "min-h-11 min-w-0 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
-      <FormDialogContent>
-        <FormDialogHeader>
+      <FormDialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl gap-0">
+        <FormDialogHeader className="py-4 sm:py-5">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-700"><CalendarPlus className="h-5 w-5" /></span>
             <div className="min-w-0">
-              <DialogTitle>Nueva cita</DialogTitle>
-              <DialogDescription>Busca al cliente o regístralo aquí con su mascota.</DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Nueva cita</DialogTitle>
+              <DialogDescription>Elige la mascota, el servicio y un horario disponible.</DialogDescription>
             </div>
           </div>
         </FormDialogHeader>
         <form onSubmit={submit} noValidate aria-busy={saving} className="flex min-h-0 flex-1 flex-col">
-          <FormDialogBody>
+          <FormDialogBody className="space-y-4 py-4 sm:py-5 [&_input]:min-h-11 [&_button]:min-h-11 [&_button]:whitespace-normal">
             <FormSubmissionError message={feedback.submitError} />
-          <fieldset disabled={saving} className="min-w-0 space-y-6">
-            <FormSection title="Cliente y mascota" description="Selecciona quién reserva y la mascota que recibirá la atención.">
-            <div className="space-y-1.5">
+          <fieldset disabled={saving} className="min-w-0 space-y-5 [&>fieldset+fieldset]:border-t">
+            <FormSection title="Cliente y mascota" className="space-y-0 rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
+            <div className="grid min-w-0 items-start gap-4 sm:grid-cols-2">
+            <div className="min-w-0 space-y-1.5">
               <label htmlFor="appointment-client" className="text-sm font-semibold">Propietario o mascota</label>
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                 <Input id="appointment-client" value={query} autoComplete="off" disabled={loadingClient || saving} placeholder="Busca propietario, mascota o teléfono" {...feedback.fieldProps("appointment-client")}
-                  onChange={(event) => { feedback.clearField("appointment-client"); setQuery(event.target.value); setClient(null); setPetId(""); setPets([]); setMatches([]); }} className="pl-9" />
+                  onChange={(event) => { feedback.clearField("appointment-client"); setQuery(event.target.value); setClient(null); setPetId(""); setPets([]); setMatches([]); }} className="min-w-0 pl-9" />
               </div>
               <FieldError id="appointment-client" message={feedback.errors["appointment-client"]} />
               {!client && matches.length > 0 && (
-                <div className="max-h-60 overflow-y-auto overscroll-contain rounded-lg border bg-background shadow-sm" aria-label="Resultados de propietarios y mascotas">
+                <div className="max-h-60 overflow-y-auto overscroll-contain rounded-lg border bg-background" aria-label="Resultados de propietarios y mascotas">
                   {matches.map((match) => (
                     <div key={match.id} className="border-b last:border-b-0">
                     <button type="button" onClick={() => void selectClient(match)}
-                      className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted">
+                      className="flex min-w-0 w-full flex-col px-3 py-2 text-left text-sm [overflow-wrap:anywhere] hover:bg-muted focus-visible:bg-muted">
                       <span className="font-semibold">{match.name ?? "Sin nombre"}</span>
                       <span className="text-xs text-muted-foreground">{match.phone}</span>
                     </button>
@@ -290,7 +291,7 @@ function NewAppointmentContent({
                       {(match.matchingPets?.length ? match.matchingPets : match.pets ?? []).map(pet => (
                         <button key={pet.id} type="button" aria-label={`Seleccionar ${pet.name} de ${match.name ?? match.phone}`}
                           onClick={() => void selectClient(match, pet.id)}
-                          className="rounded-md border px-2 py-1 text-sm hover:bg-muted focus-visible:bg-muted">
+                          className="min-w-0 rounded-md border px-2 py-1 text-left text-sm [overflow-wrap:anywhere] hover:bg-muted focus-visible:bg-muted">
                           {pet.name} · {formatPetType(pet.type)}
                         </button>
                       ))}
@@ -299,21 +300,23 @@ function NewAppointmentContent({
                   ))}
                 </div>
               )}
-              {access?.capabilities.contacts ? <Button type="button" size="sm" variant="outline" onClick={() => setRegistration("owner")}>Registrar cliente y mascota</Button> : <p className="text-xs text-muted-foreground">Solicita el registro al administrador si faltan el cliente o la mascota.</p>}
+              {access?.capabilities.contacts ? <Button type="button" size="sm" variant="outline" onClick={() => setRegistration("owner")}>Nuevo cliente y mascota</Button> : <p className="text-xs text-muted-foreground">Solicita el registro al administrador si faltan el cliente o la mascota.</p>}
             </div>
-            <div className="space-y-1.5">
+            <div className="min-w-0 space-y-1.5">
               <label htmlFor="appointment-pet" className="text-sm font-semibold">Mascota</label>
               <select id="appointment-pet" className={fieldClass} value={petId} {...feedback.fieldProps("appointment-pet")} onChange={(event) => { feedback.clearField("appointment-pet"); setPetId(event.target.value); }} disabled={!client || loadingClient} required>
                 <option value="">{loadingClient ? "Cargando mascotas…" : "Selecciona una mascota"}</option>
                 {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name} · {formatPetType(pet.type)}</option>)}
               </select>
               <FieldError id="appointment-pet" message={feedback.errors["appointment-pet"]} />
-              {client && access?.capabilities.contacts && <Button type="button" size="sm" variant="outline" disabled={loadingClient} onClick={() => setRegistration("pet")}>Agregar mascota a este cliente</Button>}
+              {client && access?.capabilities.contacts && <Button type="button" size="sm" variant="outline" disabled={loadingClient} onClick={() => setRegistration("pet")}>Agregar mascota</Button>}
               {client && !loadingClient && pets.length === 0 && <p className="text-xs text-amber-700">Este cliente todavía no tiene mascotas registradas.</p>}
             </div>
+            </div>
             </FormSection>
-            <FormSection title="Servicio y profesional" description="Si hay un solo peluquero, se asigna automáticamente según su disponibilidad.">
-            <div className="space-y-1.5">
+            <FormSection title="Servicio y profesional" className="space-y-0 rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
+            <div className="grid min-w-0 items-start gap-4 sm:grid-cols-2">
+            <div className="min-w-0 space-y-1.5">
               <label htmlFor="appointment-service" className="text-sm font-semibold">Servicio</label>
               <select id="appointment-service" className={fieldClass} value={serviceId} {...feedback.fieldProps("appointment-service")} onChange={(event) => { feedback.clearField("appointment-service"); feedback.clearField("appointment-hour"); setServiceId(event.target.value); setStaffId(""); setHour(""); }} disabled={loadingServices} required>
                 <option value="">{loadingServices ? "Cargando servicios…" : "Selecciona un servicio"}</option>
@@ -322,24 +325,25 @@ function NewAppointmentContent({
               <FieldError id="appointment-service" message={feedback.errors["appointment-service"]} />
               {!loadingServices && services.length === 0 && <p className="text-xs text-amber-700">No hay servicios con cita activos.</p>}
             </div>
-            {singleGroomer ? <div className="rounded-xl bg-accent/50 p-3 text-sm"><p className="font-semibold">Peluquero responsable: {singleGroomer.name}</p><p className="mt-1 text-xs text-muted-foreground">Asignación automática. Se muestran sus horarios disponibles.</p></div> : <div className="space-y-1.5">
-              <label htmlFor="appointment-professional" className="text-sm font-semibold">Profesional responsable <span className="font-normal text-muted-foreground">(opcional)</span></label>
+            {singleGroomer ? <div className="min-w-0 rounded-lg bg-accent/50 p-3 text-sm [overflow-wrap:anywhere]"><p className="font-semibold">Peluquero responsable: {singleGroomer.name}</p><p className="mt-1 text-xs text-muted-foreground">Asignación automática. Se muestran sus horarios disponibles.</p></div> : <div className="min-w-0 space-y-1.5">
+              <label htmlFor="appointment-professional" className="text-sm font-semibold">Profesional <span className="font-normal text-muted-foreground">(opcional)</span></label>
               <select id="appointment-professional" value={staffId} className={fieldClass} disabled={!serviceId} onChange={event => { setStaffId(event.target.value); setHour(""); }}>
                 <option value="">Sin asignar · revisar después</option>
                 {professionals.filter(s => s.active && [services.find(service => service.id === serviceId)?.category === "grooming" ? "groomer" : "vet", "admin"].includes(s.role)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
-              <p className="text-xs text-muted-foreground">Al elegir un profesional se muestran sus turnos compatibles con el servicio, sus ausencias y las demás atenciones.</p>
+              <p className="text-xs text-muted-foreground">Los horarios se ajustan al profesional elegido.</p>
               {staffError && <p className="text-xs text-amber-800">{staffError}</p>}
             </div>}
+            </div>
             </FormSection>
-            <FormSection title="Fecha y hora" description="Horarios en hora de Colombia. La disponibilidad se confirma al guardar.">
+            <FormSection title="Fecha y hora" className="space-y-0 rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
+              <div className="min-w-0 space-y-1.5">
                 <label htmlFor="appointment-date" className="text-sm font-semibold">Fecha</label>
                 <Input id="appointment-date" type="date" value={dateKey} {...feedback.fieldProps("appointment-date")} onChange={(event) => { feedback.clearField("appointment-date"); feedback.clearField("appointment-hour"); setDateKey(event.target.value); setHour(""); }} required />
                 <FieldError id="appointment-date" message={feedback.errors["appointment-date"]} />
               </div>
-              <div className="space-y-1.5">
+              <div className="min-w-0 space-y-1.5">
                 <label htmlFor="appointment-hour" className="text-sm font-semibold">Hora de Colombia</label>
                 <select id="appointment-hour" className={fieldClass} value={hour} {...feedback.fieldProps("appointment-hour")} onChange={(event) => { feedback.clearField("appointment-hour"); setHour(event.target.value); }} disabled={!serviceId || loadingSlots || Boolean(currentSlots?.error) || availableHours.length === 0} required>
                   <option value="">{loadingSlots ? "Consultando horarios…" : "Selecciona una hora"}</option>
@@ -351,13 +355,13 @@ function NewAppointmentContent({
             <div aria-live="polite" className="text-xs text-muted-foreground">
               {currentSlots?.error ? <span className="text-red-700">{currentSlots.error} <button type="button" className="font-semibold underline" onClick={() => setSlotVersion((version) => version + 1)}>Reintentar</button></span>
                 : serviceId && dateKey && !loadingSlots && availableHours.length === 0 ? "No hay turnos disponibles ese día. Prueba otra fecha."
-                  : "Horarios libres según el área o el horario habitual del centro. Puedes registrar las llegadas de hoy: si la hora ya pasó, la cita quedará como llegada."}
+                  : "Disponibilidad según el área o el horario habitual. Si eliges una hora pasada de hoy, se registra como llegada."}
             </div>
             </FormSection>
             {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
           </fieldset>
           </FormDialogBody>
-          <FormDialogFooter>
+          <FormDialogFooter className="bg-muted/30 py-3 sm:py-4">
             <Button type="button" variant="outline" onClick={() => discard(onClose)} disabled={saving}>Cancelar</Button>
             <Button type="submit" disabled={saving || loadingClient || loadingServices || loadingSlots || Boolean(currentSlots?.error) || Boolean(serviceId && dateKey && currentSlots && availableHours.length === 0)}>
               {saving ? "Guardando…" : "Crear cita"}

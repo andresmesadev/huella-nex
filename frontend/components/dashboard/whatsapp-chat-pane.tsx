@@ -204,7 +204,7 @@ export function WhatsAppChatPane({ conversationId, tenant, drafts, recoveredDraf
 
   const messages = detail?.messages ?? [];
   const displayName = conversation?.name || formatPhone(conversation?.phone ?? null);
-  return <div className="flex h-full min-w-0">
+  return <div className="flex h-full min-w-0 [&_button]:min-h-11 [&_button]:whitespace-normal">
     {confirmation}
     <div className="relative flex min-w-0 flex-1 flex-col">
     <header className="shrink-0 border-b border-[#d9dfdc] bg-[#f0f2f5] px-2 py-2 sm:px-4">

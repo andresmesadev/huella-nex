@@ -272,3 +272,15 @@
     box-shadow: 0 0 0 1px oklch(0.72 0.14 232 / 20%);
   }
 }
+
+/* Keep numeric validation and direct typing without accidental spinner clicks. */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
