@@ -1,11 +1,13 @@
 # Estado actual del proyecto
 
-**10 de noviembre — candidato 3.0.4 preparado:** refinamiento del dashboard y
-página pública, reportes por fechas, gastos y fichas de mascota. Navegador
-aislado, lint/build y pruebas dirigidas aprobados; publicación sujeta a CI de
-Linux y verificación de producción. Figma pendiente por límite Starter,
-aceptado expresamente por Andrés.
-[Alcance y comprobaciones](history/RELEASE_3_0_4_20261110.md).
+**10 de noviembre — 3.0.4 publicada:** revisión de interfaz y formularios del
+software; reportes por fechas, categorías de gastos y persistencia de sexo/peso
+al agregar mascotas. Código `4866562`, seis trabajos CI aprobados y 2.234 pruebas
+backend correctas. Respaldo cifrado verificado; sin migraciones nuevas ni cambios
+de volumen PostgreSQL. Salud HTTPS `ok` y 14 destinos autenticados HTTP 200.
+WhatsApp sigue pausado. Figma pendiente por límite Starter, aceptado expresamente
+por Andrés antes de publicar.
+[Acta de publicación](history/RELEASE_3_0_4_20261110.md).
 
 **6 de noviembre — estabilidad de 48 horas de 3.0.0 cerrada para dashboard
 manual:** analizador original `health_window_passed`, salida 0; 577 muestras

@@ -713,3 +713,11 @@ Archivo existente XgkNYjmoivFxTtgUdTfVbP consultado mediante la sesión oficial
 al intentar seguir consultando y editar; no se guardó ninguna sincronización.
 El usuario eligió expresamente publicar y dejar Figma pendiente. La revisión de
 interfaz local está completada en el alcance descrito; Figma no está actualizado.
+
+
+## Publicación de la revisión (10/11/2026)
+
+Publicada como 3.0.4, código 4866562, CI completo aprobado y despliegue verificado
+por HTTPS. Las notas anteriores de «sin publicación» describen el momento de
+cada etapa local; el [acta final](../history/RELEASE_3_0_4_20261110.md) registra
+la entrega. Figma conserva la revisión anterior y sigue pendiente de sincronizar.
