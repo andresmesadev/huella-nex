@@ -48,7 +48,10 @@ async function main() {
       assert(/^\d+$/.test(data.NetworkSettings.Ports['5432/tcp'][0].HostPort));
       assert(Object.hasOwn(data.HostConfig.Tmpfs, '/var/lib/postgresql'));
       docker(['stop', '--time', '1', container]);
-      assert.equal(docker(['ps', '-a', '--filter', 'name=^/' + marker + '$', '--format', '{{.ID}}']), '');
+      // Docker can acknowledge stop before --rm has finished removing the container.
+      const remaining = () => docker(['ps', '-a', '--filter', 'name=^/' + marker + '$', '--format', '{{.ID}}']);
+      for (let attempt = 0; attempt < 20 && remaining(); attempt++) await delay(250);
+      assert.equal(remaining(), '');
       console.log('PASS verified own disposable PostgreSQL container removed');
     }
   }
