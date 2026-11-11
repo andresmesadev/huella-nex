@@ -4,6 +4,7 @@ const { effectiveAccess } = require("../services/dashboard-access.service");
 const match = (req, rules) => rules.some(([method, regex]) => req.method === method && regex.test(req.path));
 const CHAT = [
   ["GET", /^\/conversations$/], ["GET", /^\/conversations\/[^/]+\/(messages|context)$/],
+  ["GET", /^\/conversations\/[^/]+\/messages\/[^/]+\/audio$/],
   ["POST", /^\/conversations\/[^/]+\/send$/], ["PATCH", /^\/conversations\/[^/]+\/control$/],
   ["PATCH", /^\/escalations\/[^/]+\/resolve$/],
 ];

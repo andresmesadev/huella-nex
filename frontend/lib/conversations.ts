@@ -28,10 +28,12 @@ export type ConversationMessage = {
   senderName?: string | null;
   senderRole?: TeamRole | null;
   content: string;
+  hasVoiceNote?: boolean;
   createdAt: string;
 };
 
 export type ConversationDetail = {
+  manualOnly?: boolean;
   conversation: {
     id: string;
     userId: string;

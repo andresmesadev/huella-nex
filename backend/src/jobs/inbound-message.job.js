@@ -3,6 +3,7 @@ const { isWhatsAppEnabled } = require("../lib/whatsapp-runtime");
 const { outbound } = require('../services/whatsapp-route.service');
 const { runProviderScope } = require('../lib/provider-execution');
 const { processIncomingMessage } = require("../contexts/receptionist");
+const { recordManualIncomingMessages } = require('../services/whatsapp.service');
 const { sendMessage } = require("../contexts/communication");
 const operatorChannel = () => require('../contexts').operatorChannel;
 const {
@@ -70,13 +71,13 @@ const processOneJob = async () => {
     try {
       const route = await outbound(job.providerRoute.tenantId, job.providerRoute);
       if (!route) throw Object.assign(new Error('PROVIDER_ROUTE_CHANGED'), { code: 'PROVIDER_ROUTE_CHANGED' });
-      return await runProviderScope({ tenantId: route.tenantId, whatsapp: route }, () => processClaimedJob(job));
+      return await runProviderScope({ tenantId: route.tenantId, whatsapp: route }, () => processClaimedJob(job, route));
     } catch (error) { await markInboundJobFailed(job, error); return true; }
   }
   return processClaimedJob(job);
 };
 
-const processClaimedJob = async (initialJob) => {
+const processClaimedJob = async (initialJob, route) => {
   let job = initialJob;
   const startedAt = Date.now();
   let leaseError = null;
@@ -96,6 +97,17 @@ const processClaimedJob = async (initialJob) => {
   heartbeat.unref?.();
 
   try {
+    if (route?.manualOnly) {
+      if (job.phase === 'pending') {
+        await assertLease();
+        // The unique inbound wamid makes this write safe to retry from pending.
+        await recordManualIncomingMessages(job.payload, route);
+        job = await checkpointInboundJob(job, 'complete', { replies: [], replyCursor: 0 });
+      }
+      if (job.phase !== 'complete') throw Object.assign(new Error('PROVIDER_ROUTE_CHANGED'), { code: 'PROVIDER_ROUTE_CHANGED' });
+      await markInboundJobDone(job);
+      return true;
+    }
     if (job.phase === "pending") {
       job = await checkpointInboundJob(job, "processing");
       await assertLease();

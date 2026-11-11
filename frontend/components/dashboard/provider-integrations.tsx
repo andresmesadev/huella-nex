@@ -4,8 +4,8 @@ import { MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { loadMetaSignup, runMetaSignup } from '@/lib/whatsapp-signup';
 
-type Setup = { ready: boolean; appId: string; configId: string; version: string };
-type Status = { platformAdministrator: boolean; whatsapp: { setup: Setup; connection: null | { status: string; displayPhone: string | null; phoneNumberId: string; routeVersion: number; tokenExpiresAt: string | null } };
+type Setup = { ready: boolean; appId: string; configId: string; version: string; coexistence?: boolean };
+type Status = { platformAdministrator: boolean; whatsapp: { setup: Setup; connection: null | { status: string; displayPhone: string | null; phoneNumberId: string; routeVersion: number; tokenExpiresAt: string | null; manualOnly?: boolean } };
   ai: { month: string; enabled: boolean; configured: boolean; policyReady: boolean; limit: number; used: number; reserved: number; remaining: number; exhausted: boolean;
     metering?: { transcriptionUnitsPerMinute: number | null; maxAudioSeconds: number };
     pending: { id: string; operation: string; units: number; createdAt: string }[] } };
@@ -33,7 +33,11 @@ export function ProviderIntegrations({ tenantId }: { tenantId: string }) {
   async function request(action: string, data: object = {}) {
     const response = await fetch('/api/proxy/integrations',{ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, tenantId, ...data }) });
     const value = await response.json();
-    if (!response.ok) throw new Error('No se pudo guardar. Revisa el estado y los permisos antes de repetir.');
+    if (!response.ok) {
+      if (value.code === 'META_COEXISTENCE_NOT_CONFIRMED') throw new Error('Meta no confirmó que el número siga activo en WhatsApp Business y Cloud API.');
+      if (value.code === 'META_COEXISTENCE_NUMBER_MISMATCH') throw new Error('El número elegido en Meta no corresponde a la línea configurada para Mateos Pet.');
+      throw new Error('No se pudo guardar. Revisa el estado y los permisos antes de repetir.');
+    }
     return value;
   }
   async function perform(fn: () => Promise<void>) {
@@ -44,7 +48,9 @@ export function ProviderIntegrations({ tenantId }: { tenantId: string }) {
   function prepare() { void perform(async () => {
     const config = await request('start') as Setup & { state: string };
     const client = await loadMetaSignup(config); setPrepared({ state: config.state, config, client });
-    setMessage('Todo listo. Continúa en Meta para elegir la cuenta y el número de este establecimiento.');
+    setMessage(config.coexistence
+      ? 'Continúa en Meta con el número actual de Mateos Pet y confirma la conexión desde el celular.'
+      : 'Continúa en Meta para elegir la cuenta y el número de este establecimiento.');
   }); }
   function connect() {
     if (!prepared || !abort.current) return;
@@ -69,7 +75,9 @@ export function ProviderIntegrations({ tenantId }: { tenantId: string }) {
           {connection?.tokenExpiresAt && <p className="mt-1 text-sm text-muted-foreground">Autorización hasta: {new Date(connection.tokenExpiresAt).toLocaleDateString('es-CO')}</p>}
         </div>
         {!status.whatsapp.setup.ready && <p className="text-sm text-muted-foreground">La conexión de nuevos negocios aún no está habilitada por la plataforma. Una conexión anterior puede seguir operando con su configuración vigente.</p>}
-        <p className="text-sm text-muted-foreground">Alta estándar con Meta. La coexistencia con WhatsApp Business y la importación de conversaciones requieren validación aparte; no migres tu línea habitual desde esta pantalla.</p>
+        <p className="text-sm text-muted-foreground">{status.whatsapp.setup.coexistence || connection?.manualOnly
+          ? 'Conecta el número actual y sigue usando WhatsApp Business en el celular. Los mensajes nuevos de texto y las notas de voz se atienden manualmente en Huella Nex.'
+          : 'Alta estándar con Meta para una línea de Cloud API.'}</p>
         <div className="flex flex-wrap gap-3">
           <Button disabled={busy || !status.whatsapp.setup.ready} onClick={prepared ? connect : prepare}>{prepared ? 'Continuar en Meta' : connection?.status === 'enabled' ? 'Renovar autorización' : 'Preparar conexión'}</Button>
           {connection?.status === 'enabled' && <Button variant="outline" disabled={busy} onClick={() => { void perform(async () => {

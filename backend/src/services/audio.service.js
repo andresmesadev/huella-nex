@@ -48,35 +48,27 @@ const safeUnlink = async (filepath) => {
   }
 };
 
-/**
- * Obtiene URL de media en Meta y descarga el archivo a uploads/temp.
- * @param {string} mediaId
- * @returns {Promise<string|null>} Ruta local del archivo
- */
-const downloadWhatsAppAudio = async (mediaId) => {
+const fetchWhatsAppAudio = async (mediaId, expectedRoute) => {
   const id = String(mediaId || "").trim();
-  const accessToken = await getAccessToken();
+  const resolveToken = expectedRoute
+    ? async () => (await currentWhatsAppRoute(expectedRoute))?.accessToken ?? ''
+    : getAccessToken;
 
   if (!/^\d{1,128}$/.test(id)) {
     console.error("[Audio] mediaId is required");
     return null;
   }
 
-  if (!accessToken) {
-    console.error("[Audio] WHATSAPP_ACCESS_TOKEN is missing");
-    return null;
-  }
-
-  let filepath = null;
-
   try {
-    console.log("[Audio] Downloading audio");
+    const accessToken = await resolveToken();
+    if (!accessToken) return null;
 
     const metaUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${id}`;
     const metaResponse = await axios.get(metaUrl, {
       timeout: 15000,
       maxRedirects: 0,
       headers: { Authorization: `Bearer ${accessToken}` },
+      ...(expectedRoute ? { params: { phone_number_id: expectedRoute.receiver } } : {}),
     });
 
     const mediaUrl = metaResponse.data?.url;
@@ -89,7 +81,7 @@ const downloadWhatsAppAudio = async (mediaId) => {
       return null;
     }
 
-    const downloadToken = await getAccessToken();
+    const downloadToken = await resolveToken();
     if (!downloadToken) return null;
     const fileResponse = await axios.get(mediaUrl, {
       timeout: 20000,
@@ -99,19 +91,26 @@ const downloadWhatsAppAudio = async (mediaId) => {
       responseType: "arraybuffer",
     });
 
-    ensureTempDir();
-    const ext = extensionFromMime(mimeType);
-    filepath = path.join(TEMP_DIR, `wa-audio-${id}-${randomUUID()}${ext}`);
-
-    await fs.promises.writeFile(filepath, Buffer.from(fileResponse.data));
-
-    console.log("[Audio] Audio downloaded:", filepath);
-    return filepath;
+    return { id, bytes: Buffer.from(fileResponse.data), mimeType };
   } catch (error) {
-    console.error("[Audio] downloadWhatsAppAudio failed");
-    if (filepath) {
-      await safeUnlink(filepath);
-    }
+    console.error("[Audio] fetchWhatsAppAudio failed");
+    return null;
+  }
+};
+
+const downloadWhatsAppAudio = async (mediaId) => {
+  const audio = await fetchWhatsAppAudio(mediaId);
+  if (!audio) return null;
+
+  let filepath;
+  try {
+    ensureTempDir();
+    const extension = extensionFromMime(audio.mimeType);
+    filepath = path.join(TEMP_DIR, `wa-audio-${audio.id}-${randomUUID()}${extension}`);
+    await fs.promises.writeFile(filepath, audio.bytes);
+    return filepath;
+  } catch {
+    await safeUnlink(filepath);
     return null;
   }
 };
@@ -188,6 +187,7 @@ const processVoiceMessage = async (mediaId) => {
 
 module.exports = {
   downloadWhatsAppAudio,
+  fetchWhatsAppAudio,
   transcribeAudio,
   processVoiceMessage,
   TEMP_DIR,

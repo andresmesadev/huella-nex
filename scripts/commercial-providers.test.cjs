@@ -69,5 +69,31 @@ test('browser signup accepts asset hints only from exact Meta origins and the st
   assert.equal(signupAssets('https://www.facebook.com',JSON.stringify(data)).wabaId,'100');
   for (const origin of ['https://www.facebook.com.attacker.invalid','https://attacker.invalid','http://www.facebook.com']) assert.equal(signupAssets(origin,data),null);
   assert.equal(signupAssets('https://www.facebook.com',{ ...data,event: 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING' }),null);
+  assert.equal(signupAssets('https://www.facebook.com',data,true),null);
+  assert.equal(signupAssets('https://www.facebook.com',{ ...data,event: 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING' },true).phoneNumberId,'200');
+  assert.equal(signupAssets('https://www.facebook.com',{ ...data,event: 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING',data: { waba_id: '100' } },true).wabaId,'100');
+  assert.equal(signupAssets('https://www.facebook.com',{ ...data,data: { ...data.data,is_on_biz_app: true } },true).phoneNumberId,'200');
   assert.equal(signupAssets('https://www.facebook.com',{ ...data,data: { waba_id: '100',phone_number_id: '../other' } }),null);
+});
+test('the Mateos Pet popup requests coexistence and completes with only a WABA ID', async () => {
+  const listeners = new Map();
+  const window = {
+    setTimeout, clearTimeout,
+    addEventListener: (name, listener) => listeners.set(name, listener),
+    removeEventListener: name => listeners.delete(name),
+  };
+  const { runMetaSignup } = load('frontend/lib/whatsapp-signup.ts', {}, { window });
+  const client = { login(callback, options) {
+    assert.equal(options.config_id, '2337391527061790');
+    assert.equal(options.extras.featureType, 'whatsapp_business_app_onboarding');
+    callback({ authResponse: { code: 'test-code' } });
+    listeners.get('message')({ origin: 'https://www.facebook.com', source: {}, data: {
+      type: 'WA_EMBEDDED_SIGNUP', event: 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING', data: { waba_id: '100' },
+    } });
+  } };
+  const result = await runMetaSignup(client, { configId: '2337391527061790', coexistence: true }, new AbortController().signal);
+  assert.equal(result.code, 'test-code');
+  assert.equal(result.wabaId, '100');
+  assert.equal(result.phoneNumberId, undefined);
+  assert.equal(listeners.size, 0);
 });

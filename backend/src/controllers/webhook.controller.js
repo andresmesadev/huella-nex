@@ -11,7 +11,7 @@ const { recordDeliveryReceipts } = require("../services/whatsapp-delivery-receip
 const { enqueueInboundJob, enqueueOperatorJob } = require("../services/inbound-job.service");
 const { requestInboundDrain } = require("../jobs/inbound-message.job");
 const { receiver } = require('../services/whatsapp-route.service');
-const { runProviderScope } = require('../lib/provider-execution');
+const { providerScope, runProviderScope } = require('../lib/provider-execution');
 
 const verifyWebhook = (req, res, next) => {
   if (!isWhatsAppEnabled()) return res.sendStatus(503);
@@ -49,7 +49,9 @@ const receiveWebhook = async (req, res, next) => {
       return res.sendStatus(200);
     }
     await recordDeliveryReceipts(req.body);
-    const internal = await require('../contexts').operatorChannel.ingress(req.body, enqueueOperatorJob);
+    const internal = providerScope()?.whatsapp?.manualOnly
+      ? { created: false, handled: new Set() }
+      : await require('../contexts').operatorChannel.ingress(req.body, enqueueOperatorJob);
     // parseIncomingMessage (no processIncomingMessage) solo para obtener un
     // wamid con el que encolar de forma idempotente — no ejecuta ningún
     // efecto secundario. Payload sin ningún mensaje soportado: nada que

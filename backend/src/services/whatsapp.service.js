@@ -218,7 +218,7 @@ const parseIncomingMessages = (body) => {
       for (const message of messages) {
         const normalized = normalizeIncomingMessage(message, phoneNumberId);
         if (normalized) {
-          parsed.push(normalized);
+          parsed.push(message.timestamp ? { ...normalized, timestamp: message.timestamp } : normalized);
         }
       }
     }
@@ -880,9 +880,28 @@ const processIncomingMessage = async (body) => {
   return additionalReplies.length > 0 ? { ...result, additionalReplies } : result;
 };
 
+async function recordManualIncomingMessages(body, { tenantId, receiver }) {
+  for (const message of parseIncomingMessages(body)) {
+    if (message.phoneNumberId !== receiver || !message.wamid) continue;
+    const audioId = message.type === 'audio' && /^\d{1,128}$/.test(message.mediaId) ? message.mediaId : null;
+    const content = audioId ? 'Nota de voz' : message.type === 'text' ? message.text : null;
+    const timestamp = Number(message.timestamp) * 1000;
+    if (typeof content !== 'string' || !content.trim() || !Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > Date.now() + 60000) continue;
+
+    await runExclusive(message.from, async () => {
+      if (await findMessageByExternalId(message.wamid)) return;
+      const user = await findOrCreateUser(message.from, tenantId);
+      const conversation = await findOrCreateConversation(user.id);
+      await saveMessage({ conversationId: conversation.id, userId: user.id, role: 'user', content,
+        externalId: message.wamid, manualOnly: true, whatsappAudioId: audioId, createdAt: new Date(timestamp) });
+    });
+  }
+}
+
 module.exports = {
   verifyWebhookSignature,
   parseIncomingMessage,
   parseIncomingMessages,
   processIncomingMessage,
+  recordManualIncomingMessages,
 };

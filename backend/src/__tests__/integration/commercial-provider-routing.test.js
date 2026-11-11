@@ -41,6 +41,19 @@ test('audio metadata and download both use the selected tenant token', async () 
   expect(file).toContain('wa-audio-12345-'); expect(axios.get).toHaveBeenCalledTimes(2);
   expect(axios.get.mock.calls.every(([,options]) => options.headers.Authorization === 'Bearer synthetic-token-b')).toBe(true);
 });
+test('manual coexistence permits a human reply and blocks automated sends on the same route', async () => {
+  connections.a.manualOnly = true;
+  const route = await outbound('a');
+  const target = { tenantId: 'a', channelId: 'a-channel' };
+  const provider = new WhatsAppChannelProvider();
+  await runProviderScope({ tenantId: 'a', whatsapp: route }, async () => {
+    await expect(provider.send('whatsapp', '573000000001', 'automatic', target)).rejects.toThrow('WHATSAPP_MANUAL_REPLIES_ONLY');
+    await expect(provider.sendTemplate('whatsapp', '573000000001', 'reminder', 'es', [], target)).rejects.toThrow('WHATSAPP_MANUAL_REPLIES_ONLY');
+    await expect(buildOperatorWhatsappProvider()({ receiver: route.receiver, phone: '573000000001', text: 'private' })).resolves.toMatchObject({ state: 'rejected' });
+    await expect(provider.send('whatsapp', '573000000001', 'manual', { ...target, humanReply: true })).resolves.toMatchObject({ messageId: 'wamid.synthetic' });
+  });
+  expect(axios.post).toHaveBeenCalledTimes(1);
+});
 test('expired/revoked grants and disabled commercial mode never use the legacy token', async () => {
   connections.a.tokenExpiresAt = new Date(0); expect(await outbound('a')).toBeNull();
   connections.a.tokenExpiresAt = null; connections.a.status = 'revoked'; expect(await outbound('a')).toBeNull();

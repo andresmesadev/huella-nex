@@ -604,6 +604,7 @@ model WhatsAppConnection {
   encryptedToken String? @db.Text
   tokenExpiresAt DateTime? @db.Timestamptz(3)
   routeVersion Int @default(1)
+  manualOnly Boolean @default(false)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
   @@unique([tenantId, channelId])
@@ -1139,6 +1140,7 @@ model Message {
 
   role            String
   content         String
+  whatsappAudioId String?  @db.VarChar(128)
 
   // Entregable 3.1 — Comunicación: aditivo, no reemplaza role.
   // "cliente" | "agente" | "sistema" — distingue por primera vez una

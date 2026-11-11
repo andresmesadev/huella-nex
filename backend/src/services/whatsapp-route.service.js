@@ -9,12 +9,14 @@ function buildWhatsAppRoutes({ db = prisma, env = process.env, clock = () => new
     const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { id: true, phone: true, active: true } });
     if (!tenant?.active) return null;
     const connection = await db.whatsAppConnection.findUnique({ where: { tenantId } });
+    // During the cutover this tenant must never fall back to its legacy credentials.
+    if (tenantId === env.WHATSAPP_COEXISTENCE_TENANT_ID && !connection?.manualOnly) return null;
     let route;
     if (connection) {
       if (String(env.WHATSAPP_MULTITENANT_ENABLED || '').toLowerCase() !== 'true') return null;
       if (connection.status !== 'enabled' || !connection.encryptedToken || tenant.phone !== connection.phoneNumberId || (connection.tokenExpiresAt && connection.tokenExpiresAt <= clock())) return null;
       route = { tenantId, receiver: connection.phoneNumberId, wabaId: connection.wabaId, channelId: connection.channelId,
-        connectionId: connection.id, routeVersion: connection.routeVersion,
+        connectionId: connection.id, routeVersion: connection.routeVersion, manualOnly: connection.manualOnly === true,
         accessToken: decryptProviderToken(connection.encryptedToken, tenantId, connection.id, env) };
     } else {
       const receiver = String(env.WHATSAPP_PHONE_NUMBER_ID || '').trim(), accessToken = String(env.WHATSAPP_ACCESS_TOKEN || '').trim();

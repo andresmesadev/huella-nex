@@ -11,6 +11,10 @@ const {
 const { sendMessage, controlConversation, listEscalatedConversations } = require("../../contexts/communication");
 const { ConversationControlError } = require("../../contexts/communication/application/use-cases/control-conversation.usecase");
 const { getConversationContext } = require("../../services/dashboard-conversation-context.service");
+const { outbound } = require('../../services/whatsapp-route.service');
+const { routeSnapshot } = require('../../lib/provider-execution');
+const { fetchWhatsAppAudio } = require('../../services/audio.service');
+const audioTypes = new Set(['audio/ogg', 'audio/opus', 'audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/amr', 'audio/wav', 'audio/webm']);
 function operator(req) {
   const actor = req.actor;
   return { id: actor?.staffId ? `staff:${actor.staffId}` : actor?.email ? `admin:${actor.email}` : null,
@@ -86,7 +90,7 @@ async function changeControl(req, res, action = req.body?.action) {
     await controlConversation({ tenantId, conversationId: id, actor: operator(req), action,
       expectedVersion: req.body?.expectedVersion, takeOver: req.body?.takeOver === true });
     const detail = await getConversationMessages(id);
-    return res.json(withViewer(detail, req));
+    return res.json(await withWhatsAppMode(withViewer(detail, req)));
   } catch (error) {
     if (error instanceof ConversationControlError) return res.status(error.status).json({ error: error.message });
     console.error("[Dashboard] Resolve escalation error:", error);
@@ -141,13 +145,43 @@ router.get("/conversations/:id/messages", async (req, res) => {
       });
     }
 
-    res.json(withViewer(result, req));
+    res.json(await withWhatsAppMode(withViewer(result, req)));
   } catch (error) {
     console.error("[Dashboard] Conversation messages error:", error);
 
     res.status(500).json({
       error: "Internal server error",
     });
+  }
+});
+
+async function withWhatsAppMode(detail) {
+  const tenantId = detail.conversation.tenantId;
+  if (!tenantId) return detail;
+  const connection = await prisma.whatsAppConnection.findUnique({ where: { tenantId }, select: { manualOnly: true } });
+  return connection?.manualOnly ? { ...detail, manualOnly: true } : detail;
+}
+
+router.get('/conversations/:id/messages/:messageId/audio', async (req, res) => {
+  const { tenantId } = req.tenant;
+  res.set('Cache-Control', 'private, no-store');
+  if (!tenantId) return res.sendStatus(404);
+  try {
+    const anchor = await prisma.conversation.findFirst({ where: { id: req.params.id, tenantId }, select: { userId: true } });
+    if (!anchor) return res.sendStatus(404);
+    const message = await prisma.message.findFirst({
+      where: { id: req.params.messageId, role: 'user', conversation: { tenantId, userId: anchor.userId } },
+      select: { whatsappAudioId: true },
+    });
+    if (!message?.whatsappAudioId) return res.sendStatus(404);
+    const route = await outbound(tenantId);
+    if (!route?.manualOnly) return res.sendStatus(404);
+    const audio = await fetchWhatsAppAudio(message.whatsappAudioId, routeSnapshot(route));
+    const type = typeof audio?.mimeType === 'string' ? audio.mimeType.split(';')[0].trim().toLowerCase() : '';
+    if (!audio?.bytes.length || !audioTypes.has(type)) return res.sendStatus(502);
+    return res.set('X-Content-Type-Options', 'nosniff').type(type).send(audio.bytes);
+  } catch {
+    return res.sendStatus(502);
   }
 });
 

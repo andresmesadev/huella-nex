@@ -15,6 +15,7 @@ class WhatsAppChannelProvider extends ChannelProviderPort {
       throw new Error(`WhatsAppChannelProvider no soporta el tipo de canal "${channelType}".`);
     }
     const credentials = await assertWhatsAppRoute(route);
+    if (credentials.manualOnly && route?.humanReply !== true) throw new Error('WHATSAPP_MANUAL_REPLIES_ONLY');
     const result = await sendWhatsAppMessage(to, content, credentials);
     return result ? { messageId: result.messages?.[0]?.id || null } : false;
   }
@@ -25,6 +26,7 @@ class WhatsAppChannelProvider extends ChannelProviderPort {
       throw new Error(`WhatsAppChannelProvider no soporta el tipo de canal "${channelType}".`);
     }
     const credentials = await assertWhatsAppRoute(route);
+    if (credentials.manualOnly) throw new Error('WHATSAPP_MANUAL_REPLIES_ONLY');
     const result = await sendWhatsAppTemplateMessage(to, templateName, languageCode, components, credentials);
     return Boolean(result);
   }

@@ -149,6 +149,7 @@ const getConversationMessages = async (conversationId) => {
       senderName: true,
       senderRole: true,
       content: true,
+      whatsappAudioId: true,
       createdAt: true,
     },
   });
@@ -168,7 +169,7 @@ const getConversationMessages = async (conversationId) => {
       requires_human_attention: conversation.status === "esperando_humano",
       updatedAt: conversation.updatedAt,
     },
-    messages,
+    messages: messages.map(({ whatsappAudioId, ...message }) => ({ ...message, ...(whatsappAudioId ? { hasVoiceNote: true } : {}) })),
   };
 };
 

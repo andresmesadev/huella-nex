@@ -13,6 +13,8 @@ jest.mock("../../contexts/receptionist", () => ({
 jest.mock("../../contexts/communication", () => ({
   sendMessage: jest.fn(),
 }));
+jest.mock('../../services/whatsapp-route.service', () => ({ outbound: jest.fn() }));
+jest.mock('../../services/whatsapp.service', () => ({ recordManualIncomingMessages: jest.fn() }));
 
 jest.mock("node-cron", () => ({
   schedule: jest.fn(),
@@ -32,6 +34,8 @@ jest.mock("../../services/inbound-job.service", () => ({
 
 const { processIncomingMessage } = require("../../contexts/receptionist");
 const { sendMessage } = require("../../contexts/communication");
+const { outbound } = require('../../services/whatsapp-route.service');
+const { recordManualIncomingMessages } = require('../../services/whatsapp.service');
 const cron = require("node-cron");
 const {
   claimNextInboundJob,
@@ -69,6 +73,19 @@ describe("startInboundMessageJob", () => {
 });
 
 describe("processOneJob", () => {
+  test('a coexistence route records the inbound job without calling the receptionist or sending replies', async () => {
+    const providerRoute = { tenantId: 'tenant-a', receiver: '1001', connectionId: 'connection', routeVersion: 1 };
+    const route = { ...providerRoute, manualOnly: true };
+    const payload = { entry: [] };
+    outbound.mockResolvedValue(route);
+    claimNextInboundJob.mockResolvedValue({ id: 'manual-job', phase: 'pending', providerRoute, payload });
+    await processOneJob();
+    expect(recordManualIncomingMessages).toHaveBeenCalledWith(payload, route);
+    expect(checkpointInboundJob).toHaveBeenCalledTimes(1);
+    expect(markInboundJobDone).toHaveBeenCalledWith(expect.objectContaining({ phase: 'complete' }));
+    expect(processIncomingMessage).not.toHaveBeenCalled();
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
   test('commercial mode never upgrades a legacy job without a credential snapshot', async () => {
     const previous = process.env.WHATSAPP_MULTITENANT_ENABLED;
     process.env.WHATSAPP_MULTITENANT_ENABLED = 'true';

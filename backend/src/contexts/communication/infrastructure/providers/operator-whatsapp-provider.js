@@ -4,6 +4,7 @@ function buildOperatorWhatsappProvider({ env = process.env, http = axios } = {})
   return async ({ receiver, phone, text, buttons = [] }) => {
     const scope = require('../../../../lib/provider-execution').providerScope();
     const route = scope ? await require('../../../../services/whatsapp-route.service').currentWhatsAppRoute() : null;
+    if (route?.manualOnly) return { state: 'rejected', code: 'WHATSAPP_MANUAL_REPLIES_ONLY' };
     const configuredReceiver = scope ? route?.receiver : env.WHATSAPP_PHONE_NUMBER_ID;
     const accessToken = scope ? route?.accessToken : env.WHATSAPP_ACCESS_TOKEN;
     if (!receiver || receiver !== configuredReceiver || !accessToken) return { state: 'rejected', code: 'ROUTE_NOT_CONFIGURED' };

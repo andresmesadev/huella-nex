@@ -89,7 +89,7 @@ const findMessageByExternalId = async (externalId) => {
   }
 };
 
-const saveMessage = async ({ conversationId, userId, role, content, externalId }) => {
+const saveMessage = async ({ conversationId, userId, role, content, externalId, manualOnly = false, whatsappAudioId, createdAt }) => {
   const convId = String(conversationId || "").trim();
   const uid = String(userId || "").trim();
   const messageRole = String(role || "").trim();
@@ -109,14 +109,22 @@ const saveMessage = async ({ conversationId, userId, role, content, externalId }
   }
 
   try {
-    const message = await prisma.message.create({
-      data: {
-        conversationId: convId,
-        role: messageRole,
-        content: body,
-        ...(extId ? { externalId: extId } : {}),
-      },
-    });
+    const data = {
+      conversationId: convId,
+      role: messageRole,
+      content: body,
+      ...(extId ? { externalId: extId } : {}),
+      ...(whatsappAudioId ? { whatsappAudioId } : {}),
+      ...(createdAt ? { createdAt } : {}),
+    };
+    if (manualOnly) {
+      const [message] = await prisma.$transaction([
+        prisma.message.create({ data }),
+        prisma.conversation.update({ where: { id: convId }, data: { updatedAt: new Date() } }),
+      ]);
+      return message;
+    }
+    const message = await prisma.message.create({ data });
     console.log("[ConversationPersistence] Message saved");
 
     if (messageRole === "user" && uid && body.length >= 30 && /\b(?:alergia|vacuna|tratamiento|restriccion|preferencia)\b/i.test(body)) {

@@ -36,6 +36,7 @@ async function handler(
   }
 
   const { path } = await context.params;
+  const voiceNote = req.method === "GET" && path.length === 5 && path[0] === "conversations" && path[2] === "messages" && path[4] === "audio";
   if (path[0] === "operational-assistants" && !["GET", "HEAD"].includes(req.method)) {
     const origin = req.headers.get("origin");
     // Next can construct nextUrl with its internal hostname behind a reverse
@@ -105,15 +106,15 @@ async function handler(
       : undefined;
 
   let response: Response;
-  let text: string;
+  let responseBody: string | ArrayBuffer;
   try {
     response = await fetch(backendUrl.toString(), {
       method: req.method,
       headers,
       body,
-      signal: AbortSignal.any([req.signal, AbortSignal.timeout(15_000)]),
+      signal: AbortSignal.any([req.signal, AbortSignal.timeout(voiceNote ? 40_000 : 15_000)]),
     });
-    text = [204, 205, 304].includes(response.status) ? "" : await response.text();
+    responseBody = [204, 205, 304].includes(response.status) ? "" : voiceNote && response.ok ? await response.arrayBuffer() : await response.text();
   } catch {
     return NextResponse.json(
       { error: req.method === "GET" ? "El servidor de datos no está disponible. Intenta de nuevo." : "No se pudo comprobar el resultado. Consulta los datos guardados antes de repetir la operación.", code: req.method === "GET" ? "READ_UNAVAILABLE" : "RESULT_UNCERTAIN" },
@@ -125,12 +126,13 @@ async function handler(
     return new NextResponse(null, { status: response.status });
   }
 
-  return new NextResponse(text, {
+  return new NextResponse(responseBody, {
     status: response.status,
     headers: {
       "Content-Type":
         response.headers.get("Content-Type") ?? "application/json",
       ...(["operational-assistants", "access"].includes(path[0]) ? { "Cache-Control": "no-store" } : {}),
+      ...(voiceNote ? { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } : {}),
       ...(response.headers.get("Retry-After") ? { "Retry-After": response.headers.get("Retry-After")! } : {}),
     },
   });

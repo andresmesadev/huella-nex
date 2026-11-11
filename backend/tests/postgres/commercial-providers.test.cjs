@@ -16,6 +16,8 @@ const { buildWhatsAppConnections } = require('../../src/services/whatsapp-connec
 const { buildWhatsAppRoutes } = require('../../src/services/whatsapp-route.service');
 const { encryptProviderToken, decryptProviderToken } = require('../../src/services/provider-credential.service');
 const { routeSnapshot } = require('../../src/lib/provider-execution');
+const { recordManualIncomingMessages } = require('../../src/services/whatsapp.service');
+const { getConversationMessages } = require('../../src/services/dashboard-conversation.service');
 const env = { WHATSAPP_ENABLED: 'true', WHATSAPP_MULTITENANT_ENABLED: 'true', AI_QUOTA_ENABLED: 'true',
   WHATSAPP_PHONE_NUMBER_ID: '900000', WHATSAPP_ACCESS_TOKEN: 'synthetic-global',
   PROVIDER_CREDENTIAL_KEY: Buffer.alloc(32,7).toString('base64'), AI_QUOTA_POLICY_VERSION: 'test-v1',
@@ -129,6 +131,43 @@ test('independent encrypted connections route each tenant and verify WABA member
   const stored = await db.whatsAppConnection.findUnique({ where: { tenantId: b.id } });
   assert.ok(!stored.encryptedToken.includes(rb.accessToken));
   assert.throws(() => decryptProviderToken(stored.encryptedToken,a.id,stored.id,env));
+});
+test('the coexistence cutover blocks fallback and records fresh text and voice once in the manual inbox', async () => {
+  const t = await tenant();
+  const phone = p('811003'), waba = p('8110031');
+  await db.tenant.update({ where: { id: t.id }, data: { phone } });
+  const manualEnv = { ...env, WHATSAPP_COEXISTENCE_TENANT_ID: t.id, WHATSAPP_PHONE_NUMBER_ID: phone };
+  const routes = buildWhatsAppRoutes({ db, env: manualEnv, clock });
+  assert.equal(await routes.outbound(t.id), null);
+
+  const meta = { configuration: () => ({}), verify: async () => ({ phoneNumberId: phone, wabaId: waba,
+    token: 'synthetic-manual-token', tokenExpiresAt: null, displayPhone: '+573001234567', manualOnly: true }) };
+  const connection = await connected(t, phone, waba, { meta, env: manualEnv });
+  assert.equal((await connection.service.complete(connection.input)).manualOnly, true);
+  const route = await routes.receiver(phone, waba);
+  assert.equal(route.manualOnly, true);
+
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const from = '573001234567';
+  const messages = [
+    { from, timestamp, id: 'manual-text-' + run, type: 'text', text: { body: 'Consulta de vacuna para atención manual' } },
+    { from, timestamp, id: 'manual-audio-' + run, type: 'audio', audio: { id: '8912345', voice: true } },
+  ];
+  const payload = { entry: [{ changes: [{ field: 'messages', value: { metadata: { phone_number_id: phone }, messages } }] }] };
+  await recordManualIncomingMessages(payload, route);
+  await recordManualIncomingMessages(payload, route);
+
+  const conversation = await db.conversation.findFirstOrThrow({ where: { tenantId: t.id, user: { phone: from } } });
+  const detail = await getConversationMessages(conversation.id);
+  assert.equal(detail.messages.length, 2);
+  assert.ok(detail.messages.some(message => message.content === messages[0].text.body));
+  const note = detail.messages.find(message => message.hasVoiceNote);
+  assert.equal(note.content, 'Nota de voz');
+  assert.equal(note.whatsappAudioId, undefined);
+  const stored = await db.message.findUniqueOrThrow({ where: { id: note.id } });
+  assert.equal(stored.whatsappAudioId, messages[1].audio.id);
+  assert.equal(stored.createdAt.getTime(), Number(timestamp) * 1000);
+  assert.equal(await db.memoryEmbedding.count({ where: { conversationId: conversation.id } }), 0);
 });
 test('authorization challenges are tenant/actor bound, expiring and single-use under concurrency', async () => {
   const a = await tenant(), b = await tenant(), f = await connected(a,p('812001'));
