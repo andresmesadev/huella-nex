@@ -51,7 +51,7 @@ const INCLUDED = {
 };
 const OMITTED_FIELDS = {
   Tenant: 'operatorAccessEpoch stripeCustomerId stripeSubscriptionId',
-  Conversation: 'sessionData', KnowledgeChunk: 'metadata',
+  Conversation: 'sessionData', Message: 'whatsappAudioId', KnowledgeChunk: 'metadata',
   InventoryOperation: 'principalKey requestKey contractVersion payloadHash resultEvidence',
   AiUsageEntry: 'operationKey providerUsage', AiQuotaChange: 'actorHash',
 };

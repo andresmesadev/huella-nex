@@ -33,6 +33,7 @@ test('verified case is mandatory and export snapshot is repeatable-read and read
   assert.equal(queries[0], 'SET TRANSACTION READ ONLY');
   assert.equal(packet.counts.Tenant, 1); assert.equal(packet.records.StaffCredential, undefined);
   assert.equal(packet.records.ApiKey, undefined); assert.equal(packet.records.WhatsAppConnection, undefined);
+  assert.equal(packet.omittedFields.Message, 'whatsappAudioId');
 });
 test('package refuses public destinations, preserves an existing delivery and detects tampering', () => {
   const root = path.resolve(__dirname, '../.cache/tenant-handovers');
