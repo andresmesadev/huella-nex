@@ -337,6 +337,7 @@ function NewAppointmentContent({
             </div>
             </FormSection>
             <FormSection title="Fecha y hora" className="space-y-0 rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
+            {services.find(service => service.id === serviceId)?.category === 'grooming' && <p className="mb-3 text-sm text-muted-foreground">La cita usará la llegada y el domicilio habituales guardados en la ficha de la mascota. Podrás revisar o ajustar el domicilio al abrir la atención.</p>}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="min-w-0 space-y-1.5">
                 <label htmlFor="appointment-date" className="text-sm font-semibold">Fecha</label>

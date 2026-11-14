@@ -27,6 +27,12 @@ const body = {
   dateKey: "2099-04-15", hour: 11,
 };
 
+function habitualGrooming(mode = 'round_trip', price = 20000) {
+  prisma.user.findFirst.mockResolvedValue({ id: 'user-1', address: 'Dirección de prueba', neighborhood: 'Barrio de prueba' });
+  prisma.pet.findFirst.mockResolvedValue({ id: 'pet-1', name: 'Luna', type: 'dog', defaultGroomingPrice: 60000, defaultGroomingTransportMode: mode, defaultGroomingTransportPrice: price });
+  prisma.service.findFirst.mockResolvedValue({ id: 'svc-1', active: true, requiresAppointment: true, category: { name: 'grooming' } });
+}
+
 function appFor(tenantId = "tenant-a", activeModules) {
   const app = express();
   app.use(express.json());
@@ -46,6 +52,44 @@ beforeEach(() => {
   listAvailableSlotsForDate.mockResolvedValue([11, 11.5]);
   buildAppointmentDateTime.mockReturnValue(new Date("2099-04-15T16:00:00Z"));
   createAppointment.mockResolvedValue({ id: "appt-1", date: new Date("2099-04-15T16:00:00Z"), status: "confirmed" });
+});
+
+test.each(['round_trip', 'pickup', 'delivery'])('la reserva manual usa la llegada habitual %s de la mascota validada', async mode => {
+  habitualGrooming(mode);
+  const response = await request(appFor('tenant-a', ['grooming'])).post('/api/dashboard/appointments').send(body);
+  expect(response.status).toBe(201);
+  expect(createAppointment).toHaveBeenCalledWith(expect.objectContaining({
+    transport: { mode, address: 'Dirección de prueba', neighborhood: 'Barrio de prueba', amount: 20000, confirmed: true }, canConfirmTransport: true,
+  }));
+  expect(prisma.pet.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'pet-1', ownerId: 'user-1', tenantId: 'tenant-a' } }));
+});
+
+test('una elección explícita para esta visita prevalece sobre la llegada habitual', async () => {
+  habitualGrooming();
+  const response = await request(appFor('tenant-a', ['grooming'])).post('/api/dashboard/appointments').send({ ...body, transport: { mode: 'none' } });
+  expect(response.status).toBe(201);
+  expect(createAppointment).toHaveBeenCalledWith(expect.objectContaining({ transport: { mode: 'none' } }));
+});
+
+test('una reserva sin permiso de precios conserva el domicilio pendiente de confirmar', async () => {
+  habitualGrooming();
+  expect((await request(appFor()).post('/api/dashboard/appointments').send(body)).status).toBe(201);
+  const transport = createAppointment.mock.calls[0][0].transport;
+  expect(transport).toMatchObject({ mode: 'round_trip', confirmed: false });
+  expect(transport).not.toHaveProperty('amount');
+});
+
+test('la preferencia de peluquería no agrega domicilio a veterinaria', async () => {
+  habitualGrooming();
+  prisma.service.findFirst.mockResolvedValue({ id: 'svc-1', active: true, requiresAppointment: true, category: { name: 'veterinary' } });
+  expect((await request(appFor()).post('/api/dashboard/appointments').send(body)).status).toBe(201);
+  expect(createAppointment.mock.calls[0][0]).not.toHaveProperty('transport');
+});
+
+test('un precio sin modalidad habitual no se interpreta como solicitud de recogida', async () => {
+  habitualGrooming(null);
+  expect((await request(appFor()).post('/api/dashboard/appointments').send(body)).status).toBe(201);
+  expect(createAppointment.mock.calls[0][0]).not.toHaveProperty('transport');
 });
 
 test('devuelve un conflicto útil cuando la mascota ya tiene el servicio ese día', async () => {

@@ -16,6 +16,20 @@ function validMoney(value) {
 const text = (value, max) => typeof value === 'string' ? value.trim().slice(0, max) : '';
 const dateKey = value => new Date(new Date(value).getTime() - 5 * 3600000).toISOString().slice(0, 10);
 
+// New manual visits start from the saved preference; an explicit per-visit
+// choice always wins. Never infer a transport mode from a price alone.
+function transportFromPetPreference({ pet, owner, canConfirm = false }) {
+  const mode = pet?.defaultGroomingTransportMode;
+  if (!['none', 'round_trip', 'pickup', 'delivery'].includes(mode)) return undefined;
+  if (mode === 'none') return { mode: 'none' };
+  const reference = resolveAppointmentTotal({ pet, serviceType: 'grooming', transportMode: mode }).transportReferencePrice;
+  const confirmed = canConfirm && validMoney(reference);
+  return {
+    mode, address: owner?.address ?? '', neighborhood: owner?.neighborhood ?? '',
+    ...(confirmed ? { amount: reference } : {}), confirmed,
+  };
+}
+
 async function pricingAppointment({ tenantId, petId, serviceId, appointmentId, date }, client = prisma) {
   if (!tenantId) throw new TransportError('Selecciona un establecimiento.', 400);
   if (appointmentId) {
@@ -84,4 +98,4 @@ async function assertTransportCanChange(client, appointment, nextData) {
   }
 }
 
-module.exports = { TransportError, MODES, PRICING_INCLUDE, validMoney, pricingAppointment, prepareTransport, assertTransportCanChange, dateKey };
+module.exports = { TransportError, MODES, PRICING_INCLUDE, validMoney, pricingAppointment, prepareTransport, assertTransportCanChange, dateKey, transportFromPetPreference };

@@ -402,8 +402,8 @@ router.post("/appointments", async (req, res) => {
     }
 
     const [user, pet, service] = await Promise.all([
-      prisma.user.findFirst({ where: { id: userId, tenantId }, select: { id: true } }),
-      prisma.pet.findFirst({ where: { id: petId, ownerId: userId, tenantId }, select: { id: true, name: true, type: true } }),
+      prisma.user.findFirst({ where: { id: userId, tenantId }, select: { id: true, address: true, neighborhood: true } }),
+      prisma.pet.findFirst({ where: { id: petId, ownerId: userId, tenantId }, select: { id: true, name: true, type: true, defaultGroomingPrice: true, defaultGroomingWithTransportPrice: true, defaultGroomingTransportPrice: true, defaultGroomingTransportMode: true } }),
       prisma.service.findFirst({ where: { id: serviceId, tenantId, active: true }, include: { category: { select: { name: true } } } }),
     ]);
     if (!user || !pet || !service) {
@@ -419,13 +419,17 @@ router.post("/appointments", async (req, res) => {
     if (!available) return res.status(409).json({ error: "El horario no está disponible para este servicio" });
 
     const appointmentDate = buildAppointmentDateTime(dateKey, Number(hour));
+    const canConfirmTransport = Boolean(req.access?.capabilities.appointmentPrice || req.access?.capabilities.administration);
+    const transport = req.body.transport !== undefined ? req.body.transport : bucket === 'grooming'
+      ? require('../../services/grooming-transport.service').transportFromPetPreference({ pet, owner: user, canConfirm: canConfirmTransport })
+      : undefined;
     const appointment = await createAppointment({
       tenantId, userId, petId, serviceId, autoAssignGroomer: true, ...(staffId ? { staffId } : {}),
       petName: pet.name, petType: pet.type,
       serviceType: bucket,
       date: appointmentDate,
       status: appointmentDate.getTime() <= Date.now() ? "arrived" : "confirmed",
-      ...(req.body.transport !== undefined ? { transport: req.body.transport, canConfirmTransport: Boolean(req.access?.capabilities.appointmentPrice || req.access?.capabilities.administration) } : {}),
+      ...(transport !== undefined ? { transport, canConfirmTransport } : {}),
     });
     return res.status(201).json({ id: appointment.id, date: appointment.date, status: appointment.status });
   } catch (error) {

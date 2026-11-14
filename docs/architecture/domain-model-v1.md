@@ -3,6 +3,8 @@
 **Fecha:** 2026-06-26  
 **Estado:** Documento vivo — fuente oficial de verdad sobre las entidades del negocio
 
+**Precisión del 14/11/2026 — domicilio habitual:** las nuevas citas manuales de peluquería parten de la modalidad habitual explícita de la mascota cuando no reciben una elección propia. Se conserva una instantánea por visita, la dirección sigue siendo obligatoria y confirmar tarifa requiere el permiso vigente; los importes pendientes no se convierten en cero. Veterinaria, WhatsApp y los registros anteriores conservan sus contratos. [Diseño y validación](manual-appointment-transport-preference-20261114.md).
+
 ---
 
 ## Propósito de este documento

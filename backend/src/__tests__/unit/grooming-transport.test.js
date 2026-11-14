@@ -1,10 +1,47 @@
 const { resolveAppointmentTotal } = require('../../services/domain/price-resolver.service');
-const { prepareTransport, assertTransportCanChange } = require('../../services/grooming-transport.service');
+const { prepareTransport, assertTransportCanChange, transportFromPetPreference } = require('../../services/grooming-transport.service');
 const { createCompleteAppointmentUseCase } = require('../../contexts/agenda/application/use-cases/complete-appointment.usecase');
 
 const base = { id: 'appointment-a', tenantId: 'tenant-a', userId: 'owner-a', petId: 'pet-a', date: new Date('2026-10-16T15:00:00Z'), serviceType: 'grooming', status: 'in_progress',
   transportMode: 'round_trip', transportPrice: null, pet: { defaultGroomingPrice: 95000, defaultGroomingWithTransportPrice: 103000 }, service: { basePrice: 50000, category: { name: 'grooming' }, priceRules: [] } };
 const zone = { id: 'zone-a', name: 'Zona A', tenantId: 'tenant-a', roundTripPrice: 12000, pickupPrice: null, deliveryPrice: 9000 };
+
+test('una nueva visita conserva 60.000 de servicio y añade los 20.000 habituales, sin incluirlos en comisión', async () => {
+  const pet = { defaultGroomingPrice: 60000, defaultGroomingTransportMode: 'round_trip', defaultGroomingTransportPrice: 20000 };
+  const transport = transportFromPetPreference({ pet, owner: { address: 'Dirección de prueba', neighborhood: 'Barrio de prueba' }, canConfirm: true });
+  const prepared = await prepareTransport({ appointment: { ...base, pet }, transport, canConfirm: true }, {});
+  expect(prepared.data).toMatchObject({ transportMode: 'round_trip', transportPrice: 20000, transportAddress: 'Dirección de prueba' });
+  expect(prepared.quote).toMatchObject({ servicePrice: 60000, transportPrice: 20000, totalPrice: 80000 });
+});
+
+test.each([0, null])('la tarifa habitual %p distingue gratuidad de importe pendiente', async fee => {
+  const pet = { defaultGroomingPrice: 60000, defaultGroomingTransportMode: 'round_trip', defaultGroomingTransportPrice: fee };
+  const transport = transportFromPetPreference({ pet, owner: { address: 'Dirección' }, canConfirm: true });
+  const prepared = await prepareTransport({ appointment: { ...base, pet }, transport, canConfirm: true }, {});
+  expect(prepared.data.transportPrice).toBe(fee);
+  expect(prepared.quote.transportPending).toBe(fee === null);
+});
+
+test('una preferencia sin dirección no permite guardar un domicilio incompleto', async () => {
+  const pet = { defaultGroomingTransportMode: 'round_trip', defaultGroomingTransportPrice: 20000 };
+  const transport = transportFromPetPreference({ pet, canConfirm: true });
+  await expect(prepareTransport({ appointment: { ...base, pet }, transport, canConfirm: true }, {})).rejects.toMatchObject({ code: 'GROOMING_TRANSPORT' });
+});
+
+test('copiar una preferencia no concede permiso para confirmar tarifas', async () => {
+  const pet = { defaultGroomingTransportMode: 'pickup', defaultGroomingTransportPrice: 20000 };
+  const transport = transportFromPetPreference({ pet, owner: { address: 'Dirección' } });
+  const prepared = await prepareTransport({ appointment: { ...base, pet }, transport }, {});
+  expect(transport).not.toHaveProperty('amount');
+  expect(prepared.data).toMatchObject({ transportMode: 'pickup', transportPrice: null });
+});
+
+test('una tarifa aislada no inventa recogida y la llegada al centro no cobra domicilio', async () => {
+  expect(transportFromPetPreference({ pet: { defaultGroomingTransportPrice: 20000 }, canConfirm: true })).toBeUndefined();
+  const transport = transportFromPetPreference({ pet: { defaultGroomingTransportMode: 'none', defaultGroomingTransportPrice: 20000 }, canConfirm: true });
+  const prepared = await prepareTransport({ appointment: base, transport, canConfirm: true }, {});
+  expect(prepared.quote.transportPrice).toBe(0);
+});
 
 test('un importe independiente de domicilio no cambia al cambiar el precio del servicio', () => {
   const appointment = { ...base, pet: { ...base.pet, defaultGroomingTransportPrice: 8000 }, finalPrice: 100000 };
