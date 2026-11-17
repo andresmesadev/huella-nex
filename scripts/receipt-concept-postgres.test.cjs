@@ -71,12 +71,60 @@ test('receipt concepts: real PostgreSQL atomicity, immutable audit, concurrent r
     await assert.rejects(service.context({ ...input, tenantId: foreignTenant }), error => error.status === 404);
     await p.transaction.update({ where: { id: receipt.id }, data: { notes: 'Synthetic concurrent change' } });
     await assert.rejects(service.confirm(attempt), error => error.code === 'PREVIEW_CHANGED');
+    // A paid appointment can have only its principal and transport: both are editable,
+    // while the original booking and the principal commission's source/date survive.
+    const owner = await p.user.create({ data: { tenantId, name: 'Synthetic component owner', phone: 'fixture-' + randomUUID() } });
+    const pet = await p.pet.create({ data: { tenantId, ownerId: owner.id, name: 'Synthetic component pet', type: 'perro' } });
+    const completedAt = new Date('2026-11-16T17:00:00Z');
+    const visit = await p.appointment.create({ data: { tenantId, userId: owner.id, petId: pet.id, petName: pet.name, petType: pet.type, serviceType: 'grooming', serviceId: cut.id, staffId: people[0].id, date: completedAt, endedAt: completedAt, status: 'completed', finalPrice: 60000, transportMode: 'round_trip', transportPrice: 22000, transportAddress: 'Synthetic pickup address' } });
+    const primaryReceipt = await p.transaction.create({ data: { tenantId, userId: owner.id, petId: pet.id, appointmentId: visit.id, origin: 'system_appointment_completed', paidAt, total: 82000, paymentMethod: 'cash', recordedActorId: 'synthetic-original', items: { create: [
+      { itemKind: 'service', appointmentComponent: 'service', description: 'Synthetic principal', quantity: 1, unitPrice: 60000, total: 60000 },
+      { itemKind: 'service', appointmentComponent: 'transport', description: 'Synthetic transport', quantity: 1, unitPrice: 22000, total: 22000 },
+    ] } }, include: { items: true } });
+    const principal = primaryReceipt.items.find(i => i.appointmentComponent === 'service');
+    const transport = primaryReceipt.items.find(i => i.appointmentComponent === 'transport');
+    const originalPrimary = await p.commission.create({ data: { tenantId, appointmentId: visit.id, staffId: people[0].id, resolvedPrice: 60000, priceSource: 'synthetic-original', splitRate: .5, staffShare: 30000, businessShare: 30000, serviceCategory: 'grooming', completedAt } });
+    let mainInput = { tenantId, transactionId: primaryReceipt.id, actor, operationKey: randomUUID(), command: { itemId: principal.id, serviceId: cut.id, staffId: people[1].id, reason: 'Correct the principal professional, preserving original booking' } };
+    const componentContext = await service.context(mainInput);
+    assert.equal(componentContext.eligibleItemIds.length, 2); assert.deepEqual(componentContext.defaults[principal.id], { serviceId: cut.id, staffId: people[0].id });
+    const mainPreview = await service.preview(mainInput); assert.equal(mainPreview.previousStaffShare, 30000); assert.equal(mainPreview.nextStaffShare, 24000);
+    mainInput.command.previewToken = mainPreview.previewToken;
+    const mainResults = await Promise.all(Array.from({ length: 4 }, () => service.confirm(mainInput)));
+    assert.equal(mainResults.filter(r => !r.replayed).length, 1);
+    const correctedPrimary = await p.commission.findFirst({ where: { tenantId, appointmentId: visit.id, status: 'active' } });
+    assert.equal(correctedPrimary.transactionItemId, null); assert.equal(correctedPrimary.serviceId, cut.id); assert.equal(correctedPrimary.staffId, people[1].id);
+    assert.equal(Number(correctedPrimary.staffShare), 24000); assert.equal(correctedPrimary.completedAt.toISOString(), completedAt.toISOString()); assert.equal(correctedPrimary.replacesCommissionId, originalPrimary.id);
+    assert.deepEqual(await p.appointment.findUnique({ where: { id: visit.id } }), visit);
+    const transportInput = { tenantId, transactionId: primaryReceipt.id, actor, operationKey: randomUUID(), command: { itemId: transport.id, serviceId: null, staffId: null, transportDescription: 'Synthetic pickup and delivery', reason: 'Correct transport label only, preserve the amount and commission' } };
+    const transportPreview = await service.preview(transportInput); assert.equal(transportPreview.previousStaffShare, 0); assert.equal(transportPreview.nextStaffShare, 0);
+    transportInput.command.previewToken = transportPreview.previewToken; await service.confirm(transportInput);
+    assert.deepEqual(await p.commission.findUnique({ where: { id: correctedPrimary.id } }), correctedPrimary);
+    const updatedReceipt = await p.transaction.findUnique({ where: { id: primaryReceipt.id }, include: { items: true } });
+    assert.equal(Number(updatedReceipt.total), 82000); assert.equal(updatedReceipt.paymentMethod, 'cash'); assert.equal(updatedReceipt.paidAt.toISOString(), paidAt.toISOString());
+    for (const originalItem of primaryReceipt.items) { const updated = updatedReceipt.items.find(i => i.id === originalItem.id); assert.equal(String(updated.total), String(originalItem.total)); assert.equal(updated.quantity, originalItem.quantity); }
+    assert.equal(updatedReceipt.items.find(i => i.id === transport.id).description, 'Synthetic pickup and delivery');
+    assert.deepEqual(await p.appointment.findUnique({ where: { id: visit.id } }), visit);
+    mainInput = { ...mainInput, operationKey: randomUUID(), command: { itemId: principal.id, serviceId: bath.id, staffId: null, reason: 'Synthetic principal rollback if audit fails' } };
+    mainInput.command.previewToken = (await service.preview(mainInput)).previewToken;
+    await assert.rejects(broken.confirm(mainInput), /Synthetic certificate failure/);
+    assert.equal((await p.commission.findUnique({ where: { id: correctedPrimary.id } })).status, 'active');
+    assert.equal((await p.transactionItem.findUnique({ where: { id: principal.id } })).serviceId, cut.id);
+    const mainSettlement = await p.settlement.create({ data: { tenantId, staffId: people[1].id, periodStart: new Date('2026-11-16T05:00:00Z'), periodEnd: new Date('2026-11-17T04:59:59.999Z'), totalAmount: 24000 } });
+    await assert.rejects(service.preview(mainInput), error => error.constructor.name === 'CommissionInActiveSettlementError');
+    await p.settlement.update({ where: { id: mainSettlement.id }, data: { status: 'voided', voidedAt: new Date(), voidReason: 'Synthetic test cleanup' } });
+    await p.dailyClose.create({ data: { tenantId, date: new Date('2026-11-16T00:00:00Z'), incomeTotal: 0, expenseTotal: 0, netAmount: 0, staffBreakdown: {} } });
+    await assert.rejects(service.preview(mainInput), error => error.constructor.name === 'CommissionDayClosedError');
+    const transportAgain = { ...transportInput, operationKey: randomUUID(), command: { ...transportInput.command, transportDescription: 'Synthetic delivery label' } };
+    assert.equal((await service.preview(transportAgain)).nextStaffShare, 0); // Principal's closed day is untouched.
+    assert.equal((await service.context(mainInput)).corrections.length, 2);
+
     const settlement = await p.settlement.create({ data: { tenantId, staffId: people[0].id, periodStart: new Date('2026-11-17T05:00:00Z'), periodEnd: new Date('2026-11-18T04:59:59.999Z'), totalAmount: 5000 } });
     await assert.rejects(service.preview(attempt), error => error.constructor.name === 'CommissionInActiveSettlementError');
     await p.settlement.update({ where: { id: settlement.id }, data: { status: 'voided', voidedAt: new Date(), voidReason: 'Synthetic fixture cleanup' } });
     await p.dailyClose.create({ data: { tenantId, date: new Date('2026-11-17T00:00:00Z'), incomeTotal: 100000, expenseTotal: 0, netAmount: 100000, staffBreakdown: {} } });
     await assert.rejects(service.preview(attempt), error => error.constructor.name === 'CommissionDayClosedError');
-    assert.equal(await p.domainEvent.count({ where: { tenantId, eventType: { name: TYPE } } }), 3);
+    await assert.rejects(service.preview(transportAgain), error => error.constructor.name === 'CommissionDayClosedError');
+    assert.equal(await p.domainEvent.count({ where: { tenantId, eventType: { name: TYPE }, payload: { path: ['aggregateId'], equals: receipt.id } } }), 3);
     now = await p.transaction.findUnique({ where: { id: receipt.id } }); assert.equal(Number(now.total), 100000);
   } finally {
     // Audit is append-only. The disposable container/database is discarded, not its history rewritten.

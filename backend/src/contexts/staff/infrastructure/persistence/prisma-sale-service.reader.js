@@ -7,7 +7,7 @@ class PrismaSaleServiceReader {
   }
   async lockItem(tenantId, id, ctx) {
     await ctx.tx.$queryRaw`SELECT i.id FROM "TransactionItem" i JOIN "Transaction" t ON t.id = i."transactionId" WHERE i.id = ${id} AND t."tenantId" = ${tenantId} FOR UPDATE OF t, i`;
-    return ctx.tx.transactionItem.findFirst({ where: { id, transaction: { tenantId } }, include: { transaction: true } });
+    return ctx.tx.transactionItem.findFirst({ where: { id, transaction: { tenantId } }, include: { transaction: { include: { appointment: { select: { id: true, tenantId: true, status: true, endedAt: true, date: true } } } } } });
   }
 }
 module.exports = { PrismaSaleServiceReader };

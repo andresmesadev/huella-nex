@@ -22,6 +22,10 @@ class PrismaCommissionRepository extends CommissionRepositoryPort {
     return ctx.tx.commission.findFirst({ where: { tenantId, appointmentId, status: 'active' } });
   }
 
+  async lastByAppointment(tenantId, appointmentId, ctx) {
+    return ctx.tx.commission.findFirst({ where: { tenantId, appointmentId }, orderBy: { createdAt: 'desc' } });
+  }
+
   // Solo comisiones activas cuentan para liquidaciones (Etapa 4 del Puente).
   async listByStaffAndPeriod(staffId, periodStart, periodEnd, ctx, tenantId) {
     return (ctx?.tx ?? prisma).commission.findMany({

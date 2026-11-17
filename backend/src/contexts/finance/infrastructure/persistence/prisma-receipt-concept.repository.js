@@ -1,6 +1,7 @@
 const prisma = require('../../../../lib/prisma');
 const INCLUDE = {
   user: { select: { id: true, name: true, phone: true } }, pet: { select: { id: true, name: true, type: true } },
+  appointment: { select: { id: true, tenantId: true, status: true, userId: true, petId: true, serviceId: true, staffId: true, date: true, endedAt: true, serviceType: true } },
   items: { orderBy: { id: 'asc' }, include: { inventoryReturn: true } },
 };
 class PrismaReceiptConceptRepository {

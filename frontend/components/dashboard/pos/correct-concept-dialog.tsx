@@ -9,10 +9,10 @@ import { proxyUrl } from "@/lib/api";
 import { tenantQuery, useTenant } from "@/lib/use-tenant";
 import { formatCOP, formatTransactionDate, type Transaction } from "@/lib/transactions";
 
-type Draft = { itemId: string; serviceId: string; staffId: string | null; reason: string };
+type Draft = { itemId: string; serviceId: string | null; staffId: string | null; transportDescription?: string; reason: string };
 type Preview = { previewToken: string; before: { description: string }; after: { description: string }; previousStaffShare: number; nextStaffShare: number; total: number; reason: string };
 type Revision = { id: string; occurredAt: string; before: { description: string }; after: { description: string }; reason: string; actor: { actorName: string }; commissionBefore: { staffShare: number } | null; commissionAfter: { staffShare: number } | null };
-type Context = { transaction: Transaction; eligibleItemIds: string[]; corrections: Revision[] };
+type Context = { transaction: Transaction; eligibleItemIds: string[]; defaults?: Record<string, { serviceId: string | null; staffId: string | null }>; corrections: Revision[] };
 type Service = { id: string; name: string; active: boolean };
 type Professional = { id: string; name: string; active: boolean };
 
@@ -28,6 +28,7 @@ function ConceptEditor({ transaction, onClose, onSaved }: Props) {
   const [itemId, setItemId] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [staffId, setStaffId] = useState("");
+  const [transportDescription, setTransportDescription] = useState("");
   const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
   const previewRegion = useRef<HTMLElement | null>(null);
@@ -41,6 +42,7 @@ function ConceptEditor({ transaction, onClose, onSaved }: Props) {
   const field = "mt-1 min-h-11 w-full rounded-lg border bg-white px-3 text-sm";
   const editable = context?.eligibleItemIds.length && !busy && !uncertain;
   const selected = context?.transaction.items.find(item => item.id === itemId);
+  const transport = selected?.appointmentComponent === 'transport';
   useEffect(() => { if (preview) { previewRegion.current?.focus(); previewRegion.current?.scrollIntoView({ block: 'nearest' }); } }, [preview]);
 
   useEffect(() => {
@@ -54,7 +56,8 @@ function ConceptEditor({ transaction, onClose, onSaved }: Props) {
         if (controller.signal.aborted) return;
         setContext(data); setServices(serviceRows.filter(row => row.active)); setProfessionals(staffRows.filter(row => row.active));
         const item = data.transaction.items.find(row => data.eligibleItemIds.includes(row.id));
-        setItemId(item?.id ?? ""); setServiceId(item?.serviceId ?? ""); setStaffId(item?.performedByStaffId ?? ""); setError("");
+        const current = item ? data.defaults?.[item.id] : undefined;
+        setItemId(item?.id ?? ""); setServiceId(current?.serviceId ?? item?.serviceId ?? ""); setStaffId(current?.staffId ?? item?.performedByStaffId ?? ""); setTransportDescription(item?.appointmentComponent === 'transport' ? item.description : ''); setError("");
       } catch (cause) { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "No se pudo cargar la operación."); }
     }
     void load();
@@ -66,7 +69,7 @@ function ConceptEditor({ transaction, onClose, onSaved }: Props) {
     if (busy || !editable || !selected) return;
     setBusy(true); setError("");
     try {
-      const draft: Draft = { itemId, serviceId, staffId: staffId || null, reason: reason.trim() };
+      const draft: Draft = { itemId, serviceId: transport ? null : serviceId, staffId: transport ? null : staffId || null, ...(transport ? { transportDescription: transportDescription.trim() } : {}), reason: reason.trim() };
       const response = await fetch(proxyUrl(`${base}/preview${tenantQuery(tenant)}`), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "No se pudo previsualizar la corrección.");
@@ -95,27 +98,29 @@ function ConceptEditor({ transaction, onClose, onSaved }: Props) {
     } finally { setBusy(false); }
   }
   return <FormDialogContent className="max-w-2xl">
-      <FormDialogHeader><DialogTitle>Corregir conceptos del comprobante</DialogTitle><DialogDescription>Revisa el servicio y su comisión. El importe y el pago se conservan.</DialogDescription></FormDialogHeader>
+      <FormDialogHeader><DialogTitle>Corregir conceptos del comprobante</DialogTitle><DialogDescription>Corrige el servicio, profesional o concepto del domicilio. Los importes y el pago se conservan.</DialogDescription></FormDialogHeader>
       <FormDialogBody className="space-y-5">
         <p className="text-sm">Total recibido: <strong>{formatCOP(context?.transaction.total ?? transaction.total)}</strong></p>
         {!context && !error && <p role="status">Cargando comprobante…</p>}
         {!context && error && <Button type="button" variant="outline" disabled={busy} onClick={() => setRetry(value => value + 1)}>Reintentar carga</Button>}
-        {context && context.eligibleItemIds.length === 0 && <p className="text-sm text-muted-foreground">Este comprobante no tiene servicios adicionales que puedan corregirse. Solo se muestra su historial.</p>}
+        {context && context.eligibleItemIds.length === 0 && <p className="text-sm text-muted-foreground">Este comprobante no tiene servicios o domicilio que puedan corregirse. Solo se muestra su historial.</p>}
         {context && context.eligibleItemIds.length > 0 && <>
           <fieldset disabled={!editable || Boolean(preview)} className="space-y-4">
-            <label className="block text-sm font-medium">Concepto a corregir<select className={field} value={itemId} onChange={event => { const item = context.transaction.items.find(row => row.id === event.target.value); changed(); setItemId(event.target.value); setServiceId(item?.serviceId ?? ""); setStaffId(item?.performedByStaffId ?? ""); }}>{context.transaction.items.filter(item => context.eligibleItemIds.includes(item.id)).map(item => <option key={item.id} value={item.id}>{item.description} · {formatCOP(item.total)}</option>)}</select></label>
-            <label className="block text-sm font-medium">Servicio correcto<select className={field} value={serviceId} onChange={event => { changed(); setServiceId(event.target.value); }}><option value="">Seleccionar servicio</option>{services.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}</select></label>
-            <label className="block text-sm font-medium">Profesional del servicio<select className={field} value={staffId} onChange={event => { changed(); setStaffId(event.target.value); }}><option value="">Sin profesional</option>{professionals.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+            <label className="block text-sm font-medium">Concepto a corregir<select className={field} value={itemId} onChange={event => { const item = context.transaction.items.find(row => row.id === event.target.value); const current = item ? context.defaults?.[item.id] : undefined; changed(); setItemId(event.target.value); setServiceId(current?.serviceId ?? item?.serviceId ?? ""); setStaffId(current?.staffId ?? item?.performedByStaffId ?? ""); setTransportDescription(item?.appointmentComponent === 'transport' ? item.description : ''); }}>{context.transaction.items.filter(item => context.eligibleItemIds.includes(item.id)).map(item => <option key={item.id} value={item.id}>{item.appointmentComponent === 'service' ? 'Principal: ' : item.appointmentComponent === 'transport' ? 'Domicilio: ' : ''}{item.description} · {formatCOP(item.total)}</option>)}</select></label>
+            {transport ? <label className="block text-sm font-medium">Concepto correcto del domicilio<input className={field} value={transportDescription} minLength={3} maxLength={160} onChange={event => { changed(); setTransportDescription(event.target.value); }} /><span className="mt-2 block text-xs text-muted-foreground">Su importe, dirección y modalidad de traslado se conservan. El domicilio no genera comisión.</span></label> : <>
+              <label className="block text-sm font-medium">Servicio correcto<select className={field} value={serviceId} onChange={event => { changed(); setServiceId(event.target.value); }}><option value="">Seleccionar servicio</option>{services.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}</select></label>
+              <label className="block text-sm font-medium">Profesional del servicio<select className={field} value={staffId} onChange={event => { changed(); setStaffId(event.target.value); }}><option value="">Sin profesional</option>{professionals.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+            </>}
             <label className="block text-sm font-medium">Motivo obligatorio<textarea className={`${field} min-h-24 py-3`} value={reason} minLength={5} maxLength={1000} onChange={event => { changed(); setReason(event.target.value); }} placeholder="Explica qué se registró por error y cuál es el servicio correcto." /></label>
           </fieldset>
           {selected && <p className="text-sm text-muted-foreground">Cantidad conservada: {selected.quantity}. Importe de la línea: {formatCOP(selected.total)}.</p>}
-          {preview && <section ref={previewRegion} tabIndex={-1} aria-label="Previsualización de la corrección" className="space-y-2 rounded-xl border bg-muted p-4 text-sm focus-visible:outline-2 focus-visible:outline-primary"><p><strong>{preview.before.description}</strong> → <strong>{preview.after.description}</strong></p><p>Profesional: {professionals.find(person => person.id === staffId)?.name ?? 'Sin profesional'}</p><p>Comisión profesional: {formatCOP(preview.previousStaffShare)} → <strong>{formatCOP(preview.nextStaffShare)}</strong></p><p>Total del comprobante: <strong>{formatCOP(preview.total)}</strong></p><p className="whitespace-pre-wrap break-words">Motivo: {preview.reason}</p><p>La comisión anterior se conservará anulada y se registrará la correspondiente al servicio correcto.</p></section>}
+          {preview && <section ref={previewRegion} tabIndex={-1} aria-label="Previsualización de la corrección" className="space-y-2 rounded-xl border bg-muted p-4 text-sm focus-visible:outline-2 focus-visible:outline-primary"><p><strong>{preview.before.description}</strong> → <strong>{preview.after.description}</strong></p>{!transport && <p>Profesional: {professionals.find(person => person.id === staffId)?.name ?? 'Sin profesional'}</p>}<p>Comisión profesional: {formatCOP(preview.previousStaffShare)} → <strong>{formatCOP(preview.nextStaffShare)}</strong></p><p>Total del comprobante: <strong>{formatCOP(preview.total)}</strong></p><p className="whitespace-pre-wrap break-words">Motivo: {preview.reason}</p><p>{transport ? 'Las comisiones de los servicios se conservan. El domicilio no genera comisión.' : 'La comisión anterior se conservará anulada y se registrará la correspondiente al servicio correcto.'}</p></section>}
           {uncertain && <p role="status" className="text-sm font-medium text-amber-900">El resultado no está comprobado. Reintentar conserva la misma solicitud y recupera el resultado si ya se guardó.</p>}
-          <p className="text-xs text-muted-foreground">Solo administración puede corregir servicios adicionales. No cambia precios, productos, domicilio ni el servicio principal de una cita. Los cierres y las comisiones liquidadas bloquean cambios.</p>
+          <p className="text-xs text-muted-foreground">Solo administración puede corregir el servicio principal, los adicionales y el concepto del domicilio. Se conservan precios, pago, reserva e historia clínica originales. Los cierres y las comisiones liquidadas bloquean cambios.</p>
         </>}
         {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
         {context && <section aria-label="Historial de correcciones" className="space-y-3 border-t pt-4"><h3 className="font-semibold">Historial de correcciones</h3>{context.corrections.length === 0 ? <p className="text-sm text-muted-foreground">Sin correcciones registradas desde esta opción.</p> : <ol className="space-y-3">{context.corrections.map(revision => <li key={revision.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{revision.before.description} → {revision.after.description}</p><p className="mt-1 text-xs text-muted-foreground">{formatTransactionDate(revision.occurredAt)} · {revision.actor.actorName}</p><p className="mt-2 whitespace-pre-wrap break-words">{revision.reason}</p><p className="mt-2">Comisión: {formatCOP(revision.commissionBefore?.staffShare ?? 0)} → {formatCOP(revision.commissionAfter?.staffShare ?? 0)}</p></li>)}</ol>}</section>}
       </FormDialogBody>
-      <FormDialogFooter><Button type="button" variant="outline" disabled={busy} onClick={() => guard(onClose)}>Cerrar</Button>{preview && !uncertain && <Button type="button" variant="outline" disabled={busy} onClick={changed}>Volver a editar</Button>}{context && context.eligibleItemIds.length > 0 && (preview ? <Button type="button" disabled={busy} onClick={() => void confirm()}>{busy ? "Comprobando…" : uncertain ? "Reintentar misma corrección" : "Confirmar corrección y comisión"}</Button> : <Button type="button" disabled={busy || !serviceId || reason.trim().length < 5} onClick={() => void prepare()}>{busy ? "Revisando…" : "Previsualizar corrección"}</Button>)}</FormDialogFooter>
+      <FormDialogFooter><Button type="button" variant="outline" disabled={busy} onClick={() => guard(onClose)}>Cerrar</Button>{preview && !uncertain && <Button type="button" variant="outline" disabled={busy} onClick={changed}>Volver a editar</Button>}{context && context.eligibleItemIds.length > 0 && (preview ? <Button type="button" disabled={busy} onClick={() => void confirm()}>{busy ? "Comprobando…" : uncertain ? "Reintentar misma corrección" : "Confirmar corrección y comisión"}</Button> : <Button type="button" disabled={busy || (transport ? transportDescription.trim().length < 3 : !serviceId) || reason.trim().length < 5} onClick={() => void prepare()}>{busy ? "Revisando…" : "Previsualizar corrección"}</Button>)}</FormDialogFooter>
     </FormDialogContent>;
 }

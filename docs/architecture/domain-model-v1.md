@@ -3,6 +3,8 @@
 **Fecha:** 2026-06-26  
 **Estado:** Documento vivo — fuente oficial de verdad sobre las entidades del negocio
 
+**Ampliación solicitada el 17/11/2026 — componentes del comprobante:** administración puede corregir también la identidad del servicio/profesional principal y la descripción del domicilio de un cobro pagado, conservando importes, pago y snapshot original de la cita. La comisión principal conserva su origen de cita y se corrige mediante anulación/reemplazo; el domicilio queda excluido de su base. [Diseño y límites de la ampliación](receipt-components-correction-20261117.md).
+
 **Corrección de conceptos cobrados, solicitud del 14/11/2026:** administración puede corregir la identidad del servicio adicional/profesional de una línea pagada sin cambiar el dinero recibido. La revisión conserva motivo, antes/después y actor como Evento de Dominio; la comisión se corrige mediante anulación y registro de la correspondiente, sin tocar otras líneas ni comisiones consolidadas. [Diseño, alcance y cinco etapas](receipt-concept-correction-20261114.md).
 
 **Precisión del 14/11/2026 — domicilio habitual:** las nuevas citas manuales de peluquería parten de la modalidad habitual explícita de la mascota cuando no reciben una elección propia. Se conserva una instantánea por visita, la dirección sigue siendo obligatoria y confirmar tarifa requiere el permiso vigente; los importes pendientes no se convierten en cero. Veterinaria, WhatsApp y los registros anteriores conservan sus contratos. [Diseño y validación](manual-appointment-transport-preference-20261114.md).

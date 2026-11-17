@@ -17,6 +17,8 @@ function fixture() {
   const flags = { closed: false, settled: false, certificationFailure: false, serializations: 0 };
   let inTransaction = false;
   const commissionRepository = {
+    lockByAppointment: async (tenantId, id) => clone(state.commissions.find(c => c.tenantId === tenantId && c.appointmentId === id && c.status === 'active') ?? null),
+    lastByAppointment: async (tenantId, id) => clone([...state.commissions].reverse().find(c => c.tenantId === tenantId && c.appointmentId === id) ?? null),
     findByItem: async (tenantId, id) => clone(state.commissions.find(c => c.tenantId === tenantId && c.transactionItemId === id && c.status === 'active') ?? null),
     findById: async id => clone(state.commissions.find(c => c.id === id)),
     create: jest.fn(async data => { const row = { id: 'new-' + ++state.serial, ...data, status: 'active' }; state.commissions.push(row); return clone(row); }),
@@ -33,6 +35,91 @@ function fixture() {
   async function ready() { const preview = await workflow.preview(input); input.command.previewToken = preview.previewToken; return preview; }
   return { workflow, input, ready, flags, services, people, staff, audit, repository, commissionRepository, get state() { return state; } };
 }
+
+function appointmentFixture() {
+  const f = fixture();
+  const endedAt = new Date('2026-11-12T18:00:00Z');
+  Object.assign(f.state.receipt, { appointmentId: 'visit', userId: 'owner', petId: 'pet', appointment: { id: 'visit', tenantId: 'tenant', status: 'completed', userId: 'owner', petId: 'pet', serviceId: 'cut', staffId: 'person', date: endedAt, endedAt, serviceType: 'grooming', transportMode: 'round_trip', transportAddress: 'Synthetic address', finalPrice: 60000 } });
+  f.state.commissions.push({ id: 'old-primary', tenantId: 'tenant', appointmentId: 'visit', transactionItemId: null, serviceId: null, staffId: 'person', status: 'active', resolvedPrice: 60000, splitRate: .5, staffShare: 30000, businessShare: 30000, completedAt: endedAt });
+  f.input.command = { itemId: 'main', serviceId: 'cut', staffId: 'second', reason: 'Correct the professional of the billed main service' };
+  return f;
+}
+
+test('principal correction preserves its appointment origin, date and original booking snapshot', async () => {
+  const f = appointmentFixture(), before = structuredClone(f.state);
+  expect((await f.workflow.context(f.input)).defaults.main).toEqual({ serviceId: 'cut', staffId: 'person' });
+  expect(await f.ready()).toMatchObject({ previousStaffShare: 30000, nextStaffShare: 24000, total: 100000 });
+  const result = await f.workflow.confirm(f.input);
+  expect(result.transaction.appointment).toEqual(before.receipt.appointment);
+  expect(f.state.commissions.find(c => c.id === 'old-primary').status).toBe('voided');
+  expect(f.state.commissions.find(c => c.id.startsWith('new-'))).toMatchObject({ appointmentId: 'visit', transactionItemId: null, serviceId: 'cut', staffId: 'second', resolvedPrice: 60000, staffShare: 24000, replacesCommissionId: 'old-primary', completedAt: before.receipt.appointment.endedAt });
+  expect(f.state.commissions.filter(c => c.transactionItemId)).toEqual(before.commissions.filter(c => c.transactionItemId));
+  expect(result.correction.appointmentBefore).toEqual(before.receipt.appointment);
+});
+
+test('principal to a direct service voids its commission and explicitly preserves no professional', async () => {
+  const f = appointmentFixture(); f.input.command.serviceId = 'bath'; f.input.command.staffId = null;
+  expect(await f.ready()).toMatchObject({ previousStaffShare: 30000, nextStaffShare: 0 });
+  await f.workflow.confirm(f.input);
+  expect(f.state.commissions.filter(c => c.appointmentId === 'visit' && c.status === 'active')).toHaveLength(0);
+  expect((await f.workflow.context(f.input)).defaults.main).toEqual({ serviceId: 'bath', staffId: null });
+  expect(f.state.receipt.items.find(i => i.id === 'main')).toMatchObject({ total: '60000', serviceId: 'bath', performedByStaffId: null });
+  expect(f.state.receipt.appointment.staffId).toBe('person');
+});
+
+test('a corrected principal regains commission with its original completion date', async () => {
+  const f = appointmentFixture(); f.input.command.serviceId = 'bath'; f.input.command.staffId = null;
+  await f.ready(); await f.workflow.confirm(f.input);
+  f.input.operationKey = '58f65f3a-d1bd-4abf-b881-6ee3c6e58541';
+  f.input.command = { itemId: 'main', serviceId: 'cut', staffId: 'second', reason: 'Principal corrected back to a commissioned service' };
+  await f.ready(); await f.workflow.confirm(f.input);
+  expect(f.state.commissions.find(c => c.appointmentId === 'visit' && c.status === 'active')).toMatchObject({ staffShare: 24000, completedAt: f.state.receipt.appointment.endedAt });
+  expect(f.state.events).toHaveLength(2);
+});
+
+test('transport correction changes only its concept and preserves every service commission and booking field', async () => {
+  const f = appointmentFixture(), before = structuredClone(f.state);
+  f.input.command = { itemId: 'transport', transportDescription: 'Pickup and delivery', reason: 'Correct the transport concept without changing its amount' };
+  f.flags.settled = true; // Unrelated service commissions are not changed by a transport label.
+  expect(await f.ready()).toMatchObject({ previousStaffShare: 0, nextStaffShare: 0, total: 100000 });
+  const result = await f.workflow.confirm(f.input);
+  expect(f.state.commissions).toEqual(before.commissions);
+  expect(f.commissionRepository.create).not.toHaveBeenCalled();
+  expect(f.state.receipt.appointment).toEqual(before.receipt.appointment);
+  expect(f.state.receipt.items.find(i => i.id === 'transport')).toMatchObject({ description: 'Pickup and delivery', total: '22000', unitPrice: '22000', quantity: 1, serviceId: null, performedByStaffId: null });
+  expect(result.correction.commissionBefore).toBeNull(); expect(result.correction.commissionAfter).toBeNull();
+  expect((await f.workflow.confirm(f.input)).replayed).toBe(true); expect(f.state.events).toHaveLength(1);
+});
+
+test.each(['foreign-visit', 'incomplete', 'wrong-pet', 'wrong-owner', 'manual-origin', 'duplicate', 'closed', 'settled', 'price', 'stale-appointment', 'rollback'])('principal protects %s', async kind => {
+  const f = appointmentFixture();
+  if (kind === 'foreign-visit') f.state.receipt.appointment.tenantId = 'other';
+  if (kind === 'incomplete') f.state.receipt.appointment.status = 'in_progress';
+  if (kind === 'wrong-pet') f.state.receipt.appointment.petId = 'other';
+  if (kind === 'wrong-owner') f.state.receipt.appointment.userId = 'other';
+  if (kind === 'manual-origin') f.state.receipt.origin = 'manual_pos_sale';
+  if (kind === 'duplicate') f.state.receipt.items.push({ ...f.state.receipt.items[0], id: 'duplicate-main' });
+  if (kind === 'closed') f.flags.closed = true;
+  if (kind === 'settled') f.flags.settled = true;
+  if (kind === 'price') f.input.command.unitPrice = 1;
+  if (kind === 'stale-appointment' || kind === 'rollback') {
+    await f.ready();
+    if (kind === 'stale-appointment') f.state.receipt.appointment.staffId = 'second'; else f.flags.certificationFailure = true;
+    const before = structuredClone(f.state);
+    await expect(f.workflow.confirm(f.input)).rejects.toThrow(); expect(f.state).toEqual(before);
+  } else await expect(f.ready()).rejects.toThrow();
+  if (kind === 'rollback') expect(f.repository.correct).toHaveBeenCalledTimes(1); else expect(f.repository.correct).not.toHaveBeenCalled();
+  expect(f.state.events).toHaveLength(0); expect(f.state.commissions.find(c => c.id === 'old-primary').status).toBe('active');
+});
+
+test.each(['professional', 'service', 'short-label', 'closed'])('transport rejects %s', async kind => {
+  const f = appointmentFixture(); f.input.command = { itemId: 'transport', transportDescription: 'Pickup only', reason: 'Correct transport concept' };
+  if (kind === 'professional') f.input.command.staffId = 'person';
+  if (kind === 'service') f.input.command.serviceId = 'cut';
+  if (kind === 'short-label') f.input.command.transportDescription = 'x';
+  if (kind === 'closed') f.flags.closed = true;
+  await expect(f.ready()).rejects.toThrow(); expect(f.state.events).toHaveLength(0);
+});
 
 test('preview uses the real contract rules and makes no financial change', async () => {
   const f = fixture(), before = structuredClone(f.state);
@@ -74,7 +161,7 @@ test.each(['notes', 'contract'])('a stale %s preview cannot overwrite a new fina
   if (kind === 'notes') f.state.receipt.notes = 'Changed by another operator'; else f.people.second.commissionRate = .3;
   await expect(f.workflow.confirm(f.input)).rejects.toMatchObject({ code: 'PREVIEW_CHANGED' }); expect(f.state.events).toHaveLength(0);
 });
-test.each(['product', 'principal', 'transport', 'voided', 'pending', 'foreign', 'noadmin', 'reason', 'money', 'service', 'professional', 'closed', 'settled'])('rejects %s before any correction', async kind => {
+test.each(['product', 'principal', 'transport', 'voided', 'pending', 'foreign', 'noadmin', 'reason', 'money', 'service', 'professional', 'closed', 'settled'])('rejects invalid or unscoped %s before any correction', async kind => {
   const f = fixture();
   if (kind === 'product') f.state.receipt.items.find(i => i.id === 'line').itemKind = 'product';
   if (kind === 'principal') f.input.command.itemId = 'main';
