@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: res.status });
 }
 
-export async function GET(req?: NextRequest) {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -93,7 +93,7 @@ export async function GET(req?: NextRequest) {
     return NextResponse.json({ error: authorization.reason === "unavailable" ? "No se pudo comprobar el acceso. Reintenta." : "Esta acción requiere acceso administrativo" }, { status: authorization.status });
   }
 
-  const tenantId = billingTenantId(session, req?.nextUrl.searchParams.get("tenant"));
+  const tenantId = billingTenantId(session, req.nextUrl.searchParams.get("tenant"));
   if (!tenantId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

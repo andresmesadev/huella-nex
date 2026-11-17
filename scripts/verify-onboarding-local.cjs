@@ -16,7 +16,7 @@ const guidedBusinessSetup = process.argv.includes('--guided-business-setup');
 const supportLifecycle = process.argv.includes('--support-lifecycle');
 const tenantConfiguration = process.argv.includes('--tenant-configuration');
 const serviceVisibility = process.argv.includes('--service-visibility');
-const generalBusinessCycles = serviceVisibility || tenantConfiguration || supportLifecycle || guidedBusinessSetup || process.argv.includes('--general-business-cycles');
+const generalBusinessCycles = serviceVisibility || tenantConfiguration || supportLifecycle || guidedBusinessSetup || process.argv.includes('--general-business-cycles') || process.argv.includes('--assisted-beta-browser');
 const productReview = generalBusinessCycles || process.argv.includes('--product-final-review');
 const output = path.join(root, serviceVisibility && guidedBusinessSetup ? '.cache/external-business-demo' : serviceVisibility ? '.cache/service-visibility' : tenantConfiguration ? '.cache/tenant-configuration' : supportLifecycle ? '.cache/support-lifecycle' : guidedBusinessSetup ? '.cache/guided-business-setup' : generalBusinessCycles ? '.cache/general-business-cycles' : productReview ? '.cache/product-final-review' : '.cache/onboarding-verification');
 const image = 'pgvector/pgvector:0.8.6-pg18-bookworm';
@@ -104,7 +104,7 @@ async function main() {
     if (reviewFixture) await reviewFixture.guardBrowser(context);
     const page = await context.newPage(); const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(base); await page.getByRole('banner').getByRole('link', { name: 'Crear mi cuenta', exact: true }).click();
+    await page.goto(base + '/onboarding');
     let oldRequested;
     const startedOld = new Promise(resolve => { oldRequested = resolve; });
     await page.route('**/api/onboarding/verify/old-clinic', async route => {
@@ -261,6 +261,9 @@ async function main() {
     if (process.argv.includes('--new-owner-prices')) {
       await require('./verify-new-owner-prices-scenario.cjs')({ prisma, base, context, page, output, check, tenantId: session.user.tenantId });
     }
+    if (process.argv.includes('--assisted-beta-browser')) {
+      await require('./verify-assisted-beta-browser.cjs')({ prisma, base, context, page, output, check, tenantId: session.user.tenantId });
+    }
     if (generalBusinessCycles) {
       const businesses = await require('./verify-general-business-cycles.cjs')({ prisma, base, browser, password, output, check, reviewFixture });
       if (supportLifecycle) await require('./verify-support-lifecycle.cjs')({ prisma, base, browser, password, output, check, reviewFixture, businesses });
@@ -272,6 +275,17 @@ async function main() {
     assert.equal(errors.length, 0, errors.join('\n'));
     console.log(`Onboarding integration: ${passed} passed, 0 failed. Local disposable data only; no jobs, external messages or real charges.`);
     console.log('Screenshots: ' + path.relative(root, output));
+  } catch (error) {
+    if (browser) {
+      fs.mkdirSync(output, { recursive: true });
+      let index = 0;
+      for (const context of browser.contexts()) for (const page of context.pages()) {
+        const stem = path.join(output, 'failure-browser-' + index++);
+        await page.screenshot({ path: stem + '.png', fullPage: true, animations: 'disabled' }).catch(() => {});
+        await page.locator('body').ariaSnapshot().then(text => fs.writeFileSync(stem + '.txt', text)).catch(() => {});
+      }
+    }
+    throw error;
   } finally {
     await browser?.close();
     if (frontend && frontend.exitCode === null) { frontend.kill(); await Promise.race([new Promise(resolve => frontend.once('exit', resolve)), delay(4000)]); }

@@ -1,6 +1,9 @@
 const assert=require('node:assert/strict');
 const {randomUUID}=require('node:crypto');
 module.exports=async({prisma,base,page,context,output,check,tenantId})=>{
+ const hours=Object.fromEntries(['mon','tue','wed','thu','fri','sat','sun'].map(day=>[day,{active:true,open:'00:00',close:'23:59'}]));
+ const configured=await context.request.put(base+'/api/proxy/dashboard/tenant/profile',{data:{businessHours:hours}});
+ assert.equal(configured.status(),200);
  const marker=randomUUID().slice(0,8);
  const user=await prisma.user.create({data:{tenantId,name:'Lifecycle owner '+marker,phone:'lc-'+marker}});
  const pet=await prisma.pet.create({data:{tenantId,ownerId:user.id,name:'Lifecycle pet '+marker,type:'dog',defaultGroomingPrice:50000}});
@@ -12,8 +15,9 @@ module.exports=async({prisma,base,page,context,output,check,tenantId})=>{
  assert.equal(duplicate.status(),409);assert.equal((await duplicate.json()).code,'DUPLICATE_PET_APPOINTMENT');
  check('same pet/service/day is rejected through the authenticated scheduling API');
  await page.goto(base+'/dashboard/calendar?date=2099-01-05');
- await page.getByRole('button',{name:`${pet.name}, propietario ${user.name}, servicio ${service.name}`,exact:true}).click();
+ await page.getByRole('button',{name:new RegExp(`^${pet.name}, propietario ${user.name}, servicio ${service.name},`)}).click();
  const dialog=page.getByRole('dialog').filter({has:page.getByRole('heading',{name:'Cita de '+pet.name,exact:true})});await dialog.waitFor();
+ await dialog.locator('summary').filter({hasText:'Otras acciones'}).click();
  await dialog.getByRole('button',{name:'Eliminar cita',exact:true}).click();
  await dialog.getByLabel('Motivo de la eliminación',{exact:true}).fill('Cita duplicada de prueba aislada');
  await dialog.getByRole('button',{name:'Eliminar cita creada por error',exact:true}).click();
@@ -31,7 +35,7 @@ module.exports=async({prisma,base,page,context,output,check,tenantId})=>{
  await dialog.waitFor({state:'hidden'});
  assert.equal(await prisma.appointment.count({where:{id:appointment.id}}),0);
  assert.equal(await prisma.appointmentRemoval.count({where:{appointmentId:appointment.id,tenantId}}),1);
- await page.reload();assert.equal(await page.getByRole('button',{name:`${pet.name}, propietario ${user.name}, servicio ${service.name}`,exact:true}).count(),0);
+ await page.reload();assert.equal(await page.getByRole('button',{name:new RegExp(`^${pet.name}, propietario ${user.name}, servicio ${service.name},`)}).count(),0);
  check('calendar removes only after explicit reason/confirmation; cancel preserves it; mobile and reload preserve the result');
  await page.setViewportSize({width:1440,height:1000});
 };

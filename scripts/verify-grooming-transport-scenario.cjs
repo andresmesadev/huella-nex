@@ -34,9 +34,11 @@ module.exports = async function verifyTransport({ prisma, base, context, page, o
   await page.locator('input[type=file]').setInputFiles({ name: 'clientes-ficticios.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
   assert.equal(await page.getByLabel('Especie de Luna, registro 1', { exact: true }).inputValue(), 'cat');
   assert.equal(await page.getByLabel('Especie de Toby, registro 1', { exact: true }).inputValue(), 'dog');
-  const importSaved = page.waitForResponse(response => response.url().includes('/clients/import/full') && response.request().method() === 'POST');
-  await page.getByRole('button', { name: 'Importar 1 propietarios y 2 mascotas', exact: true }).click();
-  assert.equal((await importSaved).status(), 200);
+  const [importSaved] = await Promise.all([
+    page.waitForResponse(response => response.url().includes('/clients/import/full') && response.request().method() === 'POST'),
+    page.getByRole('button', { name: 'Importar 1 propietario y 2 mascotas', exact: true }).click(),
+  ]);
+  assert.equal(importSaved.status(), 200);
   const pet = await prisma.pet.findFirstOrThrow({ where: { tenantId, name: 'Luna' } });
   const importedOwner = await prisma.user.findUniqueOrThrow({ where: { id: pet.ownerId } });
   assert.equal(importedOwner.phoneAlt, '573121234567 / 573001234567 / 573111234567 / 573131234567');
