@@ -119,6 +119,10 @@ const { CertifyingDomainEventPublisher } = require('./shared/events/certifying-d
 const { buildConfirmPosSale } = require('../application/workflows/pos/confirm-pos-sale');
 const inventory = buildInventoryContext({ unitOfWork, eventPublisher: new CertifyingDomainEventPublisher({ registerDomainEvent: events.registerDomainEvent, originContext: 'Inventario' }) });
 const confirmPosSale = buildConfirmPosSale({ inventory: inventory.commands, finance, staff, repository: inventory.repository, accessReader: inventory.accessReader, unitOfWork });
+const receiptConceptCorrections = require('../application/workflows/pos/correct-receipt-concept').buildReceiptConceptCorrection({
+  repository: finance.receiptConceptRepository, accessReader: inventory.accessReader, staff, audit: events, unitOfWork,
+  businessDayGate: new (require('./shared/persistence/prisma-business-day-gate').PrismaBusinessDayGate)(),
+});
 const { buildOperationalContext } = require('./agents/operational');
 const { buildOperatorChannel } = require('../application/operator-channel');
 const operatorChannel = buildOperatorChannel({ prisma: require('../lib/prisma'), accessReader: inventory.accessReader,
@@ -130,6 +134,7 @@ module.exports = {
   operationalAssistants,
   operatorChannel,
   confirmPosSale,
+  receiptConceptCorrections,
   dispatcher,
   completeAppointment: agenda.completeAppointment,
   removeAppointment: agenda.removeAppointment,

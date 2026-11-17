@@ -34,6 +34,7 @@ const {
 
 const expenseRepository = new PrismaExpenseRepository();
 const transactionRepository = new PrismaTransactionRepository();
+const receiptConceptRepository = new (require('./infrastructure/persistence/prisma-receipt-concept.repository').PrismaReceiptConceptRepository)();
 const dailyCloseRepository = new PrismaDailyCloseRepository();
 const { PrismaCashOpeningRepository } = require('./infrastructure/persistence/prisma-cash-opening.repository');
 const openingRepository = new PrismaCashOpeningRepository();
@@ -87,6 +88,7 @@ const { createRegisterAppointmentSaleUseCase } = require('./application/use-case
 const registerAppointmentSale = createRegisterAppointmentSaleUseCase({ transactionRepository, referencesReader: new PrismaPosReferencesReader(), dailyCloseRepository, businessDayGate: new PrismaBusinessDayGate() });
 
 module.exports = {
+  receiptConceptRepository,
   getCashOpening, saveCashOpening,
   registerAppointmentSale,
   publishCheckoutPayment: transaction => eventPublisher.publish('CobroLiquidado', { transaction }),

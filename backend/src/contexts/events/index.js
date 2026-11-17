@@ -64,6 +64,12 @@ async function notifyCertifiedEvent({ id }) {
 }
 
 module.exports = {
+  // Internal scoped lookup for commands that use a stable certificate as receipt.
+  async findDomainEvent({ tenantId, id }, ctx) {
+    if (!tenantId) throw new Error('Event lookup requires tenant');
+    const event = await domainEventRepository.findById(id, ctx);
+    return event?.tenantId === tenantId ? event : null;
+  },
   registerEventType,
   deactivateEventType,
   registerDomainEvent,

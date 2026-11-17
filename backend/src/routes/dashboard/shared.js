@@ -141,6 +141,8 @@ function mapTransaction(t) {
     items: (t.items ?? []).map((i) => ({
       id: i.id,
       appointmentComponent: i.appointmentComponent ?? null,
+      serviceId: i.serviceId ?? null,
+      performedByStaffId: i.performedByStaffId ?? null,
       description: i.description,
         itemKind: i.itemKind ?? "legacy",
       quantity: i.quantity,

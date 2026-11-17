@@ -100,8 +100,14 @@ const correctCheckoutCommission = createCorrectCheckoutCommissionUseCase({ commi
 const { createRecordSaleServiceCommissionUseCase } = require('./application/use-cases/record-sale-service-commission.usecase');
 const { PrismaSaleServiceReader } = require('./infrastructure/persistence/prisma-sale-service.reader');
 const recordSaleServiceCommission = transactionalCommand(createRecordSaleServiceCommissionUseCase({ sourceReader: new PrismaSaleServiceReader(), staffRepository, serviceCategoryReader, businessConfigReader, commissionRepository, dailyCloseReader: new PrismaDailyCloseReader(), settlementCoverageReader: new PrismaSettlementCoverageReader(), businessDayGate: new PrismaBusinessDayGate(), staffFinanceGate: new PrismaStaffFinanceGate() }), { unitOfWork: new PrismaUnitOfWork(), eventPublisher });
+const prepareSaleConceptCorrection = require('./application/use-cases/prepare-sale-concept-correction').createPrepareSaleConceptCorrection({
+  sourceReader: new PrismaSaleServiceReader(), staffRepository, serviceCategoryReader, businessConfigReader, commissionRepository,
+  dailyCloseReader: new PrismaDailyCloseReader(), settlementCoverageReader: new PrismaSettlementCoverageReader(),
+  businessDayGate: new PrismaBusinessDayGate(), staffFinanceGate: new PrismaStaffFinanceGate(),
+});
 
 module.exports = {
+  prepareSaleConceptCorrection,
   async recordDeferredCheckoutCommission(input, ctx) {
     if (!ctx?.tx || !ctx.eventPublisher) throw new Error('Deferred commission requires transactional events');
     const { civilDateKey } = require('../shared/business-day');

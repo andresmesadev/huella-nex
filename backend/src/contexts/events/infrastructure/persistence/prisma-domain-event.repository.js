@@ -11,20 +11,22 @@ class PrismaDomainEventRepository extends DomainEventRepositoryPort {
     return (ctx?.tx ?? prisma).domainEvent.findUnique({ where: { id }, include: { eventType: { select: { name: true } } } });
   }
 
-  async listByFilters({ tenantId, eventTypeName, dateStart, dateEnd }) {
+  async listByFilters({ tenantId, eventTypeName, dateStart, dateEnd, aggregateId }, ctx) {
     const eventTypeFilter = eventTypeName ? { eventType: { name: eventTypeName } } : {};
     const dateFilter = {};
     if (dateStart) dateFilter.gte = dateStart;
     if (dateEnd) dateFilter.lte = dateEnd;
 
-    return prisma.domainEvent.findMany({
+    return (ctx?.tx ?? prisma).domainEvent.findMany({
       where: {
         ...(tenantId ? { tenantId } : {}), // tenantId es obligatorio al escribir (Invariante 4); al consultar, ausente = superadmin viendo todos los tenants
         ...eventTypeFilter,
+        ...(aggregateId ? { payload: { path: ['aggregateId'], equals: aggregateId } } : {}),
         ...(Object.keys(dateFilter).length ? { occurredAt: dateFilter } : {}),
       },
       include: { eventType: { select: { name: true } } },
       orderBy: { occurredAt: "desc" },
+      ...(aggregateId ? { take: 100 } : {}),
     });
   }
 }

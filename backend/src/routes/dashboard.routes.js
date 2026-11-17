@@ -17,6 +17,7 @@ router.use(require("./dashboard/services.routes"));
 router.use(require("./dashboard/staff.routes"));
 router.use(require("./dashboard/metrics.routes"));
 router.use(require("./dashboard/transactions.routes"));
+router.use(require("./dashboard/receipt-concept-corrections.routes"));
 router.use(require("./dashboard/conversations.routes"));
 router.use(require("./dashboard/search.routes"));
 router.use(require("./dashboard/expenses.routes"));

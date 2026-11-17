@@ -11,6 +11,8 @@ import { PAYMENT_METHOD_LABELS, formatTransactionDate, type PaymentMethod, type 
 import { formatPosMoney } from "@/lib/pos-checkout";
 import { canVoidSale, validHistoryRange, initialHistoryRange, historyQuickRange, inventoryReturnProgress, isHistoryTransaction, transactionNeedsReview, HISTORY_ORIGIN_LABELS, type HistoryOrigin, type HistoryQuickPeriod } from "@/lib/pos-history";
 import { ReceiptDialog } from "./sale-receipt";
+import { CorrectConceptDialog } from "./correct-concept-dialog";
+import { hasCorrectableConcept } from "@/lib/receipt-concept-correction";
 import { VoidSaleDialog } from "./void-sale-dialog";
 import { ReviewPaymentDialog, type PaymentAttempt } from "./review-payment-dialog";
 import { InventoryReturnButton } from "@/components/dashboard/inventory/return-button";
@@ -40,6 +42,7 @@ export function TransactionHistory({ period, reportDetail }: { period: string; r
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [receipt, setReceipt] = useState<Transaction | null>(null);
+  const [correcting, setCorrecting] = useState<Transaction | null>(null);
   const voidTrigger = useRef<HTMLButtonElement | null>(null);
   const [voiding, setVoiding] = useState<Transaction | null>(null);
   const [reviewing, setReviewing] = useState<Transaction | null>(null);
@@ -115,6 +118,7 @@ export function TransactionHistory({ period, reportDetail }: { period: string; r
               </div>
               <div className="min-w-0 space-y-3 border-t pt-4 xl:border-0 xl:pt-0 xl:text-right"><p className={`text-xl font-bold tabular-nums ${transaction.status === "voided" ? "text-muted-foreground line-through" : "text-primary"}`}>{formatPosMoney(transaction.total)}</p><div className="flex flex-wrap gap-2 [&_button]:min-h-11 xl:justify-end">
                 <Button variant="outline" onClick={() => setReceipt(transaction)}><ReceiptText aria-hidden className="mr-2 h-4 w-4" />Comprobante</Button>
+                {access?.capabilities.administration && hasCorrectableConcept(transaction) && <Button variant="outline" onClick={() => setCorrecting(transaction)}>{transaction.status === 'active' ? 'Corregir conceptos' : 'Ver correcciones'}</Button>}
                 {review && transaction.status === "active" && access?.capabilities.cash && <Button onClick={event => { reviewTrigger.current = event.currentTarget; setReviewing(transaction); }}>Revisar pago</Button>}
                 {canVoidSale(transaction, !!access?.capabilities.finance) && <Button variant="ghost" className="text-destructive" onClick={event => { voidTrigger.current = event.currentTarget; setVoiding(transaction); }}><Ban aria-hidden className="mr-2 h-4 w-4" />Anular</Button>}
                 <InventoryReturnButton transaction={transaction} onSaved={async () => { setNotice("Devolución registrada. Puedes consultar las unidades recibidas en esta venta y en Inventario."); setRevision(value => value + 1); router.refresh(); }} />
@@ -126,7 +130,8 @@ export function TransactionHistory({ period, reportDetail }: { period: string; r
       </>}
       <p className="border-t px-5 py-4 text-xs text-muted-foreground">Puedes revisar el método de los cobros de citas aquí o en Caja diaria, incluidos días anteriores. Anular una venta no realiza un reembolso bancario ni repone mercancía: registra su recepción por separado.</p>
     </section>
-    <ReceiptDialog transaction={receipt} onClose={() => setReceipt(null)} />
+    <ReceiptDialog transaction={receipt} onClose={() => setReceipt(null)} onCorrect={access?.capabilities.administration ? value => { setReceipt(null); setCorrecting(value); } : undefined} />
+    {correcting && <CorrectConceptDialog key={correcting.id} transaction={correcting} onClose={() => setCorrecting(null)} onSaved={value => { setCorrecting(null); setReceipt(value); setRevision(revision => revision + 1); setNotice('Concepto corregido. El pago se conserva y la comisión quedó ajustada; puedes consultar el historial.'); router.refresh(); }} />}
     {reviewing && <ReviewPaymentDialog key={reviewing.id} transaction={reviewing} initialAttempt={uncertainPayments[reviewing.id]} onUncertainChange={attempt => setUncertainPayments(previous => { const next = { ...previous }; if (attempt) next[reviewing.id] = attempt; else delete next[reviewing.id]; return next; })} onClose={() => setReviewing(null)} onReturnFocus={() => { if (reviewTrigger.current?.isConnected && !reviewTrigger.current.disabled) reviewTrigger.current.focus(); else document.getElementById("history-search")?.focus(); }} onSaved={() => { setReviewing(null); setRevision(value => value + 1); setNotice("Método de pago confirmado. El importe del servicio se conserva."); router.refresh(); }} />}
     {voiding && <VoidSaleDialog key={voiding.id} transaction={voiding} initiallyUncertain={uncertainSales.has(voiding.id)} onUncertainChange={value => setUncertainSales(previous => { const next = new Set(previous); if (value) next.add(voiding.id); else next.delete(voiding.id); return next; })} onClose={() => setVoiding(null)} onReturnFocus={() => { if (voidTrigger.current?.isConnected && !voidTrigger.current.disabled) voidTrigger.current.focus(); else document.getElementById("history-search")?.focus(); }} onConfirmed={() => { setRevision(value => value + 1); setNotice("Venta anulada. El registro original y el motivo se conservan."); router.refresh(); }} />}
   </>;

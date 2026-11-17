@@ -18,6 +18,8 @@ export const PAYMENT_METHOD_ICONS: Record<PaymentMethod, string> = {
 };
 
 export type TransactionItem = {
+  serviceId?: string | null;
+  performedByStaffId?: string | null;
   appointmentComponent?: 'service' | 'transport' | null;
   productId?: string | null;
   productCode?: string | null;

@@ -9,6 +9,7 @@ import { PAYMENT_METHOD_LABELS, formatTransactionDate, type Transaction } from "
 import { formatPosMoney } from "@/lib/pos-checkout";
 import { HISTORY_ORIGIN_LABELS, transactionNeedsReview } from "@/lib/pos-history";
 import { proxyUrl } from "@/lib/api";
+import { hasCorrectableConcept } from "@/lib/receipt-concept-correction";
 
 export type ReceiptEstablishment = { id: string; name: string; contactPhone: string | null; address: string | null };
 
@@ -29,18 +30,18 @@ export function SaleReceipt({ transaction, cash, establishment }: { transaction:
   </article>;
 }
 
-export function ReceiptDialog({ transaction, onClose, cash }: { transaction: Transaction | null; onClose: () => void; cash?: { received: number; change: number } }) {
+export function ReceiptDialog({ transaction, onClose, cash, onCorrect }: { transaction: Transaction | null; onClose: () => void; cash?: { received: number; change: number }; onCorrect?: (value: Transaction) => void }) {
   return <>
     <Dialog open={!!transaction} onOpenChange={open => { if (!open) onClose(); }}>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-xl flex-col overflow-hidden border-border bg-white shadow-xl">
         <DialogHeader className="shrink-0 border-border px-5 pr-14 sm:px-6 sm:pr-14"><DialogTitle className="flex items-center gap-2"><ReceiptText className="h-5 w-5 text-primary" />Detalle de operación</DialogTitle><DialogDescription>Consulta los datos guardados de esta operación.</DialogDescription></DialogHeader>
-        {transaction && <ReceiptContent key={`${transaction.tenantId}:${transaction.id}`} transaction={transaction} cash={cash} onClose={onClose} />}
+        {transaction && <ReceiptContent key={`${transaction.tenantId}:${transaction.id}`} transaction={transaction} cash={cash} onClose={onClose} onCorrect={onCorrect} />}
       </DialogContent>
     </Dialog>
   </>;
 }
 
-function ReceiptContent({ transaction, cash, onClose }: { transaction: Transaction; cash?: { received: number; change: number }; onClose: () => void }) {
+function ReceiptContent({ transaction, cash, onClose, onCorrect }: { transaction: Transaction; cash?: { received: number; change: number }; onClose: () => void; onCorrect?: (value: Transaction) => void }) {
   const [establishment, setEstablishment] = useState<ReceiptEstablishment | null>(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -64,6 +65,7 @@ function ReceiptContent({ transaction, cash, onClose }: { transaction: Transacti
   return <div className="min-h-0 overflow-y-auto p-5 sm:p-6">
     {!establishment && (error ? <div role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm"><p>{error}</p><Button type="button" variant="outline" className="mt-2 min-h-11" onClick={() => { setError(""); setAttempt(value => value + 1); }}>Reintentar establecimiento</Button></div> : <p role="status" className="mb-4 text-sm text-muted-foreground">Comprobando establecimiento…</p>)}
     <SaleReceipt transaction={transaction} cash={cash} establishment={establishment} />
+    {onCorrect && hasCorrectableConcept(transaction) && <Button type="button" variant="outline" className="mt-4 min-h-11 w-full" onClick={() => onCorrect(transaction)}>{transaction.status === 'active' ? 'Corregir conceptos y comisión' : 'Ver historial de correcciones'}</Button>}
     <div className="sticky bottom-0 mt-6 grid grid-cols-2 gap-2 border-t bg-white pt-4 [&_button]:min-h-11"><Button type="button" variant="outline" onClick={onClose}>Cerrar</Button><Button type="button" disabled={!establishment} onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" />Imprimir</Button></div>
     {establishment && createPortal(<div data-pos-print="true" className="hidden"><style>{`@media print { body > *:not([data-pos-print]) { display: none !important; } body > [data-pos-print] { display: block !important; max-width: 80mm; padding: 4mm; margin: 0 auto; color: #111; background: white; } @page { margin: 10mm; } }`}</style><SaleReceipt transaction={transaction} cash={cash} establishment={establishment} /></div>, document.body)}
   </div>;
