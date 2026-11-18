@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   description: PRODUCT_DESCRIPTION,
 };
 
-const demoHref = `mailto:${PRODUCT_SUPPORT_EMAIL}?subject=${encodeURIComponent("Quiero conocer Huella Nex para mi negocio")}`;
 const modules = [
   { icon: CalendarDays, title: "Agenda y atención", description: "Organiza las citas por servicio y profesional. Sigue cada atención desde la llegada hasta su finalización." },
   { icon: PawPrint, title: "Clientes y mascotas", description: "Encuentra contactos, datos de cada mascota, visitas y preferencias de atención en su ficha." },
@@ -39,7 +38,7 @@ function Brand() {
 }
 
 function RegisterLink({ className, showArrow = true }: { className: string; showArrow?: boolean }) {
-  return <Link href="/onboarding" className={className}>Crear cuenta{showArrow && <ArrowRight size={18} aria-hidden="true" />}</Link>;
+  return <Link href="/onboarding" className={className}>Registrarse{showArrow && <ArrowRight size={18} aria-hidden="true" />}</Link>;
 }
 
 export default function LandingPage() {
@@ -62,7 +61,7 @@ export default function LandingPage() {
             <p className={styles.heroDescription}>Organiza tus citas, lleva el historial de cada mascota y controla los cobros y la caja. Si vendes productos, también puedes gestionar tu inventario.</p>
             <div className={styles.heroActions}>
               <RegisterLink className={styles.primaryButton} />
-              <a href={demoHref} className={styles.textButton}>Solicitar una demostración</a>
+              <Link href="/login" className={styles.textButton}>Ingresar a mi cuenta</Link>
             </div>
             <div className={styles.heroAudiences}><span>Veterinarias</span><span>Peluquerías</span><span>Pet shops</span></div>
           </div>
@@ -87,7 +86,7 @@ export default function LandingPage() {
           </ol>
         </div></section>
         <section id="preguntas" className={styles.faq} aria-labelledby="faq-title"><div className={styles.faqInner}>
-          <div><p className={styles.sectionLabel}>Antes de empezar</p><h2 id="faq-title">Resolvamos tus dudas.</h2><p className={styles.faqIntro}>Cuéntanos cómo trabajas. La demostración es el espacio para revisar si Huella Nex encaja con tu negocio.</p><a href={demoHref} className={styles.emailLink}><Mail size={18} aria-hidden="true" /> Hablar con el equipo</a></div>
+          <div><p className={styles.sectionLabel}>Antes de empezar</p><h2 id="faq-title">Resolvamos tus dudas.</h2><p className={styles.faqIntro}>¿Tienes dudas sobre los módulos o el registro de tu negocio? Escríbenos.</p><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`} className={styles.emailLink}><Mail size={18} aria-hidden="true" /> Hablar con el equipo</a></div>
           <div className={styles.questions}>{questions.map(({ question, answer }) => <details className={styles.question} key={question}><summary>{question}<ChevronDown size={19} aria-hidden="true" /></summary><p>{answer}</p></details>)}</div>
         </div></section>
         <section className={styles.finalCta} aria-labelledby="contact-title"><div className={styles.finalInner}>
@@ -95,7 +94,7 @@ export default function LandingPage() {
           <div className={styles.finalActions}><RegisterLink className={styles.lightButton} /></div>
         </div></section>
       </main>
-      <footer className={styles.footer}><div className={styles.footerInner}><div><Brand /><p>Gestión para quienes cuidan mascotas.</p></div><nav aria-label="Enlaces del pie de página"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><Link href="/login">Ingresar</Link><Link href="/onboarding">Crear cuenta</Link><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`}>Contacto</a></nav><small>© {new Date().getFullYear()} Huella Nex</small></div></footer>
+      <footer className={styles.footer}><div className={styles.footerInner}><div><Brand /><p>Gestión para quienes cuidan mascotas.</p></div><nav aria-label="Enlaces del pie de página"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><Link href="/login">Ingresar</Link><Link href="/onboarding">Registrarse</Link><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`}>Contacto</a></nav><small>© {new Date().getFullYear()} Huella Nex</small></div></footer>
     </div>
   );
 }

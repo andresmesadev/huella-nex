@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { configuredSocialProviders, pendingIdentity, resolveSocialIdentity } from "./lib/social-auth-server";
 
 import { authConfig } from "./auth.config";
 import { canonicalAdminEmail, verifyAdminCredential } from "./lib/operator-channel/admin-auth";
@@ -7,7 +8,20 @@ import { canonicalAdminEmail, verifyAdminCredential } from "./lib/operator-chann
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   secret: process.env.NEXTAUTH_SECRET,
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt(args) {
+      const { account, profile, token, trigger } = args;
+      if (account && account.type === "oidc") return resolveSocialIdentity(token, pendingIdentity(account, profile));
+      if (token.socialIdentity) {
+        if (token.socialIdentity.expiresAt <= Date.now()) return null;
+        if (trigger === "update") return resolveSocialIdentity(token, token.socialIdentity);
+      }
+      return authConfig.callbacks.jwt(args);
+    },
+  },
   providers: [
+    ...configuredSocialProviders(),
     Credentials({
       name: "credentials",
       credentials: {

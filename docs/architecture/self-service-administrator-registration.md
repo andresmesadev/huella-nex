@@ -2,6 +2,20 @@
 
 16 de octubre de 2026. Corrección del onboarding existente solicitada por el responsable para recorrer el alta como un comprador nuevo. Diseño previo a implementación; no reabre una fase cerrada ni habilita la beta comercial.
 
+## Acceso con Google, Microsoft y Apple
+
+Cada proveedor está desactivado hasta configurar sus dos variables de autenticación en el servidor del frontend. Los valores se guardan en variables privadas fuera de Git. Rutas de retorno para producción:
+
+| Proveedor | Variables | URL de retorno |
+| --- | --- | --- |
+| Google | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | `https://app.nexoweb.co/api/auth/callback/google` |
+| Microsoft | `AUTH_MICROSOFT_ENTRA_ID_ID`, `AUTH_MICROSOFT_ENTRA_ID_SECRET` | `https://app.nexoweb.co/api/auth/callback/microsoft-entra-id` |
+| Apple | `AUTH_APPLE_ID`, `AUTH_APPLE_SECRET` | `https://app.nexoweb.co/api/auth/callback/apple` |
+
+Microsoft debe admitir cuentas personales para Outlook y Hotmail. Apple usa un Services ID y un secreto JWT válido que requiere renovación. Verificar el retorno real de cada proveedor antes de habilitarlo para visitantes.
+
+La primera identificación deja una sesión de registro de hasta 15 minutos sin acceso a los establecimientos. Finalizar el formulario guarda el negocio y la identidad en una sola transacción. Las siguientes entradas buscan por proveedor, emisor y sujeto. Una coincidencia de correo con otro acceso devuelve un conflicto de registro. El correo y contraseña siguen disponibles para cuentas existentes. Los tokens de Google, Microsoft y Apple se usan para validar el retorno y no se guardan en la base de datos.
+
 ## 1. Definición funcional
 
 Crear un establecimiento y su primer acceso administrativo en un mismo registro. El formulario anterior creaba solamente Tenant, exigía un identificador técnico de Meta y terminaba sin credenciales utilizables. El negocio debe poder comenzar desde dashboard sin conectar un canal.

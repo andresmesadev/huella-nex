@@ -27,9 +27,9 @@ router.get("/verify/:slug", async (req, res) => {
   }
 });
 
-router.post("/register", registrationLimit, async (req, res) => {
+async function completeRegistration(body, res, identity = null) {
   try {
-    const tenant = await registerTenantAdministrator(req.body);
+    const tenant = await registerTenantAdministrator(body, identity);
     let provisioning = "ready";
     try {
       const result = await provisionDefaultDigitalEmployees(tenant.id);
@@ -45,6 +45,9 @@ router.post("/register", registrationLimit, async (req, res) => {
     if (error.status === 400) return res.status(400).json({ error: error.message, field: error.field });
     return res.status(503).json({ error: "No pudimos confirmar el registro. Intenta iniciar sesión con tu correo antes de volver a registrarte." });
   }
-});
+}
+
+router.post("/register", registrationLimit, (req, res) => completeRegistration(req.body, res));
 
 module.exports = router;
+module.exports.completeRegistration = completeRegistration;

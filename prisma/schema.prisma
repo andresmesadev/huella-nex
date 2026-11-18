@@ -802,6 +802,20 @@ model StaffCredential {
   sessionVersion Int     @default(1)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  socialIdentities StaffSocialIdentity[]
+}
+
+model StaffSocialIdentity {
+  id         String @id @default(cuid())
+  provider   String
+  issuer     String
+  subject    String
+  staffId    String
+  credential StaffCredential @relation(fields: [staffId], references: [staffId], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, issuer, subject])
+  @@unique([staffId, provider])
 }
 
 model StaffAvailability {

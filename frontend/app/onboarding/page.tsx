@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { SocialSignInButtons } from "@/components/auth/social-sign-in-buttons";
+import { SOCIAL_PROVIDER_LABELS, type SocialProvider } from "@/lib/social-identity";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, HeartPulse, Scissors, ShoppingBag, ShieldCheck, LoaderCircle } from "lucide-react";
 import { RegistrationShell } from "@/components/onboarding/registration-shell";
 import styles from "@/components/onboarding/registration.module.css";
@@ -24,6 +26,11 @@ function toSlug(name: string) {
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { data: session, status: sessionStatus, update } = useSession();
+  const socialIdentity = session?.user.socialIdentity;
+  const [registeredWith, setRegisteredWith] = useState<SocialProvider | null>(null);
+  const socialProvider = socialIdentity?.provider ?? registeredWith;
+  const [socialEmail, setSocialEmail] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>({ name: "", slug: "", ownerName: "", email: "", password: "", activeModules: ["veterinary"] });
   const [customSlug, setCustomSlug] = useState(false);
@@ -41,6 +48,7 @@ export default function OnboardingPage() {
   const created = useRef(false);
   const title = useRef<HTMLHeadingElement>(null);
   const validSlug = form.slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug);
+  const registrationEmail = socialProvider ? (socialEmail ?? socialIdentity?.emailHint ?? form.email) : form.email;
   const status = availability?.slug === form.slug ? availability.status : "checking";
   const notice = registered ? onboardingNotice(provisioning) : null;
 
@@ -78,14 +86,18 @@ export default function OnboardingPage() {
       setStep(2); return;
     }
     if (step === 2) {
-      if (form.password !== confirmPassword) { setError("Las contraseñas no coinciden. Escríbelas de nuevo."); setErrorField("confirmPassword"); return; }
+      if (!socialIdentity && form.password !== confirmPassword) { setError("Las contraseñas no coinciden. Escríbelas de nuevo."); setErrorField("confirmPassword"); return; }
       setStep(3); return;
     }
     submitting.current = true; setBusy(true);
     try {
-      const response = await fetch("/api/onboarding/register", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, name: form.name.trim(), ownerName: form.ownerName.trim(), email: form.email.trim().toLowerCase() }),
+      const registration = {
+        name: form.name.trim(), ownerName: form.ownerName.trim(), slug: form.slug,
+        email: registrationEmail.trim().toLowerCase(), activeModules: form.activeModules,
+        ...(!socialIdentity ? { password: form.password } : {}),
+      };
+      const response = await fetch(socialIdentity ? "/api/onboarding/social-register" : "/api/onboarding/register", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(registration),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
@@ -94,17 +106,26 @@ export default function OnboardingPage() {
       }
       // Commit succeeded: any sign-in failure must never repeat registration.
       created.current = true;
+      setRegisteredWith(socialIdentity?.provider ?? null);
+      if (socialIdentity) setSocialEmail(registration.email);
       setRegistered(true);
       const preparation = onboardingProvisioning(data?.provisioning);
       setProvisioning(preparation);
       const password = form.password;
       setForm(current => ({ ...current, password: "" })); setConfirmPassword("");
       try {
-        const result = await signIn("credentials", { email: form.email.trim().toLowerCase(), password, redirect: false });
-        if (!result || result.error || result.ok !== true) throw new Error("signin");
+        if (socialIdentity) {
+          const updated = await update({});
+          if (!updated?.user.staffId || !updated.user.tenantId || updated.user.socialIdentity) throw new Error("signin");
+        } else {
+          const result = await signIn("credentials", { email: registration.email, password, redirect: false });
+          if (!result || result.error || result.ok !== true) throw new Error("signin");
+        }
         setSignedIn(true);
         if (preparation === "ready") { router.replace("/onboarding/success"); router.refresh(); }
-      } catch { setError("Tu cuenta ya está creada. Inicia sesión con tu correo y contraseña para continuar."); }
+      } catch {
+        setError(socialProvider ? "Tu cuenta ya está creada. Vuelve a ingresar con " + SOCIAL_PROVIDER_LABELS[socialProvider] + "." : "Tu cuenta ya está creada. Inicia sesión con tu correo y contraseña para continuar.");
+      }
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "No pudimos confirmar el registro. Intenta iniciar sesión antes de repetirlo.");
     } finally { submitting.current = false; setBusy(false); }
@@ -119,8 +140,10 @@ export default function OnboardingPage() {
       </ol>
       <p className={styles.stepLabel}>Paso {step} de 3</p>
       <h2 ref={title} tabIndex={-1} className={styles.title}>{step === 1 ? "Cuéntanos sobre tu negocio" : step === 2 ? "Crea tu acceso de administrador" : registered ? "Tu cuenta ya está creada" : "Todo listo para comenzar"}</h2>
-      <p className={styles.description}>{registered ? "Continúa con tu cuenta existente. No necesitas repetir el registro." : step === 1 ? "Un espacio propio para tu veterinaria, peluquería o pet shop." : step === 2 ? "Usarás este correo y contraseña para ingresar y administrar tu negocio." : "Revisa tus datos antes de crear la cuenta."}</p>
+      <p className={styles.description}>{registered ? "Continúa con tu cuenta existente. No necesitas repetir el registro." : step === 1 ? "Un espacio propio para tu veterinaria, peluquería o pet shop." : step === 2 ? (socialProvider ? "Indica tu nombre y correo de contacto." : "Usarás este correo y contraseña para ingresar y administrar tu negocio.") : "Revisa tus datos antes de crear la cuenta."}</p>
 
+      {step === 1 && sessionStatus !== "loading" && !socialIdentity && <SocialSignInButtons />}
+      {step === 1 && socialIdentity && <p className={styles.notice}>Te identificaste con {SOCIAL_PROVIDER_LABELS[socialIdentity.provider]}. Completa los datos de tu negocio.</p>}
       <form onSubmit={submit} className={styles.form}>
         {step === 1 && <>
           <div className={styles.field}>
@@ -155,15 +178,20 @@ export default function OnboardingPage() {
         </>}
         {step === 2 && <>
           <div className={styles.field}><label htmlFor="owner-name">Tu nombre</label><input id="owner-name" name="name" autoComplete="name" placeholder="Nombre y apellido" required minLength={2} maxLength={100} value={form.ownerName} aria-invalid={errorField === "ownerName"} onChange={event => change("ownerName", event.target.value)} /></div>
-          <div className={styles.field}><label htmlFor="owner-email">Correo electrónico</label><input id="owner-email" name="email" type="email" autoComplete="username" autoCapitalize="none" placeholder="nombre@tunegocio.com" required maxLength={254} value={form.email} aria-invalid={errorField === "email"} aria-describedby="email-hint" onChange={event => change("email", event.target.value)} /><p id="email-hint" className={styles.hint}>Usa un correo real al que tengas acceso.</p></div>
+          <div className={styles.field}><label htmlFor="owner-email">Correo electrónico</label><input id="owner-email" name="email" type="email" autoComplete="username" autoCapitalize="none" placeholder="nombre@tunegocio.com" required maxLength={254} value={registrationEmail} aria-invalid={errorField === "email"} aria-describedby="email-hint" onChange={event => {
+            if (socialProvider) { setSocialEmail(event.target.value); setError(null); setErrorField(null); }
+            else change("email", event.target.value);
+          }} /><p id="email-hint" className={styles.hint}>Usa un correo real al que tengas acceso.</p></div>
+          {!socialProvider && <>
           <div className={styles.field}><label htmlFor="owner-password">Contraseña</label><div className={styles.passwordWrap}><input id="owner-password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={12} maxLength={128} required value={form.password} aria-describedby="password-hint" aria-invalid={errorField === "password"} onChange={event => change("password", event.target.value)} /><button type="button" className={styles.passwordToggle} onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={showPassword}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div><p id="password-hint" className={styles.hint}>Entre 12 y 128 caracteres. Puedes usar una frase fácil de recordar.</p></div>
           <div className={styles.field}><label htmlFor="confirm-password">Confirma tu contraseña</label><input id="confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} aria-invalid={errorField === "confirmPassword"} onChange={event => { setConfirmPassword(event.target.value); setError(null); setErrorField(null); }} /></div>
+          </>}
         </>}
         {step === 3 && <>
           <dl className={styles.review}>
             <div><dt>Negocio</dt><dd>{form.name}<span>{form.slug}</span></dd></div>
             <div><dt>Actividades</dt><dd>{ACTIVITIES.filter(activity => form.activeModules.includes(activity.id)).map(activity => activity.label).join(", ")}</dd></div>
-            <div><dt>Administrador</dt><dd>{form.ownerName}<span>{form.email.trim().toLowerCase()}</span></dd></div>
+            <div><dt>Administrador</dt><dd>{form.ownerName}<span>{registrationEmail.trim().toLowerCase()}</span></dd></div>
           </dl>
           {!registered && <><div className={styles.planNote}><ShieldCheck size={21} aria-hidden="true" /><div><strong>Empieza con acceso de evaluación</strong><p>Crear tu cuenta no genera un cobro. Podrás revisar y contratar un plan desde Facturación.</p></div></div>
           <p className={styles.notice}>Esta cuenta administrará un negocio nuevo. Si ya tienes uno registrado, <Link href="/login">ingresa con tu cuenta</Link>.</p></>}

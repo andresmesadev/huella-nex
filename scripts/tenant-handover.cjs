@@ -56,7 +56,7 @@ const OMITTED_FIELDS = {
   AiUsageEntry: 'operationKey providerUsage', AiQuotaChange: 'actorHash',
 };
 const EXCLUDED = {
-  authentication: fields('OperatorAuthority OperatorProof OperatorSubject OperatorChannelRoute OperatorLinkChallenge OperatorLink OperatorAuthorization OperatorParticipant OperatorThread OperatorSession OperatorInteraction StaffCredential WhatsAppConnection WhatsAppConnectionChallenge WhatsAppConnectionEvent ApiKey ClientVerificationCode ClientSession'),
+  authentication: fields('OperatorAuthority OperatorProof OperatorSubject OperatorChannelRoute OperatorLinkChallenge OperatorLink OperatorAuthorization OperatorParticipant OperatorThread OperatorSession OperatorInteraction StaffCredential StaffSocialIdentity WhatsAppConnection WhatsAppConnectionChallenge WhatsAppConnectionEvent ApiKey ClientVerificationCode ClientSession'),
   technicalProcessing: fields('OperatorMessage OperatorInboundWork OperatorReview OperatorDelivery OperatorAudit AppointmentBookingGuard DomainEvent EventDelivery InboundJob OperationalRequest OperationalAction ActionRevision ExecutionReceipt PublicationIntent AutomationExecution'),
   derivedOrSharedCatalogue: fields('MemoryEmbedding EventType AutomationTemplate'),
 };

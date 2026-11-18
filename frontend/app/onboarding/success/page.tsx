@@ -8,6 +8,7 @@ import styles from "@/components/onboarding/registration.module.css";
 export default async function OnboardingSuccessPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  if (session.user.socialIdentity) redirect("/onboarding");
   return <RegistrationShell>
     <div className={styles.successIcon}><Check size={26} aria-hidden="true" /></div>
     <h2 className={styles.title}>Tu cuenta está lista.</h2>
