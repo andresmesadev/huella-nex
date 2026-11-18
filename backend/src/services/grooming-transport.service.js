@@ -18,8 +18,18 @@ const dateKey = value => new Date(new Date(value).getTime() - 5 * 3600000).toISO
 
 // New manual visits start from the saved preference; an explicit per-visit
 // choice always wins. Never infer a transport mode from a price alone.
-function transportFromPetPreference({ pet, owner, canConfirm = false }) {
+function transportFromPetPreference({ pet, owner, canConfirm = false, contact }) {
   const mode = pet?.defaultGroomingTransportMode;
+  if (contact !== undefined) {
+    if (!['round_trip', 'pickup', 'delivery'].includes(mode)) throw new TransportError('Revisa la modalidad habitual de llegada de esta mascota.');
+    if (!contact || typeof contact !== 'object' || Array.isArray(contact) ||
+        Object.keys(contact).some(key => !['address', 'neighborhood'].includes(key)) ||
+        typeof contact.address !== 'string' || !contact.address.trim() || contact.address.trim().length > 500 ||
+        (contact.neighborhood !== undefined && (typeof contact.neighborhood !== 'string' || contact.neighborhood.trim().length > 200))) {
+      throw new TransportError('Confirma una dirección de hasta 500 caracteres y un barrio de hasta 200 caracteres.', 400);
+    }
+    owner = { address: contact.address.trim(), neighborhood: contact.neighborhood === undefined ? owner?.neighborhood : contact.neighborhood.trim() };
+  }
   if (!['none', 'round_trip', 'pickup', 'delivery'].includes(mode)) return undefined;
   if (mode === 'none') return { mode: 'none' };
   const reference = resolveAppointmentTotal({ pet, serviceType: 'grooming', transportMode: mode }).transportReferencePrice;

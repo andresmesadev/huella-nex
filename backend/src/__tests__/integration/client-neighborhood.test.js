@@ -22,6 +22,17 @@ beforeEach(() => {
     return row;
   });
 });
+
+test('el detalle de reserva carga la llegada habitual para pedir dirección sin exponer precios al operador', async () => {
+  row.pets = [{ id: 'pet-a', name: 'Mascota ficticia', type: 'dog', defaultGroomingTransportMode: 'pickup', defaultGroomingPrice: 60000 }];
+  const response = await request(app).get('/clients/owner-a').set('x-test-basic', 'yes');
+  expect(response.status).toBe(200);
+  expect(response.body.pets[0].defaultGroomingTransportMode).toBe('pickup');
+  expect(response.body.pets[0]).not.toHaveProperty('defaultGroomingPrice');
+  expect(prisma.user.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+    include: expect.objectContaining({ pets: expect.objectContaining({ select: expect.objectContaining({ defaultGroomingTransportMode: true }) }) }),
+  }));
+});
 test('updates and reads a trimmed neighborhood without changing address or notes', async () => {
   const updated = await request(app).patch('/clients/owner-a').send({ neighborhood: '  Robledo Miramar  ' });
   expect(updated.status).toBe(200);

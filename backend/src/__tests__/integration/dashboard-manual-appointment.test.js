@@ -71,6 +71,45 @@ test('una elección explícita para esta visita prevalece sobre la llegada habit
   expect(createAppointment).toHaveBeenCalledWith(expect.objectContaining({ transport: { mode: 'none' } }));
 });
 
+test('permite completar la dirección de una recogida habitual desde la nueva cita y conserva la tarifa', async () => {
+  habitualGrooming();
+  prisma.user.findFirst.mockResolvedValue({ id: 'user-1', address: null, neighborhood: null });
+  const response = await request(appFor('tenant-a', ['grooming'])).post('/api/dashboard/appointments').send({
+    ...body, transportContact: { address: '  Calle ficticia 10  ', neighborhood: '  Barrio de prueba  ' },
+  });
+  expect(response.status).toBe(201);
+  expect(createAppointment).toHaveBeenCalledWith(expect.objectContaining({
+    transport: { mode: 'round_trip', address: 'Calle ficticia 10', neighborhood: 'Barrio de prueba', amount: 20000, confirmed: true },
+  }));
+});
+
+test('completar la dirección no concede permisos para confirmar el domicilio', async () => {
+  habitualGrooming('pickup');
+  expect((await request(appFor()).post('/api/dashboard/appointments').send({
+    ...body, transportContact: { address: 'Dirección ficticia' },
+  })).status).toBe(201);
+  expect(createAppointment.mock.calls[0][0].transport).toMatchObject({ address: 'Dirección ficticia', confirmed: false });
+  expect(createAppointment.mock.calls[0][0].transport).not.toHaveProperty('amount');
+});
+
+test.each([null, { address: '  ' }, { address: 'x'.repeat(501) }, { address: 'Dirección', neighborhood: 12 }, { address: 'Dirección', amount: 0 }])(
+  'rechaza datos de domicilio inválidos antes de crear la cita (%p)', async transportContact => {
+    habitualGrooming();
+    const response = await request(appFor('tenant-a', ['grooming'])).post('/api/dashboard/appointments').send({ ...body, transportContact });
+    expect(response.status).toBe(400);
+    expect(createAppointment).not.toHaveBeenCalled();
+  },
+);
+
+test('no combina una dirección habitual con una modalidad explícita distinta', async () => {
+  habitualGrooming();
+  const response = await request(appFor('tenant-a', ['grooming'])).post('/api/dashboard/appointments').send({
+    ...body, transport: { mode: 'none' }, transportContact: { address: 'Dirección ficticia' },
+  });
+  expect(response.status).toBe(400);
+  expect(createAppointment).not.toHaveBeenCalled();
+});
+
 test('una reserva sin permiso de precios conserva el domicilio pendiente de confirmar', async () => {
   habitualGrooming();
   expect((await request(appFor()).post('/api/dashboard/appointments').send(body)).status).toBe(201);

@@ -420,8 +420,11 @@ router.post("/appointments", async (req, res) => {
 
     const appointmentDate = buildAppointmentDateTime(dateKey, Number(hour));
     const canConfirmTransport = Boolean(req.access?.capabilities.appointmentPrice || req.access?.capabilities.administration);
+    if (req.body.transportContact !== undefined && (bucket !== 'grooming' || req.body.transport !== undefined)) {
+      return res.status(400).json({ error: 'La dirección habitual corresponde a una cita de peluquería sin otra modalidad de traslado.' });
+    }
     const transport = req.body.transport !== undefined ? req.body.transport : bucket === 'grooming'
-      ? require('../../services/grooming-transport.service').transportFromPetPreference({ pet, owner: user, canConfirm: canConfirmTransport })
+      ? require('../../services/grooming-transport.service').transportFromPetPreference({ pet, owner: user, canConfirm: canConfirmTransport, contact: req.body.transportContact })
       : undefined;
     const appointment = await createAppointment({
       tenantId, userId, petId, serviceId, autoAssignGroomer: true, ...(staffId ? { staffId } : {}),

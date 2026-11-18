@@ -126,6 +126,7 @@ const getClientById = async (clientId, tenantId) => {
           notes: true,
           operationalAlerts: true,
           defaultGroomingPrice: true,
+          defaultGroomingTransportMode: true,
           _count: { select: { medicalRecords: true, appointments: true } },
         },
       },

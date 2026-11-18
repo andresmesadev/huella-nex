@@ -28,6 +28,20 @@ test('una preferencia sin dirección no permite guardar un domicilio incompleto'
   await expect(prepareTransport({ appointment: { ...base, pet }, transport, canConfirm: true }, {})).rejects.toMatchObject({ code: 'GROOMING_TRANSPORT' });
 });
 
+test('una dirección completada para esta visita permite guardar el traslado y conserva el acuerdo de la mascota', async () => {
+  const pet = { defaultGroomingPrice: 60000, defaultGroomingTransportMode: 'round_trip', defaultGroomingTransportPrice: 20000 };
+  const owner = { address: null, neighborhood: null };
+  const transport = transportFromPetPreference({ pet, owner, canConfirm: true, contact: { address: 'Calle ficticia 10', neighborhood: 'Barrio de prueba' } });
+  const prepared = await prepareTransport({ appointment: { ...base, pet }, transport, canConfirm: true }, {});
+  expect(prepared.data).toMatchObject({ transportAddress: 'Calle ficticia 10', transportNeighborhood: 'Barrio de prueba', transportPrice: 20000 });
+  expect(prepared.quote.totalPrice).toBe(80000);
+  expect(owner).toEqual({ address: null, neighborhood: null });
+});
+
+test.each(['none', null])('una dirección explícita no inventa una modalidad cuando la preferencia es %p', mode => {
+  expect(() => transportFromPetPreference({ pet: { defaultGroomingTransportMode: mode }, contact: { address: 'Dirección ficticia' } })).toThrow();
+});
+
 test('copiar una preferencia no concede permiso para confirmar tarifas', async () => {
   const pet = { defaultGroomingTransportMode: 'pickup', defaultGroomingTransportPrice: 20000 };
   const transport = transportFromPetPreference({ pet, owner: { address: 'Dirección' } });

@@ -20,9 +20,10 @@ import { slotTimeLabel as hourLabel } from "@/lib/slot-time";
 import { FormDialogContent, FormDialogHeader, FormDialogBody, FormDialogFooter, FormSection } from "./form-layout";
 import { FieldError, FormSubmissionError, useFormFeedback } from "./form-feedback";
 import { submissionErrorMessage } from "@/lib/form-feedback";
+import { transportLabels } from "@/lib/grooming-transport";
 
-type Client = { id: string; name: string | null; phone: string; pets?: Pet[]; matchingPets?: Pet[] };
-type Pet = { id: string; name: string; type: string };
+type Client = { id: string; name: string | null; phone: string; address?: string | null; neighborhood?: string | null; pets?: Pet[]; matchingPets?: Pet[] };
+type Pet = { id: string; name: string; type: string; defaultGroomingTransportMode?: string | null };
 type Service = {
   id: string;
   name: string;
@@ -54,6 +55,7 @@ function NewAppointmentContent({
   const [client, setClient] = useState<Client | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [petId, setPetId] = useState("");
+  const [transportContact, setTransportContact] = useState<{ petId: string; address: string; neighborhood: string } | null>(null);
   const access = useDashboardAccess();
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState("");
@@ -75,8 +77,14 @@ function NewAppointmentContent({
   const currentSlots = slotResult?.key === slotKey ? slotResult : null;
   const availableHours = currentSlots?.slots ?? [];
   const loadingSlots = Boolean(serviceId && dateKey && !currentSlots);
+  const grooming = (services.find(service => service.id === serviceId)?.bookingCategory ?? services.find(service => service.id === serviceId)?.category) === "grooming";
+  const transportMode = pets.find(pet => pet.id === petId)?.defaultGroomingTransportMode;
+  const needsTransportAddress = grooming && ["round_trip", "pickup", "delivery"].includes(transportMode ?? "");
+  const contact = transportContact?.petId === petId ? transportContact : { address: client?.address ?? "", neighborhood: client?.neighborhood ?? "" };
+  const contactChanged = transportContact?.petId === petId &&
+    (transportContact.address !== (client?.address ?? "") || transportContact.neighborhood !== (client?.neighborhood ?? ""));
   const dirty = Boolean(serviceId || hour || dateKey !== initialDate ||
-    (petId && petId !== initialPetId) || query !== initialQuery);
+    (petId && petId !== initialPetId) || query !== initialQuery || contactChanged);
   const discard = useDialogEditGuard(dirty, saving);
 
   useEffect(() => {
@@ -203,8 +211,9 @@ function NewAppointmentContent({
     try {
       const res = await fetch(proxyUrl(`/api/dashboard/clients/${selected.id}${tenantQuery(tenant)}`), { cache: "no-store" });
       if (!res.ok) throw new Error("No se pudieron cargar las mascotas del cliente");
-      const detail = await res.json() as { pets?: Pet[] };
+      const detail = await res.json() as Client;
       const ownerPets = detail.pets ?? [];
+      setClient(detail);
       setPets(ownerPets);
       if (selectedPetId) {
         if (!ownerPets.some(pet => pet.id === selectedPetId)) throw new Error("La mascota ya no está vinculada a este propietario. Revisa su ficha antes de agendar.");
@@ -223,6 +232,7 @@ function NewAppointmentContent({
     const customErrors: Record<string, string> = {};
     if (!client) customErrors["appointment-client"] = "Busca y selecciona un cliente de los resultados, o regístralo.";
     if (client && !petId) customErrors["appointment-pet"] = "Selecciona la mascota que asistirá.";
+    if (needsTransportAddress && !contact.address.trim()) customErrors["appointment-transport-address"] = "Escribe la dirección para la recogida o entrega.";
     if (serviceId && dateKey && !loadingSlots && !currentSlots?.error && availableHours.length > 0 && (!hour || !availableHours.includes(Number(hour)))) customErrors["appointment-hour"] = "Elige uno de los horarios disponibles.";
     if (!feedback.validate(event.currentTarget, { "appointment-service": "Selecciona el servicio.", "appointment-date": "Selecciona la fecha." }, customErrors)) return;
     if (!client || !petId || !serviceId || !dateKey || !hour || !availableHours.includes(Number(hour))) return;
@@ -232,7 +242,8 @@ function NewAppointmentContent({
       const res = await fetch(proxyUrl(`/api/dashboard/appointments${tenantQuery(tenant)}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: client.id, petId, serviceId, dateKey, hour: Number(hour), ...(effectiveStaffId ? { staffId: effectiveStaffId } : {}) }),
+        body: JSON.stringify({ userId: client.id, petId, serviceId, dateKey, hour: Number(hour), ...(effectiveStaffId ? { staffId: effectiveStaffId } : {}),
+          ...(needsTransportAddress ? { transportContact: { address: contact.address.trim(), neighborhood: contact.neighborhood.trim() } } : {}) }),
       });
       if (!res.ok) {
         const payload = await res.json().catch(() => ({})) as { error?: string };
@@ -337,7 +348,7 @@ function NewAppointmentContent({
             </div>
             </FormSection>
             <FormSection title="Fecha y hora" className="space-y-0 rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
-            {services.find(service => service.id === serviceId)?.category === 'grooming' && <p className="mb-3 text-sm text-muted-foreground">La cita usará la llegada y el domicilio habituales guardados en la ficha de la mascota. Podrás revisar o ajustar el domicilio al abrir la atención.</p>}
+            {grooming && <p className="mb-3 text-sm text-muted-foreground">La cita usará la modalidad de llegada y la tarifa habituales de la mascota.</p>}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="min-w-0 space-y-1.5">
                 <label htmlFor="appointment-date" className="text-sm font-semibold">Fecha</label>
@@ -359,6 +370,23 @@ function NewAppointmentContent({
                   : "Disponibilidad según el área o el horario habitual. Si eliges una hora pasada de hoy, se registra como llegada."}
             </div>
             </FormSection>
+            {needsTransportAddress && <FormSection title="Dirección del domicilio" className="space-y-3 rounded-none border-0 p-0 [&_legend]:mb-3 [&_legend]:px-0">
+              <p className="text-sm text-muted-foreground">{transportLabels[transportMode!]} · Confirma la dirección para esta cita.</p>
+              <div className="space-y-1.5">
+                <label htmlFor="appointment-transport-address" className="text-sm font-semibold">Dirección de recogida o entrega (obligatoria)</label>
+                <Input id="appointment-transport-address" name="transportAddress" autoComplete="street-address" maxLength={500} required value={contact.address}
+                  {...feedback.fieldProps("appointment-transport-address")}
+                  onChange={event => { feedback.clearField("appointment-transport-address"); setTransportContact({ petId, address: event.target.value, neighborhood: contact.neighborhood }); }} />
+                <FieldError id="appointment-transport-address" message={feedback.errors["appointment-transport-address"]} />
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="appointment-transport-neighborhood" className="text-sm font-semibold">Barrio (opcional)</label>
+                <Input id="appointment-transport-neighborhood" name="transportNeighborhood" maxLength={200} value={contact.neighborhood}
+                  {...feedback.fieldProps("appointment-transport-neighborhood")}
+                  onChange={event => { feedback.clearField("appointment-transport-neighborhood"); setTransportContact({ petId, address: contact.address, neighborhood: event.target.value }); }} />
+                <FieldError id="appointment-transport-neighborhood" message={feedback.errors["appointment-transport-neighborhood"]} />
+              </div>
+            </FormSection>}
             {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
           </fieldset>
           </FormDialogBody>

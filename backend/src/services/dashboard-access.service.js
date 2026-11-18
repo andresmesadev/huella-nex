@@ -66,6 +66,7 @@ function moduleAllowsAppointment(access, row) {
 
 function operationalPet(pet) {
   return { id: pet.id, name: pet.name, type: pet.type, breed: pet.breed ?? null, gender: pet.gender ?? null,
+    defaultGroomingTransportMode: pet.defaultGroomingTransportMode ?? null,
     birthDate: pet.birthDate ?? null, ownerId: pet.ownerId, owner: pet.owner,
     operationalAlerts: pet.operationalAlerts ?? null, _count: { appointments: pet._count?.appointments ?? 0 } };
 }

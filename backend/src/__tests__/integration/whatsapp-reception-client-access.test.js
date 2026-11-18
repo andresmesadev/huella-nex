@@ -15,10 +15,11 @@ test("recepción solo obtiene identidad y contacto en el listado general, inclus
   expect(listClients).toHaveBeenCalledWith("tenant-a",expect.anything());
 });
 test("detalle para reservar no filtra pesos, notas, historial ni precios del expediente",async()=>{
-  getClientById.mockResolvedValue({id:"owner",name:"Ana",phone:"000",notes:"Reservado",appointments:[{finalPrice:60000}],pets:[{id:"pet",name:"Luna",type:"dog",weight:12,notes:"Reservado",defaultGroomingPrice:50000}]});
+  getClientById.mockResolvedValue({id:"owner",name:"Ana",phone:"000",notes:"Reservado",appointments:[{finalPrice:60000}],pets:[{id:"pet",name:"Luna",type:"dog",weight:12,notes:"Reservado",defaultGroomingPrice:50000,defaultGroomingTransportMode:"round_trip"}]});
   const response=await request(app).get("/api/dashboard/clients/owner");
   expect(response.status).toBe(200);expect(response.body).toMatchObject({id:"owner",name:"Ana",phone:"000",pets:[{id:"pet",name:"Luna",type:"dog"}]});
   expect(response.body).not.toHaveProperty("notes");
+  expect(response.body.pets[0].defaultGroomingTransportMode).toBe('round_trip');
   for (const key of ["weight", "notes", "defaultGroomingPrice"]) expect(response.body.pets[0]).not.toHaveProperty(key);
   expect(response.body.appointments[0]).not.toHaveProperty("finalPrice");
   expect(getClientById).toHaveBeenCalledWith("owner","tenant-a");
