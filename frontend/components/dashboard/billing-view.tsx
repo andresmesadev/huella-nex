@@ -9,66 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type BillingStatus } from "@/app/dashboard/billing/page";
 import { billingPlanRequest } from "@/lib/billing-plan-request";
 
-// ── Plan definitions ──────────────────────────────────────────
-
-type PlanId = "free" | "basic" | "pro" | "custom";
-
-type Plan = {
-  id: PlanId;
-  name: string;
-  price: string;
-  period: string;
-  features: string[];
-  highlight?: boolean;
-};
-
-const OPERATIONAL_FEATURES = [
-  "Gestión operativa de un establecimiento",
-  "Agenda, clientes y mascotas según módulos habilitados",
-  "Equipo con roles y permisos",
-  "Caja, inventario y comprobantes operativos",
-  "Cupo de IA por confirmar en la oferta",
-];
-
-const PLANS: Plan[] = [
-  {
-    id: "free",
-    name: "Evaluación",
-    price: "$0",
-    period: "evaluación",
-    features: [
-      "Acceso de evaluación al dashboard según habilitación",
-      "Gestión operativa según módulos y permisos",
-      "IA y WhatsApp sujetos a habilitación",
-    ],
-  },
-  {
-    id: "basic",
-    name: "Básico",
-    price: "$49.000",
-    period: "mes",
-    highlight: true,
-    features: OPERATIONAL_FEATURES,
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "$89.000",
-    period: "mes",
-    features: OPERATIONAL_FEATURES,
-  },
-  {
-    id: "custom",
-    name: "Personalizado",
-    price: "A convenir",
-    period: "cotización",
-    features: [
-      "Alcance acordado según las necesidades de tu negocio",
-      "Propuesta y condiciones antes de contratar",
-      "Precio definido mediante cotización",
-    ],
-  },
-];
+import { PLANS, type Plan, type PlanId } from "@/lib/plan-catalog";
 
 // ── Status helpers ────────────────────────────────────────────
 
@@ -111,7 +52,7 @@ function PlanCard({
   loading: boolean;
 }) {
   return (
-    <div className={`relative flex flex-col rounded-xl border p-5 gap-4
+    <div id={"plan-" + plan.id} className={`relative flex scroll-mt-28 flex-col rounded-xl border p-5 gap-4 target:ring-2 target:ring-primary
       ${plan.highlight ? "border-primary" : ""}
       ${isCurrent ? "bg-muted/40" : "bg-background"}`}
     >
