@@ -31,6 +31,7 @@ const views = [
 
 export function InventoryWorkspace() {
   const access = useDashboardAccess(), tenant = useTenant(), manage = !!access?.capabilities.inventory_manage;
+  const showInventory = !!access?.navigation.includes("/dashboard/inventory");
   const [rows, setRows] = useState<InventoryProduct[]>([]);
   const continuity = useListContinuity("inventory", inventoryListFilters({}, access), raw => inventoryListFilters(raw, access));
   const { q: search, use, status } = continuity.filters;
@@ -53,7 +54,7 @@ export function InventoryWorkspace() {
   const url = useCallback((path: string) => proxyUrl(path + (tenant ? (path.includes("?") ? "&" : "?") + "tenantId=" + encodeURIComponent(tenant) : "")), [tenant]);
 
   useEffect(() => {
-    if (!continuity.ready || !access?.capabilities.inventory_read) return;
+    if (!continuity.ready || !showInventory) return;
     const abort = new AbortController();
     const timer = setTimeout(async () => {
       setBusy(true); setError("");
@@ -72,7 +73,7 @@ export function InventoryWorkspace() {
       finally { if (!abort.signal.aborted) setBusy(false); }
     }, 200);
     return () => { clearTimeout(timer); abort.abort(); };
-  }, [search, use, status, inactive, cursor, refresh, url, access?.capabilities.inventory_read, continuity.ready]);
+  }, [search, use, status, inactive, cursor, refresh, url, showInventory, continuity.ready]);
   useEffect(() => {
     // A restored filter starts at the first page, not a cursor from another query.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -116,7 +117,8 @@ export function InventoryWorkspace() {
   function clearFilters() { continuity.clear(); setCursor(""); }
 
   if (!access) return <p role="status" className="p-6">Comprobando permisos…</p>;
-  if (!access.capabilities.inventory_read) return <p className="p-6">Tu perfil no tiene acceso al inventario.</p>;
+  if (!access.capabilities.retail) return <p className="p-6">Inventario está disponible cuando Pet Shop está activo.</p>;
+  if (!showInventory) return <p className="p-6">Tu perfil no tiene acceso al inventario.</p>;
   if (!continuity.ready) return <p role="status" className="p-6">Preparando filtros de Inventario…</p>;
   const disabled = busy || operation.busy || operation.pending.length > 0;
   const filtered = !!(search || use || status || inactive);

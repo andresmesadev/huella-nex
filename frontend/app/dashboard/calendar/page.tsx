@@ -1,4 +1,4 @@
-﻿import { Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { connection } from "next/server";
 import Link from "next/link";
 
@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { WeekCalendar } from "@/components/dashboard/week-calendar";
 import { type TodayAppointment } from "@/lib/appointments";
 import { previewWeekData } from "@/lib/calendar-preview";
+import { agendaGridRange, type BusinessHours } from "@/lib/agenda-display";
 import type { ClientDetail } from "@/lib/clients";
 
 type WeekData = {
@@ -21,30 +22,6 @@ type PageProps = {
   searchParams: Promise<{ date?: string; tenant?: string; preview?: string; client?: string }>;
 };
 
-type DayHours = { open: string; close: string; active: boolean };
-type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
-type BusinessHours = Partial<Record<DayKey, DayHours>> & {
-  services?: Partial<Record<"vet" | "grooming", Partial<Record<DayKey, DayHours>>>>;
-};
-const DAY_KEYS: DayKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-function parseHour(t: string): number {
-  const [h, m] = t.split(":").map(Number);
-  return h + (m ?? 0) / 60;
-}
-
-function resolveRange(bh: BusinessHours | null): { hourStart: number; hourEnd: number } {
-  if (!bh) return { hourStart: 7, hourEnd: 20 };
-  const active = DAY_KEYS.map((key) => bh[key]).filter((d): d is DayHours => Boolean(d?.active));
-  if (!active.length) return { hourStart: 7, hourEnd: 20 };
-  const opens = active.map((d) => parseHour(d.open));
-  const closes = active.map((d) => parseHour(d.close));
-  return {
-    hourStart: Math.floor(Math.min(...opens)),
-    hourEnd: Math.ceil(Math.max(...closes)),
-  };
-}
-
 export default async function CalendarPage({ searchParams }: PageProps) {
   await connection();
   const { date, tenant, preview, client } = await searchParams;
@@ -52,6 +29,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
 
   let data: WeekData | null = isPreview ? previewWeekData(date) : null;
   let businessHours: BusinessHours | null = null;
+  let activeModules: string[] = [];
   let owner: { id: string; name: string } | undefined;
   let ownerError = false;
 
@@ -71,6 +49,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
       if (profileRes.ok) {
         const profile = await profileRes.json();
         businessHours = profile.businessHours ?? null;
+        activeModules = profile.activeModules ?? [];
       }
       if (client) {
         if (clientRes?.ok) {
@@ -82,7 +61,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
     } catch { if (client) ownerError = true; /* La vista mostrará un error de carga. */ }
   }
 
-  const { hourStart, hourEnd } = resolveRange(businessHours);
+  const { hourStart, hourEnd } = agendaGridRange(businessHours, activeModules);
   const retryParams = new URLSearchParams();
   if (date) retryParams.set("date", date);
   if (tenant) retryParams.set("tenant", tenant);

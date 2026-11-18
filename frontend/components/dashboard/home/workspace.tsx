@@ -72,7 +72,7 @@ export async function HomeWorkspace({ access, headers, tenant, date, review }: {
     const count = cash?.pendingCount ?? cash?.toReview.length ?? 0;
     add({ kind: "cash", title: "Confirmar métodos de pago", icon: Wallet, href: href("/dashboard/pos?tab=caja&review=1"), badge: pendingLabel(count, cash?.pendingCount === undefined && !!cash?.hasMore), detail: "Incluye pendientes de días anteriores. El servicio ya tiene un cobro registrado; confirma su método." }, cash !== null, count);
   }
-  if (c.inventory_read) {
+  if (paths.low) {
     for (const [data, status, title, detail] of [
       [expired, "expired", "Unidades vencidas", "Revisa los lotes antes de vender o utilizar productos."],
       [low, "low", "Productos por reponer", "Hay existencias disponibles iguales o inferiores al mínimo, incluidos productos sin stock."],

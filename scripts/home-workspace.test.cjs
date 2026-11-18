@@ -15,7 +15,9 @@ for (const role of ['admin', 'receptionist', 'vet', 'groomer']) {
       const extras = ['cash', 'appointment_price', 'inventory_consume'].filter((_, i) => extra & (1 << i));
       const access = effectiveAccess({ type: role, staffId: 'staff-a', accessPermissions: extras }, modules);
       const sources = homeSources(access, '2026-10-07'), c = access.capabilities;
-      for (const [key, allowed] of Object.entries({ appointments: c.agenda, clinical: c.clinical, grooming: c.grooming, conversations: c.chat, cash: c.cash, low: c.inventory_read, expired: c.inventory_read, expiring: c.inventory_read, finances: c.finance, followups: c.administration && c.services })) assert.equal(!!sources[key], !!allowed, `${role}/${modules}/${extras}/${key}`);
+      const showInventory = modules.includes("retail") && c.inventory_read;
+      assert.equal(access.navigation.includes("/dashboard/inventory"), showInventory);
+      for (const [key, allowed] of Object.entries({ appointments: c.agenda, clinical: c.clinical, grooming: c.grooming, conversations: c.chat, cash: c.cash, low: showInventory, expired: showInventory, expiring: showInventory, finances: c.finance, followups: c.administration && c.services })) assert.equal(!!sources[key], !!allowed, `${role}/${modules}/${extras}/${key}`);
       if (role !== 'admin') assert.equal(sources.finances, null);
       if (bits === 4) assert.equal(sources.appointments, null, 'Pet shop no muestra agenda');
     }

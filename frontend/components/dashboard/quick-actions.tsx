@@ -73,7 +73,7 @@ export function QuickActions({ tenant, access }: { tenant?: string; access: Dash
         })}
       </div>
       {SECONDARY_ACTIONS.some(a => access.capabilities[a.permission]) && <AdditionalAccesses>
-        {SECONDARY_ACTIONS.filter(a => access.capabilities[a.permission]).map((a) => {
+        {SECONDARY_ACTIONS.filter(a => access.capabilities[a.permission] && (a.permission !== "inventory_read" || access.navigation.includes(a.href))).map((a) => {
           const Icon = a.icon;
           return (
             <Link prefetch={false} key={a.href} href={homeHref(a.href, tenant)} className="group inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700">

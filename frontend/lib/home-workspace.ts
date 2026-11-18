@@ -10,6 +10,7 @@ export function homeHref(path: string, tenant?: string | null): string {
 
 export function homeSources(access: DashboardAccess, date: string) {
   const c = access.capabilities;
+  const showInventory = access.navigation.includes("/dashboard/inventory");
   return {
     profile: "/api/dashboard/tenant/profile",
     appointments: c.agenda ? "/api/dashboard/appointments/today" : null,
@@ -17,9 +18,9 @@ export function homeSources(access: DashboardAccess, date: string) {
     grooming: c.grooming ? `/api/dashboard/grooming/appointments?date=${date}` : null,
     conversations: c.chat ? "/api/dashboard/conversations?attention=human&limit=2" : null,
     cash: c.cash ? "/api/dashboard/cash/operational" : null,
-    low: c.inventory_read ? "/api/dashboard/inventory/products?status=low&limit=1" : null,
-    expired: c.inventory_read ? "/api/dashboard/inventory/products?status=expired&limit=1" : null,
-    expiring: c.inventory_read ? "/api/dashboard/inventory/products?status=expiring&limit=1" : null,
+    low: showInventory ? "/api/dashboard/inventory/products?status=low&limit=1" : null,
+    expired: showInventory ? "/api/dashboard/inventory/products?status=expired&limit=1" : null,
+    expiring: showInventory ? "/api/dashboard/inventory/products?status=expiring&limit=1" : null,
     followups: c.administration && c.services ? "/api/dashboard/next-actions/upcoming?limit=6" : null,
     finances: c.finance ? `/api/dashboard/metrics/cashbox?date=${date}` : null,
   };
