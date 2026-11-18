@@ -15,7 +15,14 @@ const social = require("../backend/src/routes/social-auth.routes");
 const onboarding = require("../backend/src/routes/onboarding.routes");
 const staffAuth = require("../backend/src/routes/staff-auth.routes");
 
-test("Social enrollment is isolated by provider, issuer and subject", async () => {
+test("Social enrollment is isolated by provider, issuer and subject", async t => {
+  const priorEnvironment = process.env.NODE_ENV;
+  // Exercise the production token check even though the database is a fixture.
+  process.env.NODE_ENV = "production";
+  t.after(() => {
+    if (priorEnvironment === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = priorEnvironment;
+  });
   const app = express();
   app.use(express.json());
   const internalToken = randomUUID();

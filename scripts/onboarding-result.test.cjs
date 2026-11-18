@@ -62,13 +62,15 @@ function fixture({ provisioning = 'ready', responseBody, malformed = false, logi
       if (name === 'react/jsx-runtime') return { jsx: node, jsxs: node, Fragment: 'Fragment' };
       if (name === 'next/link') return { default: 'a' };
       if (name === 'next/navigation') return { useRouter: () => ({ replace: url => navigation.push(url), refresh: () => navigation.push('refresh') }) };
-      if (name === 'next-auth/react') return { signIn: async (provider, input) => {
+      if (name === 'next-auth/react') return { useSession: () => ({ data: null, status: 'unauthenticated' }), signIn: async (provider, input) => {
         signIns.push({ provider, input });
         if (login instanceof Error) throw login;
         return login;
       } };
       if (name === 'lucide-react') return new Proxy({}, { get: (_, key) => String(key) });
       if (name === '@/components/onboarding/registration-shell') return { RegistrationShell: 'Shell' };
+      if (name === '@/components/auth/social-sign-in-buttons') return { SocialSignInButtons: 'Providers' };
+      if (name === '@/lib/social-identity') return { SOCIAL_PROVIDER_LABELS: {} };
       if (name.endsWith('registration.module.css')) return { default: new Proxy({}, { get: (_, key) => String(key) }) };
       if (name === '@/lib/onboarding-result') return resultModule;
       throw new Error('Unexpected dependency: ' + name);
@@ -188,6 +190,7 @@ for (const provisioning of ['ready', 'pending']) test(`public proxy preserves th
     exports: proxy, Response, URL, AbortSignal, process: { env: {} },
     require(name) {
       if (name === '@/lib/api') return { apiUrl: path => 'https://backend.example.invalid' + path };
+      if (name === '@/auth') return { auth: () => { assert.fail('Password registration must not use a social session'); } };
       if (name === '@/lib/operator-channel/admin-auth') return { canonicalAdminEmail: email => email.toLowerCase().trim() };
       throw new Error('Unexpected public proxy dependency: ' + name);
     },
