@@ -30,7 +30,7 @@ const questions = [
   { question: "¿Necesito conectar WhatsApp o usar inteligencia artificial?", answer: "No. Puedes trabajar con el dashboard y registrar directamente citas, clientes, ventas y pagos. Las integraciones de WhatsApp e IA se revisan por separado, según su disponibilidad y las condiciones de activación." },
   { question: "¿Puedo registrar una parte en efectivo y otra por transferencia?", answer: "Sí. Puedes dividir el pago entre ambos métodos y conservar el desglose en el cobro, para revisar cómo se recibió el dinero." },
   { question: "¿Cómo funcionan las comisiones?", answer: "Puedes configurar el porcentaje del profesional y señalar qué servicios participan en el reparto. El domicilio y los productos se distinguen de los servicios comisionables para calcular la parte correspondiente." },
-  { question: "¿Cómo puedo conocer los planes y empezar?", answer: "Estamos preparando una beta cerrada con acompañamiento. Solicita una demostración para revisar tu actividad, las funciones que necesitas y las condiciones de participación. Los precios y el alcance se confirman antes de contratar." },
+  { question: "¿Tengo que pagar para crear mi cuenta?", answer: "Puedes registrar tu negocio con acceso de evaluación sin pagar. Cuando quieras contratar, consulta los planes disponibles en Facturación." },
   { question: "¿El comprobante del punto de venta es una factura electrónica?", answer: "El comprobante registra el cobro de la operación. No sustituye una factura electrónica ni su emisión a través de la DIAN o de un proveedor autorizado." },
 ];
 
@@ -38,8 +38,8 @@ function Brand() {
   return <Link href="/" className={styles.brand} aria-label="Huella Nex, inicio"><ProductBrand size="md" /></Link>;
 }
 
-function DemoLink({ className, children = "Solicitar una demostración" }: { className: string; children?: React.ReactNode }) {
-  return <a href={demoHref} className={className}>{children}<ArrowRight size={18} aria-hidden="true" /></a>;
+function RegisterLink({ className, showArrow = true }: { className: string; showArrow?: boolean }) {
+  return <Link href="/onboarding" className={className}>Crear cuenta{showArrow && <ArrowRight size={18} aria-hidden="true" />}</Link>;
 }
 
 export default function LandingPage() {
@@ -49,15 +49,21 @@ export default function LandingPage() {
       <header className={styles.header}><div className={styles.headerInner}>
         <Brand />
         <nav className={styles.desktopNav} aria-label="Navegación principal"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><a href="#preguntas">Preguntas</a></nav>
-        <div className={styles.headerActions}><Link href="/login" className={styles.loginLink}>Ingresar</Link><DemoLink className={styles.headerCta}>Solicitar demo</DemoLink></div>
+        <nav className={styles.headerActions} aria-label="Acceso a Huella Nex">
+          <Link href="/login" className={styles.loginLink}>Ingresar</Link>
+          <RegisterLink className={styles.headerCta} showArrow={false} />
+        </nav>
       </div></header>
       <main id="contenido">
         <section className={styles.hero} aria-labelledby="hero-title"><div className={styles.heroInner}>
           <div className={styles.heroCopy}>
             <p className={styles.kicker}><PawPrint size={17} aria-hidden="true" /> Gestión para negocios de mascotas</p>
             <h1 id="hero-title">Tu negocio de mascotas.<br />Todo bajo control.</h1>
-            <p className={styles.heroDescription}>La cita que llega, el producto que vendes y las cuentas al cerrar el día. Organiza tu operación con Huella Nex y dedica más atención a quienes te visitan.</p>
-            <div className={styles.heroActions}><DemoLink className={styles.primaryButton} /><a href="#plataforma" className={styles.textButton}>Explorar la plataforma <ChevronDown size={17} aria-hidden="true" /></a></div>
+            <p className={styles.heroDescription}>Organiza tus citas, lleva el historial de cada mascota y controla los cobros y la caja. Si vendes productos, también puedes gestionar tu inventario.</p>
+            <div className={styles.heroActions}>
+              <RegisterLink className={styles.primaryButton} />
+              <a href={demoHref} className={styles.textButton}>Solicitar una demostración</a>
+            </div>
             <div className={styles.heroAudiences}><span>Veterinarias</span><span>Peluquerías</span><span>Pet shops</span></div>
           </div>
           <OperationPreview />
@@ -85,11 +91,11 @@ export default function LandingPage() {
           <div className={styles.questions}>{questions.map(({ question, answer }) => <details className={styles.question} key={question}><summary>{question}<ChevronDown size={19} aria-hidden="true" /></summary><p>{answer}</p></details>)}</div>
         </div></section>
         <section className={styles.finalCta} aria-labelledby="contact-title"><div className={styles.finalInner}>
-          <div><span className={styles.betaLabel}>Beta cerrada con acompañamiento</span><h2 id="contact-title">Conozcamos tu negocio.<br />Te mostramos Huella Nex.</h2><p>Revisamos juntos tus servicios, tu equipo y lo que necesitas para empezar.</p></div>
-          <div className={styles.finalActions}><DemoLink className={styles.lightButton} /><small>Se abrirá tu aplicación de correo.</small></div>
+          <div><h2 id="contact-title">Abre el espacio de tu negocio</h2><p>Elige tu actividad y configura los servicios y horarios con los que trabajas. Crear tu cuenta no genera un cobro.</p></div>
+          <div className={styles.finalActions}><RegisterLink className={styles.lightButton} /></div>
         </div></section>
       </main>
-      <footer className={styles.footer}><div className={styles.footerInner}><div><Brand /><p>Gestión para quienes cuidan mascotas.</p></div><nav aria-label="Enlaces del pie de página"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><Link href="/login">Ingresar al dashboard</Link><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`}>Contacto</a></nav><small>© {new Date().getFullYear()} Huella Nex</small></div></footer>
+      <footer className={styles.footer}><div className={styles.footerInner}><div><Brand /><p>Gestión para quienes cuidan mascotas.</p></div><nav aria-label="Enlaces del pie de página"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><Link href="/login">Ingresar</Link><Link href="/onboarding">Crear cuenta</Link><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`}>Contacto</a></nav><small>© {new Date().getFullYear()} Huella Nex</small></div></footer>
     </div>
   );
 }
