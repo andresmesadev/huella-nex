@@ -29,7 +29,7 @@ function nodes(node) {
 
 // Execute the real page and handlers with stateful hooks and simulated I/O.
 // No browser, database, storage, credentials service or outbound mail is used.
-function fixture({ provisioning = 'ready', responseBody, malformed = false, login = { ok: true }, hold = false } = {}) {
+function fixture({ provisioning = 'ready', responseBody, malformed = false, login = { ok: true }, hold = false, isAvailable = () => true } = {}) {
   const state = [], refs = [], effects = [], timers = new Map(), exports = {};
   const requests = [], signIns = [], navigation = [], pendingEffects = [];
   let stateCursor, refCursor, effectCursor, dirty = true, tree, timerId = 0, release;
@@ -77,7 +77,7 @@ function fixture({ provisioning = 'ready', responseBody, malformed = false, logi
     },
     fetch: async (url, options) => {
       requests.push({ url, options });
-      if (url.includes('/verify/')) return { ok: true, json: async () => ({ available: true }) };
+      if (url.includes('/verify/')) return { ok: true, json: async () => ({ available: isAvailable(url.split('/').at(-1)) }) };
       assert.equal(url, '/api/onboarding/register');
       if (gate) await gate;
       return { ok: true, status: 201, json: async () => {
@@ -111,12 +111,37 @@ function fixture({ provisioning = 'ready', responseBody, malformed = false, logi
     await field('owner-password', 'Password synthetic 123'); await field('confirm-password', 'Password synthetic 123');
     await submit(); await flush();
   }
-  return { prepare, submit, flush, release: () => release?.(), requests, signIns, navigation, state,
+  return { prepare, submit, flush, field, find, release: () => release?.(), requests, signIns, navigation, state,
     get tree() { return tree; }, get text() { return textOf(tree); },
     links: () => nodes(tree).filter(node => node.type === 'a'),
     registrations: () => requests.filter(request => request.url === '/api/onboarding/register'),
   };
 }
+
+test('new businesses choose their activities explicitly', async () => {
+  const f = fixture(); await f.flush();
+  const activities = nodes(f.tree).filter(node => node.props?.name === 'activities');
+  assert.equal(activities.length, 3);
+  assert.ok(activities.every(node => node.props.checked === false));
+  await f.field('business-name', 'Peluquería demo');
+  await f.submit(); await f.flush();
+  assert.match(f.text, /Cuéntanos sobre tu negocio/);
+  assert.equal(f.find(node => node.props?.type === 'submit').props.disabled, true);
+  f.find(node => node.props?.value === 'grooming').props.onChange({ target: { checked: true } });
+  await f.flush(); await f.submit(); await f.flush();
+  assert.match(f.text, /Crea tu cuenta/);
+});
+
+test('a taken identifier opens its editor and leaves it open while correcting', async () => {
+  const f = fixture({ isAvailable: slug => slug !== 'peluqueria-demo' }); await f.flush();
+  await f.field('business-name', 'Peluquería demo');
+  const editor = f.find(node => node.props?.id === 'business-slug');
+  assert.equal(editor.props['aria-invalid'], true);
+  assert.match(f.text, /está en uso/);
+  await f.field('business-slug', 'peluqueria-demo-2');
+  assert.equal(f.find(node => node.props?.id === 'business-slug').props.value, 'peluqueria-demo-2');
+  assert.match(f.text, /Identificador disponible/);
+});
 
 test('ready registration signs in and preserves the normal welcome route', async () => {
   const f = fixture(); await f.prepare(); await f.submit(); await f.flush();
