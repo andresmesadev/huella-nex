@@ -22,9 +22,12 @@ test('exported relations cannot refer to another tenant or an omitted parent', (
 });
 test('verified case is mandatory and export snapshot is repeatable-read and read-only', async () => {
   await assert.rejects(buildTenantHandover({}, { tenantId: 't', caseId: 'invalid', operator: 'QA', verifiedChannel: 'new-email' }), /VERIFIED_CASE/);
+  const archivedAt = '2026-11-18T20:00:00.000Z';
+  const fixtures = { Tenant: [{ id: 't' }], User: [{ id: 'client', tenantId: 't', archivedAt }], Pet: [{ id: 'pet', tenantId: 't', ownerId: 'client', archivedAt }] };
   const queries = [], tx = { $executeRawUnsafe: async sql => queries.push(sql) };
   for (const model of Prisma.dmmf.datamodel.models) tx[model.name[0].toLowerCase() + model.name.slice(1)] = { findMany: async options => {
-    queries.push(options); return model.name === 'Tenant' ? [{ id: 't' }] : [];
+    queries.push(options);
+    return (fixtures[model.name] ?? []).map(row => Object.fromEntries(Object.entries(row).filter(([field]) => options.select[field])));
   } };
   tx.tenant.findUnique = async () => ({ id: 't' });
   const packet = await buildTenantHandover({ $transaction: async (read, options) => {
@@ -34,6 +37,8 @@ test('verified case is mandatory and export snapshot is repeatable-read and read
   assert.equal(packet.counts.Tenant, 1); assert.equal(packet.records.StaffCredential, undefined);
   assert.equal(packet.records.ApiKey, undefined); assert.equal(packet.records.WhatsAppConnection, undefined);
   assert.equal(packet.omittedFields.Message, 'whatsappAudioId');
+  assert.equal(packet.records.User[0].archivedAt, archivedAt);
+  assert.equal(packet.records.Pet[0].archivedAt, archivedAt);
 });
 test('package refuses public destinations, preserves an existing delivery and detects tampering', () => {
   const root = path.resolve(__dirname, '../.cache/tenant-handovers');
