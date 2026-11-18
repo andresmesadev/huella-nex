@@ -35,7 +35,7 @@ test('the list summary used to open a pet sheet preserves the owner address and 
   prisma.pet.findMany.mockResolvedValue([{ ...pet, name: 'Luna', type: 'cat', owner, _count: { medicalRecords: 0, appointments: 0 } }]);
   const response = await request(app).get('/pets');
   expect(response.status).toBe(200); expect(response.body.data[0].owner).toEqual({ ...owner, neighborhood: owner.neighborhood ?? null });
-  expect(prisma.pet.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { tenantId: 'tenant-a' } }));
+  expect(prisma.pet.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { tenantId: 'tenant-a', archivedAt: null, owner: { archivedAt: null } } }));
 });
 test('a historical inclusive agreement displays service and fee without changing stored data', async () => {
   const response = await request(app).get('/pets/pet-a/grooming-prices');

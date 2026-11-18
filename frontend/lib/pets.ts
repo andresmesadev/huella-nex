@@ -10,6 +10,7 @@ export type MedicalRecordType =
 
 export type DashboardPet = {
   id: string;
+  ownerArchived?: boolean;
   name: string;
   type: PetType;
   breed: string | null;

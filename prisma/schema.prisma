@@ -941,6 +941,7 @@ model User {
   neighborhood String?
   notes              String?
   lastReminderSentAt DateTime?
+  archivedAt         DateTime?
   createdAt          DateTime @default(now())
 
   pets              Pet[]
@@ -952,6 +953,7 @@ model User {
   // listClients (orderBy createdAt) y recovery (filtro lastReminderSentAt)
   @@index([tenantId, createdAt])
   @@index([tenantId, lastReminderSentAt])
+  @@index([tenantId, archivedAt])
   // Entregable 4.1 — saneamiento tenant-blind (M1): la unicidad de teléfono
   // deja de ser global y pasa a ser por tenant (dos establecimientos
   // distintos pueden tener cada uno un cliente con el mismo número).
@@ -989,12 +991,14 @@ model Pet {
   transactions   Transaction[]
 
   groomingReminderSent Boolean @default(false)
+  archivedAt DateTime?
 
   createdAt DateTime @default(now())
 
   // listPets (filtro tenantId, orderBy createdAt) y joins por dueño
   @@index([tenantId, createdAt])
   @@index([ownerId])
+  @@index([tenantId, archivedAt])
 }
 
 // status: "pending" | "done" | "dismissed"

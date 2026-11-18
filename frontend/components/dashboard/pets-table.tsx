@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ui/toast";
 import { useActionConfirmation } from "@/components/dashboard/action-confirmation";
+import { useContactArchive } from "@/components/dashboard/contact-archive-action";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Pencil, Plus, PawPrint, Search, Trash2, X } from "lucide-react";
@@ -73,6 +74,7 @@ export function PetsTable({
   const [total, setTotal] = useState(0);
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const PAGE_SIZE = 50;
 
 
@@ -97,7 +99,7 @@ export function PetsTable({
     try {
       const sep = tenantQuery(tenant) ? `${tenantQuery(tenant)}&` : "?";
       const searchParam = debouncedQuery.trim() ? `&search=${encodeURIComponent(debouncedQuery.trim())}` : "";
-      const url = proxyUrl(`/api/dashboard/pets${sep}page=${currentPage}&limit=${PAGE_SIZE}${searchParam}`);
+      const url = proxyUrl(`/api/dashboard/pets${sep}page=${currentPage}&limit=${PAGE_SIZE}${searchParam}${showArchived ? "&status=archived" : ""}`);
       const response = await fetch(url, { cache: "no-store" });
 
       if (!response.ok) {
@@ -124,7 +126,7 @@ export function PetsTable({
     } finally {
       if (thisRequest === requestId.current) setLoading(false);
     }
-  }, [tenant, page, debouncedQuery]);
+  }, [tenant, page, debouncedQuery, showArchived]);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,6 +160,8 @@ export function PetsTable({
     window.addEventListener("pets:refresh", handler);
     return () => window.removeEventListener("pets:refresh", handler);
   }, [loadPets]);
+
+  const { busyId, changeArchive } = useContactArchive("pets", tenant, confirm, () => { void loadPets(); });
 
   const handleSelectPet = (pet: DashboardPet, edit = false) => {
     setInitialEdit(edit);
@@ -231,14 +235,22 @@ export function PetsTable({
                 )}
               </div></div>
             )}
-            <Button size="sm" className="min-h-11 shrink-0 gap-1 sm:self-end" onClick={() => setNewOpen(true)}>
+            {!showArchived && <Button size="sm" className="min-h-11 shrink-0 gap-1 sm:self-end" onClick={() => setNewOpen(true)}>
               <Plus className="h-4 w-4" />
               Nueva mascota
-            </Button>
+            </Button>}
           </div>
         </CardHeader>
 
         <CardContent className="pt-2">
+          {access?.capabilities.administration && (
+            <div className="mb-3 flex gap-2" role="group" aria-label="Estado de mascotas">
+              <Button type="button" size="sm" variant={showArchived ? "ghost" : "secondary"} aria-pressed={!showArchived}
+                onClick={() => { setPage(1); setShowArchived(false); }}>Activas</Button>
+              <Button type="button" size="sm" variant={showArchived ? "secondary" : "ghost"} aria-pressed={showArchived}
+                onClick={() => { setPage(1); setShowArchived(true); }}>Archivadas</Button>
+            </div>
+          )}
           {loading ? (
             <TableSkeleton />
           ) : error ? (
@@ -251,10 +263,19 @@ export function PetsTable({
           ) : pets.length === 0 && debouncedQuery.trim() ? (
             <p role="status" className="px-4 py-8 text-center text-sm text-muted-foreground">Ninguna mascota coincide con “{debouncedQuery}”. Prueba otro nombre, propietario o teléfono.</p>
           ) : pets.length === 0 ? (
-            <EmptyState icon={<PawPrint className="h-7 w-7" />} title="No hay mascotas registradas" description="Agrega una mascota y vincúlala a su propietario desde Nueva mascota." />
+            <EmptyState icon={<PawPrint className="h-7 w-7" />} title={showArchived ? "No hay mascotas archivadas" : "No hay mascotas registradas"} description={showArchived ? "Las fichas que archives aparecerán aquí." : "Agrega una mascota y vincúlala a su propietario desde Nueva mascota."} />
           ) : (
             <>
-            <div className="space-y-3 xl:hidden [&_button]:min-h-11">{pets.map((pet) => <article key={pet.id} className="min-w-0 rounded-xl border p-4 [overflow-wrap:anywhere]"><h3 className="font-semibold">{getPetEmoji(pet.type)} {pet.name}</h3><p className="text-sm text-muted-foreground">{formatPetType(pet.type)} · {pet.breed || "Raza sin registrar"}</p><p className="mt-2 text-sm">Propietario: {pet.owner.name || "Sin nombre"}</p><p className="text-sm text-muted-foreground">{formatPhone(pet.owner.phone)}</p><p className="mt-2 text-xs text-muted-foreground">{access?.capabilities.clinical ? `${pet._count.medicalRecords ?? 0} registros · ` : ""}{pet._count.appointments} citas</p><div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" onClick={() => handleSelectPet(pet)}>Ver ficha</Button><Button variant="outline" onClick={() => handleSelectPet(pet, true)}>Editar</Button>{access?.capabilities.administration && <Button variant="ghost" aria-label={`Eliminar mascota ${pet.name}`} disabled={deleting === pet.id} onClick={(e) => handleDeletePet(e, pet)}><Trash2 className="h-4 w-4" /></Button>}</div></article>)}</div>
+            <div className="space-y-3 xl:hidden [&_button]:min-h-11">{pets.map((pet) => <article key={pet.id} className="min-w-0 rounded-xl border p-4 [overflow-wrap:anywhere]"><h3 className="font-semibold">{getPetEmoji(pet.type)} {pet.name}</h3><p className="text-sm text-muted-foreground">{formatPetType(pet.type)} · {pet.breed || "Raza sin registrar"}</p><p className="mt-2 text-sm">Propietario: {pet.owner.name || "Sin nombre"}</p><p className="text-sm text-muted-foreground">{formatPhone(pet.owner.phone)}</p><p className="mt-2 text-xs text-muted-foreground">{access?.capabilities.clinical ? `${pet._count.medicalRecords ?? 0} registros · ` : ""}{pet._count.appointments} citas</p><div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" onClick={() => handleSelectPet(pet)}>Ver ficha</Button><Button variant="outline" onClick={() => handleSelectPet(pet, true)}>Editar</Button>{access?.capabilities.administration && (
+                    showArchived && pet.ownerArchived
+                      ? <span className="text-xs text-muted-foreground">Restaura al propietario primero</span>
+                      : <Button type="button" variant="ghost" className="min-h-11" disabled={busyId !== null}
+                      aria-label={(showArchived ? "Restaurar mascota " : "Archivar mascota ") + pet.name}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void changeArchive(pet.id, pet.name, !showArchived);
+                      }}>{showArchived ? "Restaurar" : "Archivar"}</Button>
+                  )}{!showArchived && access?.capabilities.administration && <Button variant="ghost" aria-label={`Eliminar mascota ${pet.name}`} disabled={deleting === pet.id} onClick={(e) => handleDeletePet(e, pet)}><Trash2 className="h-4 w-4" /></Button>}</div></article>)}</div>
             <div className="hidden overflow-x-auto xl:block">
             <Table className="table-fixed [&_td]:whitespace-normal [&_td]:[overflow-wrap:anywhere]">
               <TableHeader>
@@ -264,7 +285,7 @@ export function PetsTable({
                   <TableHead className="w-auto">Dueño</TableHead>
                   {access?.capabilities.clinical && <TableHead className="w-[72px]">Registros</TableHead>}
                   <TableHead className="w-16">Citas</TableHead>
-                  <TableHead className="w-52 text-right">Expediente</TableHead>
+                  <TableHead className="w-72 text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -298,7 +319,7 @@ export function PetsTable({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex flex-nowrap items-center justify-end gap-1 [&_button]:shrink-0 [&_button]:whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-wrap items-center justify-end gap-1 [&_button]:shrink-0 [&_button]:whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <button
                           title="Ver expediente"
                           onClick={() => handleSelectPet(pet)}
@@ -313,7 +334,17 @@ export function PetsTable({
                         >
                           <Pencil className="h-4 w-4" /> Editar
                         </button>
-                        {access?.capabilities.administration && <button
+{access?.capabilities.administration && (
+                    showArchived && pet.ownerArchived
+                      ? <span className="text-xs text-muted-foreground">Restaura al propietario primero</span>
+                      : <Button type="button" variant="ghost" className="min-h-11" disabled={busyId !== null}
+                      aria-label={(showArchived ? "Restaurar mascota " : "Archivar mascota ") + pet.name}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void changeArchive(pet.id, pet.name, !showArchived);
+                      }}>{showArchived ? "Restaurar" : "Archivar"}</Button>
+                  )}
+                        {!showArchived && access?.capabilities.administration && <button
                           title="Eliminar mascota"
                           disabled={deleting === pet.id}
                           onClick={(e) => handleDeletePet(e, pet)}

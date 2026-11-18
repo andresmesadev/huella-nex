@@ -17,9 +17,9 @@ async function listInactiveClientsPage(tenantId, query = {}) {
     SELECT u.id, MAX(r.date) AS "lastVisitDate"
     FROM "User" u JOIN "Pet" p ON p."ownerId" = u.id AND p."tenantId" IS NOT DISTINCT FROM u."tenantId"
     JOIN "MedicalRecord" r ON r."petId" = p.id AND r.type = 'grooming'
-    WHERE TRUE ${tenantId ? Prisma.sql`AND u."tenantId" = ${tenantId}` : Prisma.empty} ${contact}
+    WHERE u."archivedAt" IS NULL AND p."archivedAt" IS NULL ${tenantId ? Prisma.sql`AND u."tenantId" = ${tenantId}` : Prisma.empty} ${contact}
       ${search ? Prisma.sql`AND (u.name ILIKE ${pattern} OR u.phone ILIKE ${pattern} OR EXISTS (
-        SELECT 1 FROM "Pet" sp WHERE sp."ownerId" = u.id AND sp."tenantId" IS NOT DISTINCT FROM u."tenantId" AND sp.name ILIKE ${pattern}))` : Prisma.empty}
+        SELECT 1 FROM "Pet" sp WHERE sp."ownerId" = u.id AND sp."tenantId" IS NOT DISTINCT FROM u."tenantId" AND sp."archivedAt" IS NULL AND sp.name ILIKE ${pattern}))` : Prisma.empty}
     GROUP BY u.id HAVING MAX(r.date) < ${new Date(Date.now() - 60 * 86400000)} OR MAX(r.date) IS NULL`;
   const [count] = await prisma.$queryRaw(Prisma.sql`SELECT COUNT(*)::int AS total FROM (${eligible}) eligible`);
   const total = count.total;
@@ -27,9 +27,9 @@ async function listInactiveClientsPage(tenantId, query = {}) {
   const page = Math.min(totalPages, Math.max(1, parseInt(query.page, 10) || 1));
   const rows = await prisma.$queryRaw(Prisma.sql`${eligible} ORDER BY "lastVisitDate" ASC NULLS LAST, u.id ASC LIMIT ${take} OFFSET ${(page - 1) * take}`);
   const users = rows.length ? await prisma.user.findMany({
-    where: { id: { in: rows.map(row => row.id) }, ...(tenantId ? { tenantId } : {}) },
+    where: { id: { in: rows.map(row => row.id) }, archivedAt: null, ...(tenantId ? { tenantId } : {}) },
     select: { id: true, name: true, phone: true, lastReminderSentAt: true,
-      pets: { where: tenantId ? { tenantId } : {}, orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], take: 3, select: { id: true, name: true, type: true } } },
+      pets: { where: { archivedAt: null, ...(tenantId ? { tenantId } : {}) }, orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], take: 3, select: { id: true, name: true, type: true } } },
   }) : [];
   const byId = new Map(users.map(user => [user.id, user]));
   const data = rows.flatMap(row => { const user = byId.get(row.id); return user ? [{ ...user, lastVisitDate: row.lastVisitDate ? new Date(row.lastVisitDate).toISOString() : null }] : []; });

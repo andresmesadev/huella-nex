@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { activePet } = require("../../services/contact-archive.service");
 const prisma = require("../../lib/prisma");
 const { operationalPet } = require("../../services/dashboard-access.service");
 const { updatePet } = require("../../services/pet.service");
@@ -139,6 +140,11 @@ router.get("/pets", async (req, res) => {
     const PAGE_SIZE = 50;
     const page   = Math.max(parseInt(req.query.page)  || 1, 1);
     const limit  = Math.min(parseInt(req.query.limit) || PAGE_SIZE, 200);
+    const archived = req.query.status === "archived";
+    if (archived && !req.access?.capabilities.administration) return res.status(403).json({ error: "Solo administración puede ver las fichas archivadas." });
+    const archiveFilter = archived
+      ? { OR: [{ archivedAt: { not: null } }, { owner: { archivedAt: { not: null } } }] }
+      : activePet;
     const skip   = (page - 1) * limit;
     const search = req.query.search?.trim() ?? "";
 
@@ -153,7 +159,7 @@ router.get("/pets", async (req, res) => {
         }
       : {};
 
-    const where = { ...tenantFilter, ...searchFilter };
+    const where = { ...tenantFilter, ...archiveFilter, ...(search ? { AND: [searchFilter] } : {}) };
 
     const [total, pets] = await Promise.all([
       prisma.pet.count({ where }),
@@ -163,7 +169,7 @@ router.get("/pets", async (req, res) => {
         take: limit,
         orderBy: [{ name: "asc" }, { createdAt: "asc" }],
         include: {
-          owner: { select: { id: true, phone: true, name: true, address: true, neighborhood: true } },
+          owner: { select: { id: true, phone: true, name: true, address: true, neighborhood: true, archivedAt: true } },
           _count: { select: { medicalRecords: true, appointments: true } },
         },
       }),
@@ -171,6 +177,7 @@ router.get("/pets", async (req, res) => {
 
     const data = pets.map((pet) => req.access && !req.access.capabilities.clinical && !req.access.capabilities.administration ? operationalPet(pet) : ({
       id: pet.id,
+      ownerArchived: Boolean(pet.owner.archivedAt),
       name: pet.name,
       type: pet.type,
       breed: pet.breed ?? null,
@@ -244,9 +251,10 @@ router.post("/pets", async (req, res) => {
     // find-or-create del dueño (scoped al tenant)
     let owner = await prisma.user.findFirst({
       where: { phone: cleanPhone, ...(tenantId ? { tenantId } : {}) },
-      select: { id: true },
+      select: { id: true, archivedAt: true },
     });
 
+    if (owner?.archivedAt) return res.status(409).json({ error: "Restaura al propietario antes de registrar otra mascota." });
     if (!owner) {
       try {
         owner = await prisma.user.create({

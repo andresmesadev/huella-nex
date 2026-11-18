@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ui/toast";
 import { useActionConfirmation } from "@/components/dashboard/action-confirmation";
+import { useContactArchive } from "@/components/dashboard/contact-archive-action";
 
 import { useEffect, useState } from "react";
 import { Eye, PawPrint, Pencil, Plus, Search, Trash2, Users, X } from "lucide-react";
@@ -77,6 +78,7 @@ export function ClientsTable() {
   const [version, setVersion] = useState(0);
   const [query, setQuery] = useState(() => searchParams.get("search") ?? "");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -102,7 +104,7 @@ export function ClientsTable() {
           ? `&search=${encodeURIComponent(debouncedQuery.trim())}`
           : "";
         const url = proxyUrl(
-          `/api/dashboard/clients${sep}page=${page}&limit=${PAGE_SIZE}${searchParam}`
+          `/api/dashboard/clients${sep}page=${page}&limit=${PAGE_SIZE}${searchParam}${showArchived ? "&status=archived" : ""}`
         );
         const response = await fetch(url, { cache: "no-store" });
         if (!response.ok) {
@@ -133,7 +135,9 @@ export function ClientsTable() {
       }
     })();
     return () => { cancelled = true; };
-  }, [tenant, version, page, debouncedQuery]);
+  }, [tenant, version, page, debouncedQuery, showArchived]);
+
+  const { busyId, changeArchive } = useContactArchive("clients", tenant, confirm, () => setVersion((v) => v + 1));
 
   const handleOpenClient = (client: DashboardClient, edit = false) => {
     setInitialEdit(edit);
@@ -202,14 +206,22 @@ export function ClientsTable() {
                 )}
               </div></div>
             )}
-            <Button size="sm" className="min-h-11 shrink-0 gap-1 sm:self-end" onClick={() => setNewOpen(true)}>
+            {!showArchived && <Button size="sm" className="min-h-11 shrink-0 gap-1 sm:self-end" onClick={() => setNewOpen(true)}>
               <Plus className="h-4 w-4" />
               Nuevo cliente
-            </Button>
+            </Button>}
           </div>
         </CardHeader>
 
         <CardContent className="pt-2">
+          {access?.capabilities.administration && (
+            <div className="mb-3 flex gap-2" role="group" aria-label="Estado de clientes">
+              <Button type="button" size="sm" variant={showArchived ? "ghost" : "secondary"} aria-pressed={!showArchived}
+                onClick={() => { setPage(1); setShowArchived(false); }}>Activos</Button>
+              <Button type="button" size="sm" variant={showArchived ? "secondary" : "ghost"} aria-pressed={showArchived}
+                onClick={() => { setPage(1); setShowArchived(true); }}>Archivados</Button>
+            </div>
+          )}
           {loading ? (
             <TableSkeleton />
           ) : error ? (
@@ -226,8 +238,8 @@ export function ClientsTable() {
           ) : clients.length === 0 ? (
             <EmptyState
               icon={<Users className="h-7 w-7" />}
-              title="No hay clientes registrados"
-              description="Registra al propietario y sus mascotas desde Nuevo cliente."
+              title={showArchived ? "No hay clientes archivados" : "No hay clientes registrados"}
+              description={showArchived ? "Las fichas que archives aparecerán aquí." : "Registra al propietario y sus mascotas desde Nuevo cliente."}
             />
           ) : (
             <>
@@ -239,7 +251,12 @@ export function ClientsTable() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button variant="outline" onClick={() => handleOpenClient(client)}>Ver cliente</Button>
                   <Button variant="outline" onClick={() => handleOpenClient(client, true)}>Editar</Button>
-                  {access?.capabilities.administration && <Button variant="ghost" aria-label={`Eliminar cliente ${client.name ?? client.phone}`} disabled={deleting === client.id} onClick={(e) => handleDelete(e, client.id, client.name ?? client.phone)}><Trash2 className="h-4 w-4" /></Button>}
+                  {access?.capabilities.administration && <Button type="button" variant="ghost" className="min-h-11" disabled={busyId !== null}
+                      aria-label={(showArchived ? "Restaurar cliente " : "Archivar cliente ") + (client.name ?? client.phone)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void changeArchive(client.id, client.name ?? client.phone, !showArchived);
+                      }}>{showArchived ? "Restaurar" : "Archivar"}</Button>}{!showArchived && access?.capabilities.administration && <Button variant="ghost" aria-label={`Eliminar cliente ${client.name ?? client.phone}`} disabled={deleting === client.id} onClick={(e) => handleDelete(e, client.id, client.name ?? client.phone)}><Trash2 className="h-4 w-4" /></Button>}
                 </div>
               </article>
             ))}</div>
@@ -248,7 +265,7 @@ export function ClientsTable() {
                 <TableHeader>
                   <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-black/[0.08]">
                     <TableHead className="w-[34%] font-semibold text-foreground/70 uppercase text-[11px] tracking-wider">Cliente</TableHead>
-                    <TableHead className="w-[42%] font-semibold text-foreground/70 uppercase text-[11px] tracking-wider">Mascotas</TableHead>
+                    <TableHead className="w-[34%] font-semibold text-foreground/70 uppercase text-[11px] tracking-wider">Mascotas</TableHead>
                     <TableHead className="text-right font-semibold text-foreground/70 uppercase text-[11px] tracking-wider">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -298,8 +315,14 @@ export function ClientsTable() {
                           >
                             <Pencil className="h-4 w-4" /> Editar
                           </button>
-                          {access?.capabilities.administration && <button
-                            title="Eliminar cliente"
+{access?.capabilities.administration && <Button type="button" variant="ghost" className="min-h-11" disabled={busyId !== null}
+                      aria-label={(showArchived ? "Restaurar cliente " : "Archivar cliente ") + (client.name ?? client.phone)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void changeArchive(client.id, client.name ?? client.phone, !showArchived);
+                      }}>{showArchived ? "Restaurar" : "Archivar"}</Button>}
+                        {!showArchived && access?.capabilities.administration && <button
+                          title="Eliminar cliente"
                             disabled={deleting === client.id}
                             onClick={(e) => handleDelete(e, client.id, client.name ?? client.phone)}
                             className="inline-flex h-11 w-11 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50"
