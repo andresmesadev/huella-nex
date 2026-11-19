@@ -61,6 +61,7 @@ export default function OnboardingPage() {
   const focusSlugEditor = useRef(false);
   const validSlug = form.slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug);
   const registrationEmail = socialProvider ? (socialEmail ?? socialIdentity?.emailHint ?? form.email) : form.email;
+  const hasEmail = registrationEmail.trim().length > 0;
   const registrationName = socialProvider ? (socialName ?? socialIdentity?.nameHint ?? form.ownerName) : form.ownerName;
   const status = availability?.slug === form.slug ? availability.status : "checking";
   const notice = registered ? onboardingNotice(provisioning) : null;
@@ -104,10 +105,22 @@ export default function OnboardingPage() {
         setErrorField("ownerName");
         return;
       }
-      if (!socialIdentity && form.password !== confirmPassword) {
-        setError("Las contraseñas no coinciden. Escríbelas de nuevo.");
-        setErrorField("confirmPassword");
+      if (!hasEmail) {
+        setError("Escribe tu correo electrónico para continuar.");
+        setErrorField("email");
         return;
+      }
+      if (!socialIdentity) {
+        if (form.password.length < 12 || form.password.length > 128) {
+          setError("Usa una contraseña de entre 12 y 128 caracteres.");
+          setErrorField("password");
+          return;
+        }
+        if (form.password !== confirmPassword) {
+          setError("Las contraseñas no coinciden. Escríbelas de nuevo.");
+          setErrorField("confirmPassword");
+          return;
+        }
       }
       setStep(2); return;
     }
@@ -252,10 +265,14 @@ export default function OnboardingPage() {
               }} />
           </div>
           <div className={styles.field}><label htmlFor="owner-email">Correo electrónico</label><input id="owner-email" name="email" type="email" autoComplete="username" autoCapitalize="none" placeholder="nombre@tunegocio.com" required maxLength={254} value={registrationEmail} aria-invalid={errorField === "email"} aria-describedby="email-hint" onChange={event => {
-            if (socialProvider) { setSocialEmail(event.target.value); setError(null); setErrorField(null); }
-            else change("email", event.target.value);
+            const email = event.target.value;
+            if (socialProvider) { setSocialEmail(email); setError(null); setErrorField(null); }
+            else {
+              change("email", email);
+              if (!email.trim()) setShowPassword(false);
+            }
           }} /><p id="email-hint" className={styles.hint}>Usa un correo real al que tengas acceso.</p></div>
-          {!socialProvider && <>
+          {!socialProvider && hasEmail && <>
           <div className={styles.field}><label htmlFor="owner-password">Contraseña</label><div className={styles.passwordWrap}><input id="owner-password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={12} maxLength={128} required value={form.password} aria-describedby="password-hint" aria-invalid={errorField === "password"} onChange={event => change("password", event.target.value)} /><button type="button" className={styles.passwordToggle} onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={showPassword}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div><p id="password-hint" className={styles.hint}>Entre 12 y 128 caracteres. Puedes usar una frase fácil de recordar.</p></div>
           <div className={styles.field}><label htmlFor="confirm-password">Confirma tu contraseña</label><input id="confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} aria-invalid={errorField === "confirmPassword"} onChange={event => { setConfirmPassword(event.target.value); setError(null); setErrorField(null); }} /></div>
           </>}
