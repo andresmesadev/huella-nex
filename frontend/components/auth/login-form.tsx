@@ -54,7 +54,6 @@ export function LoginForm({ socialError = false }: { socialError?: boolean }) {
 
       <CardContent>
         {socialError && <p role="alert" className="mb-4 text-sm text-destructive">No pudimos iniciar sesión con ese proveedor. Inténtalo de nuevo o ingresa con tu correo.</p>}
-        <SocialSignInButtons mode="login" />
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
@@ -95,11 +94,12 @@ export function LoginForm({ socialError = false }: { socialError?: boolean }) {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Entrando…" : "Entrar"}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            ¿Tu negocio aún no tiene cuenta?{" "}
-            <Link href="/onboarding" className="font-medium text-primary underline underline-offset-4">Crear mi cuenta</Link>
-          </p>
         </form>
+        <SocialSignInButtons mode="login" />
+        <p className="mt-5 text-center text-sm text-muted-foreground">
+          ¿Tu negocio aún no tiene cuenta?{" "}
+          <Link href="/onboarding" className="font-medium text-primary underline underline-offset-4">Crear mi cuenta</Link>
+        </p>
       </CardContent>
     </Card>
   );

@@ -190,7 +190,6 @@ export default function OnboardingPage() {
           "Confirma tus datos, las actividades de tu negocio y el plan que elegiste."}
       </p>
 
-      {step === 1 && sessionStatus !== "loading" && !socialIdentity && <SocialSignInButtons mode="register" />}
       {step === 1 && socialIdentity && <p className={styles.notice}>Te identificaste con {SOCIAL_PROVIDER_LABELS[socialIdentity.provider]}. Revisa tus datos para continuar.</p>}
       <form onSubmit={submit} className={styles.form}>
         {step === 2 && <>
@@ -303,6 +302,7 @@ export default function OnboardingPage() {
         {registered && signedIn && selectedPlan && selectedPlan.id !== "free" && <p className={styles.notice}><Link href={planDetailsHref(selectedPlan.id)}>Revisar plan {selectedPlan.name}</Link></p>}
         {step === 1 && <p className={styles.notice}>Con esta cuenta podrás configurar el negocio y dar acceso a tu equipo.</p>}
       </form>
+      {step === 1 && sessionStatus !== "loading" && !socialIdentity && <SocialSignInButtons mode="register" />}
     </RegistrationShell>
   );
 }
