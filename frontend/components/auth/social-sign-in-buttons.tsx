@@ -5,7 +5,7 @@ import { getProviders, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { SOCIAL_PROVIDER_LABELS, type SocialProvider } from "@/lib/social-identity";
 
-const providerIds: SocialProvider[] = ["google", "microsoft-entra-id", "apple"];
+const providerIds: SocialProvider[] = ["google", "microsoft-entra-id"];
 
 type Availability = { enabled: SocialProvider[]; failed: boolean };
 
