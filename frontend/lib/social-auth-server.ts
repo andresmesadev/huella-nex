@@ -5,7 +5,7 @@ import type { Account, Profile } from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { apiUrl } from "@/lib/api";
-import type { PendingSocialIdentity } from "@/lib/social-identity";
+import type { PendingSocialIdentity, SocialProvider } from "@/lib/social-identity";
 
 export function configuredSocialProviders(): NextAuthConfig["providers"] {
   if (!process.env.INTERNAL_API_SECRET) return [];
@@ -31,6 +31,16 @@ export function configuredSocialProviders(): NextAuthConfig["providers"] {
   return providers;
 }
 
+function registrationNameHint(provider: SocialProvider, profile?: Profile) {
+  const appleUser = profile?.user as { name?: { firstName?: unknown; lastName?: unknown } } | undefined;
+  const raw = provider === "apple"
+    ? [appleUser?.name?.firstName, appleUser?.name?.lastName].filter(part => typeof part === "string").join(" ")
+    : profile?.name;
+  if (typeof raw !== "string" || /[<>\p{Cc}]/u.test(raw)) return undefined;
+  const name = raw.trim().replace(/\s+/gu, " ");
+  return name.length >= 2 && name.length <= 100 ? name : undefined;
+}
+
 export function pendingIdentity(account: Account, profile?: Profile): PendingSocialIdentity {
   const provider = account.provider;
   if (provider !== "google" && provider !== "microsoft-entra-id" && provider !== "apple") {
@@ -50,7 +60,11 @@ export function pendingIdentity(account: Account, profile?: Profile): PendingSoc
   const emailVerified = verification === true || verification === "true";
   const hint = provider === "microsoft-entra-id" || emailVerified ? profile?.email : null;
   const emailHint = typeof hint === "string" && hint.length <= 254 ? hint : "";
-  return { provider, issuer, subject, emailHint, expiresAt: Date.now() + 15 * 60_000 };
+  return {
+    provider, issuer, subject, emailHint,
+    nameHint: registrationNameHint(provider, profile),
+    expiresAt: Date.now() + 15 * 60_000,
+  };
 }
 
 export async function resolveSocialIdentity(token: JWT, identity: PendingSocialIdentity): Promise<JWT> {

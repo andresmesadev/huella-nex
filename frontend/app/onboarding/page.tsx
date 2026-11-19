@@ -38,6 +38,7 @@ export default function OnboardingPage() {
   const [registeredWith, setRegisteredWith] = useState<SocialProvider | null>(null);
   const socialProvider = socialIdentity?.provider ?? registeredWith;
   const [socialEmail, setSocialEmail] = useState<string | null>(null);
+  const [socialName, setSocialName] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [planId, setPlanId] = useState<PlanId | null>(null);
   const selectedPlan = getPlan(planId);
@@ -60,6 +61,7 @@ export default function OnboardingPage() {
   const focusSlugEditor = useRef(false);
   const validSlug = form.slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug);
   const registrationEmail = socialProvider ? (socialEmail ?? socialIdentity?.emailHint ?? form.email) : form.email;
+  const registrationName = socialProvider ? (socialName ?? socialIdentity?.nameHint ?? form.ownerName) : form.ownerName;
   const status = availability?.slug === form.slug ? availability.status : "checking";
   const notice = registered ? onboardingNotice(provisioning) : null;
   const validName = form.name.trim().length >= 2;
@@ -97,7 +99,7 @@ export default function OnboardingPage() {
     if (submitting.current || created.current) return;
     setError(null); setErrorField(null);
     if (step === 1) {
-      if (form.ownerName.trim().length < 2) {
+      if (registrationName.trim().length < 2) {
         setError("Escribe tu nombre para continuar.");
         setErrorField("ownerName");
         return;
@@ -121,7 +123,7 @@ export default function OnboardingPage() {
     submitting.current = true; setBusy(true);
     try {
       const registration = {
-        name: form.name.trim(), ownerName: form.ownerName.trim(), slug: form.slug,
+        name: form.name.trim(), ownerName: registrationName.trim(), slug: form.slug,
         email: registrationEmail.trim().toLowerCase(), activeModules: form.activeModules,
         ...(!socialIdentity ? { password: form.password } : {}),
       };
@@ -136,7 +138,10 @@ export default function OnboardingPage() {
       // Commit succeeded: any sign-in failure must never repeat registration.
       created.current = true;
       setRegisteredWith(socialIdentity?.provider ?? null);
-      if (socialIdentity) setSocialEmail(registration.email);
+      if (socialIdentity) {
+        setSocialEmail(registration.email);
+        setSocialName(registration.ownerName);
+      }
       setRegistered(true);
       const preparation = onboardingProvisioning(data?.provisioning);
       setProvisioning(preparation);
@@ -239,7 +244,14 @@ export default function OnboardingPage() {
           </div>}
         </>}
         {step === 1 && <>
-          <div className={styles.field}><label htmlFor="owner-name">Tu nombre</label><input id="owner-name" name="name" autoComplete="name" placeholder="Nombre y apellido" required minLength={2} maxLength={100} value={form.ownerName} aria-invalid={errorField === "ownerName"} onChange={event => change("ownerName", event.target.value)} /></div>
+          <div className={styles.field}>
+            <label htmlFor="owner-name">Tu nombre</label>
+            <input id="owner-name" name="name" autoComplete="name" placeholder="Nombre y apellido" required minLength={2} maxLength={100}
+              value={registrationName} aria-invalid={errorField === "ownerName"} onChange={event => {
+                if (socialProvider) { setSocialName(event.target.value); setError(null); setErrorField(null); }
+                else change("ownerName", event.target.value);
+              }} />
+          </div>
           <div className={styles.field}><label htmlFor="owner-email">Correo electrónico</label><input id="owner-email" name="email" type="email" autoComplete="username" autoCapitalize="none" placeholder="nombre@tunegocio.com" required maxLength={254} value={registrationEmail} aria-invalid={errorField === "email"} aria-describedby="email-hint" onChange={event => {
             if (socialProvider) { setSocialEmail(event.target.value); setError(null); setErrorField(null); }
             else change("email", event.target.value);
@@ -267,7 +279,7 @@ export default function OnboardingPage() {
         )}
         {step === 4 && selectedPlan && <>
           <dl className={styles.review}>
-            <div><dt>Tu cuenta</dt><dd>{form.ownerName}<span>{registrationEmail.trim().toLowerCase()}</span></dd></div>
+            <div><dt>Tu cuenta</dt><dd>{registrationName}<span>{registrationEmail.trim().toLowerCase()}</span></dd></div>
             <div><dt>Negocio</dt><dd>{form.name}<span>{form.slug}</span></dd></div>
             <div><dt>Actividades</dt><dd>{ACTIVITIES.filter(activity => form.activeModules.includes(activity.id)).map(activity => activity.label).join(", ")}</dd></div>
             <div><dt>Plan elegido</dt><dd>{selectedPlan.name}</dd></div>

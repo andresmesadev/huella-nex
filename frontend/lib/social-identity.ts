@@ -5,6 +5,7 @@ export type PendingSocialIdentity = {
   issuer: string;
   subject: string;
   emailHint: string;
+  nameHint?: string;
   expiresAt: number;
 };
 
