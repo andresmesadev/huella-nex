@@ -54,7 +54,7 @@ export function LoginForm({ socialError = false }: { socialError?: boolean }) {
 
       <CardContent>
         {socialError && <p role="alert" className="mb-4 text-sm text-destructive">No pudimos iniciar sesión con ese proveedor. Inténtalo de nuevo o ingresa con tu correo.</p>}
-        <SocialSignInButtons />
+        <SocialSignInButtons mode="login" />
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">

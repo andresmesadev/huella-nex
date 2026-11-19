@@ -179,13 +179,13 @@ export default function OnboardingPage() {
       </h2>
       <p className={styles.description}>
         {registered ? "Usa tu cuenta para continuar." :
-          step === 1 ? (socialProvider ? "Con estos datos podremos contactarte sobre tu cuenta." : "Usarás este correo y contraseña para entrar a tu negocio.") :
+          step === 1 ? (socialProvider ? "Con estos datos podremos contactarte sobre tu cuenta." : "Elige cómo quieres acceder a tu negocio.") :
           step === 2 ? "Escribe el nombre de tu negocio y elige a qué se dedica." :
           step === 3 ? "Puedes empezar con Evaluación o elegir el plan que te interesa." :
           "Confirma tus datos, las actividades de tu negocio y el plan que elegiste."}
       </p>
 
-      {step === 1 && sessionStatus !== "loading" && !socialIdentity && <SocialSignInButtons />}
+      {step === 1 && sessionStatus !== "loading" && !socialIdentity && <SocialSignInButtons mode="register" />}
       {step === 1 && socialIdentity && <p className={styles.notice}>Te identificaste con {SOCIAL_PROVIDER_LABELS[socialIdentity.provider]}. Revisa tus datos para continuar.</p>}
       <form onSubmit={submit} className={styles.form}>
         {step === 2 && <>
