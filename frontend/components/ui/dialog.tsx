@@ -52,8 +52,11 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2",
-          "rounded-2xl border border-white/[0.08] bg-card shadow-[0_24px_80px_rgba(0,0,0,0.6)]",
+          // Margen lateral y alto máximo para celular; el contenido largo hace
+          // scroll dentro del diálogo. Las pantallas pueden sobrescribirlos.
+          "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2",
+          "max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain",
+          "rounded-2xl border border-border bg-card shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -71,7 +74,7 @@ function DialogContent({
               "absolute right-2 top-2 inline-flex size-11 items-center justify-center rounded-lg",
               "text-muted-foreground transition-colors",
               "hover:bg-accent hover:text-foreground",
-              "focus:outline-none focus:ring-2 focus:ring-ring",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               "disabled:pointer-events-none"
             )}
           >
@@ -88,7 +91,7 @@ function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-1 border-b border-white/[0.06] px-6 py-5", className)}
+      className={cn("flex flex-col gap-1 border-b border-border px-6 py-5", className)}
       {...props}
     />
   )
@@ -98,7 +101,7 @@ function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   return (
     <div
       data-slot="dialog-footer"
-      className={cn("flex items-center justify-end gap-2 border-t border-white/[0.06] px-6 py-4", className)}
+      className={cn("flex flex-wrap items-center justify-end gap-2 border-t border-border px-6 py-4", className)}
       {...props}
     />
   )
