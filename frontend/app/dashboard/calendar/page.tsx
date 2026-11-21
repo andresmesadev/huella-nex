@@ -10,6 +10,8 @@ import { type TodayAppointment } from "@/lib/appointments";
 import { previewWeekData } from "@/lib/calendar-preview";
 import { agendaGridRange, type BusinessHours } from "@/lib/agenda-display";
 import type { ClientDetail } from "@/lib/clients";
+import { ReadFailureNotice } from "@/components/dashboard/read-failure-notice";
+import { readFailure, type ReadFailure } from "@/lib/read-failure";
 
 type WeekData = {
   weekStart: string;
@@ -32,6 +34,8 @@ export default async function CalendarPage({ searchParams }: PageProps) {
   let activeModules: string[] = [];
   let owner: { id: string; name: string } | undefined;
   let ownerError = false;
+  let failure: ReadFailure = "unavailable";
+  let profileMissing = false;
 
   if (!isPreview) {
     const session = await auth();
@@ -46,6 +50,8 @@ export default async function CalendarPage({ searchParams }: PageProps) {
         client ? fetch(apiUrl(`/api/dashboard/clients/${encodeURIComponent(client)}`), { cache: "no-store", headers }) : Promise.resolve(null),
       ]);
       if (apptRes.ok) data = await apptRes.json();
+      else failure = readFailure(apptRes.status);
+      if (!profileRes.ok) profileMissing = true;
       if (profileRes.ok) {
         const profile = await profileRes.json();
         businessHours = profile.businessHours ?? null;
@@ -58,7 +64,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
         }
         ownerError = !owner;
       }
-    } catch { if (client) ownerError = true; /* La vista mostrará un error de carga. */ }
+    } catch { if (client) ownerError = true; failure = readFailure(null); /* La vista mostrará un error de carga. */ }
   }
 
   const { hourStart, hourEnd } = agendaGridRange(businessHours, activeModules);
@@ -88,20 +94,22 @@ export default async function CalendarPage({ searchParams }: PageProps) {
       {ownerError ? (
         <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><h2 className="font-semibold">No se pudo cargar la agenda de ese propietario</h2><p className="mt-1">Comprueba el establecimiento seleccionado o vuelve a abrir la ficha del cliente.</p><div className="mt-3 flex flex-wrap gap-4"><Link href={`/dashboard/calendar?${retryParams}`} className="inline-flex min-h-11 items-center font-semibold underline">Reintentar</Link><Link href={`/dashboard/calendar${unfilteredParams.size ? `?${unfilteredParams}` : ""}`} className="inline-flex min-h-11 items-center font-semibold underline">Ver toda la agenda</Link></div></div>
       ) : data ? (
-        <WeekCalendar key={client ?? "all"} data={data} hourStart={hourStart} hourEnd={hourEnd} preview={isPreview} owner={owner} />
+        <>
+          {profileMissing && !isPreview && (
+            <p role="status" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              No se pudieron cargar el horario y las áreas del negocio. La cuadrícula muestra el horario predeterminado; <Link href={`/dashboard/calendar${retryParams.size ? `?${retryParams.toString()}` : ""}`} className="font-semibold underline underline-offset-2">recarga la agenda</Link> para intentarlo de nuevo.
+            </p>
+          )}
+          <WeekCalendar key={client ?? "all"} data={data} hourStart={hourStart} hourEnd={hourEnd} preview={isPreview} owner={owner} />
+        </>
       ) : (
-        <div role="alert" className="max-w-2xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
-          <h2 className="font-semibold">No se pudo cargar la agenda</h2>
-          <p className="mt-1">El servidor de datos no está disponible. Intenta de nuevo para ver tus citas.</p>
-          <Link href={`/dashboard/calendar${retryParams.size ? `?${retryParams.toString()}` : ""}`} className="mt-4 inline-flex min-h-10 items-center rounded-lg border border-amber-300 bg-white px-4 font-semibold hover:bg-amber-100">
-            Reintentar
-          </Link>
+        <ReadFailureNotice title="No se pudo cargar la agenda" reason={failure} retryHref={`/dashboard/calendar${retryParams.size ? `?${retryParams.toString()}` : ""}`}>
           {process.env.NODE_ENV === "development" && (
-            <Link href={`/dashboard/calendar?${previewParams.toString()}`} className="ml-3 mt-4 inline-flex min-h-10 items-center rounded-lg border border-amber-300 bg-white px-4 font-semibold hover:bg-amber-100">
+            <Link href={`/dashboard/calendar?${previewParams.toString()}`} className="inline-flex min-h-11 items-center rounded-lg border border-amber-300 bg-white px-4 font-semibold hover:bg-amber-100">
               Ver agenda de ejemplo
             </Link>
           )}
-        </div>
+        </ReadFailureNotice>
       )}
     </div>
   );

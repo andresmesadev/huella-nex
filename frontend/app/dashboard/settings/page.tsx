@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import { apiUrl, makeServerHeaders } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { SettingsTabs } from "@/components/dashboard/settings-tabs";
+import { ReadFailureNotice } from "@/components/dashboard/read-failure-notice";
+import { readFailure, worstReadFailure, type ReadFailure } from "@/lib/read-failure";
 
 export type DayHours = { open: string; close: string; active: boolean };
 export type BusinessHourDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -51,6 +53,7 @@ export default async function SettingsPage({ searchParams }: PageProps) {
 
   let profile: TenantProfile | null = null;
   let services: ServiceRow[] | null = null;
+  let failure: ReadFailure = "unavailable";
   try {
     const [profileRes, servicesRes] = await Promise.all([
       fetch(apiUrl("/api/dashboard/tenant/profile"), { cache: "no-store", headers }),
@@ -59,9 +62,12 @@ export default async function SettingsPage({ searchParams }: PageProps) {
     if (profileRes.ok && servicesRes.ok) {
       profile = await profileRes.json() as TenantProfile;
       services = await servicesRes.json() as ServiceRow[];
+    } else {
+      failure = worstReadFailure([profileRes, servicesRes].filter(res => !res.ok).map(res => res.status));
     }
   } catch {
     // La conexión puede fallar antes de recibir una respuesta HTTP.
+    failure = readFailure(null);
   }
 
   const retryUrl = tenant
@@ -79,13 +85,7 @@ export default async function SettingsPage({ searchParams }: PageProps) {
       {profile && services ? (
         <SettingsTabs key={profile.id} profile={profile} services={services} initialTab={tab} guideOpen={guide === "1"} />
       ) : (
-        <div role="alert" className="max-w-2xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
-          <h2 className="font-semibold">No se pudo cargar la administración</h2>
-          <p className="mt-1">El servidor de datos no está disponible. Intenta de nuevo cuando vuelva la conexión.</p>
-          <Link href={retryUrl} className="mt-4 inline-flex min-h-10 items-center rounded-lg border border-amber-300 bg-white px-4 font-semibold transition-colors hover:bg-amber-100">
-            Reintentar
-          </Link>
-        </div>
+        <ReadFailureNotice title="No se pudo cargar la administración" reason={failure} retryHref={retryUrl} />
       )}
     </div>
   );
