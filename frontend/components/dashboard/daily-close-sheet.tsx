@@ -40,8 +40,8 @@ type DailyCloseSummary = {
   missingCommissionsCount: number;
 };
 
-// Advertencias con contraste AA sobre fondo claro (amber-800 ≈ 6,8:1).
-const WARN = "text-amber-800";
+// Advertencias con el color semántico del tema (contraste AA).
+const WARN = "text-warning";
 
 function Row({ label, value, highlight = false, warn = false }: {
   label: string; value: string; highlight?: boolean; warn?: boolean;

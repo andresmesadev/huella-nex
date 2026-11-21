@@ -41,6 +41,15 @@
   --color-card: var(--card);
   --color-warm-foreground: var(--warm-foreground);
   --color-warm: var(--warm);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-success-border: var(--success-border);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
+  --color-info-border: var(--info-border);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -78,6 +87,19 @@
   --border: #dce8e5;
   --input: #dce8e5;
   --ring: #137568;
+
+  /* Estados semánticos. El texto cumple AA (≥ 6,6:1) sobre blanco, el fondo
+     del panel y su propia superficie; usar text-warning, bg-warning-surface,
+     border-warning-border, etc. en lugar de tonos sueltos de la paleta. */
+  --warning: #92400e;
+  --warning-surface: #fffbeb;
+  --warning-border: #fde68a;
+  --success: #166534;
+  --success-surface: #f0fdf4;
+  --success-border: #bbf7d0;
+  --info: #1e40af;
+  --info-surface: #eff6ff;
+  --info-border: #bfdbfe;
 
   /* ── Verde fresco: acento de marca (salud/naturaleza) ─────── */
   --warm: oklch(0.55 0.14 152);
@@ -145,6 +167,18 @@
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.72 0.14 232);
+
+  /* Estados semánticos (el tema oscuro no se activa hoy; se definen para
+     que los tokens nunca queden vacíos). */
+  --warning: #fbbf24;
+  --warning-surface: oklch(0.30 0.06 75 / 40%);
+  --warning-border: oklch(0.55 0.12 75 / 50%);
+  --success: #4ade80;
+  --success-surface: oklch(0.30 0.06 150 / 40%);
+  --success-border: oklch(0.55 0.12 150 / 50%);
+  --info: #93c5fd;
+  --info-surface: oklch(0.30 0.06 255 / 40%);
+  --info-border: oklch(0.55 0.12 255 / 50%);
 
   /* ── Verde fresco: acento de marca (salud/naturaleza) ─────── */
   --warm: oklch(0.72 0.15 152);
