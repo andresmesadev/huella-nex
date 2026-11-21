@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales me parecen razonables si resuelve la operación de mi peluquería, pero esta semana no pagaría sin probar mis tareas esenciales y comprobar cómo recuperaría mis datos. La evaluación con datos ficticios me interesa, aunque todavía no me da razones suficientes para cambiar.",
+  "objection": "No sé si podré trabajar la agenda, cobrar y sacar mis datos completos cuando quiera irme; además, falta concretar el soporte.",
+  "would_change_my_mind": "Una prueba asistida que me permita completar un turno de peluquería de principio a fin y verificar la salida de los datos, con alcance y soporte por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

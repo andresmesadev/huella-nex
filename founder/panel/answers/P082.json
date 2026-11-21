@@ -1,0 +1,13 @@
+{
+  "id": "P082",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Por $49.000 al mes lo consideraría para revisar agenda y cobros al cerrar, pero todavía no contrataría con soporte, condiciones y salida de datos pendientes. Necesito saber cómo sigo trabajando si falla y cómo recupero mi información si decido retirarme.",
+  "objection": "¿Quién me responde cuando falle y qué respaldo y exportación de mis datos quedan realmente garantizados?",
+  "would_change_my_mind": "Una evaluación asistida que termine con condiciones escritas y verificables de soporte, respaldos, permisos y exportación, incluido el costo total.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

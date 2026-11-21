@@ -1,0 +1,13 @@
+{
+  "id": "P029",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes me parecen manejables, pero todavía no pagaría sin saber qué funciones de ventas, inventario y caja me entregarían para mi pet shop. Necesito ayuda al arrancar y tener claro cómo seguir operando sin depender siempre del desarrollador.",
+  "objection": "La preparación que mencionan es para peluquería y aún no están definidos el acompañamiento ni los horarios de soporte para mi negocio.",
+  "would_change_my_mind": "Una evaluación asistida que confirme el flujo manual de ventas, inventario y caja para mi pet shop y termine con un alcance y acompañamiento inicial por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

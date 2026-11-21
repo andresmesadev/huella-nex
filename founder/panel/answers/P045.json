@@ -1,0 +1,13 @@
+{
+  "id": "P045",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales pueden ser razonables, pero no pago por trasladar clientes, inventario y caja sin saber quién responde si falla. Además, todavía no está confirmado que admitan mi pet shop con el alcance que necesito.",
+  "objection": "¿Cómo recupero mis datos y quién me ayuda si el sistema falla al cerrar caja?",
+  "would_change_my_mind": "Una evaluación de mi operación con datos ficticios que termine en un acuerdo escrito de alcance para pet shop, soporte y recuperación y salida de datos por un costo total definido.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P073",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Por $49.000 COP al mes lo consideraría si me resuelve ventas, inventario y caja. Hoy no pagaría porque la preparación para un pet shop todavía no está acreditada y el alcance que recibiría sigue por acordar.",
+  "objection": "No tengo claro si el flujo de ventas e inventario sirve realmente para mi pet shop ni qué soporte tendría al contratar.",
+  "would_change_my_mind": "Una evaluación con datos ficticios que demuestre mi flujo de ventas, inventario y caja, con el alcance y soporte por escrito para pet shop.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

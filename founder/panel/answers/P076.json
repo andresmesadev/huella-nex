@@ -1,0 +1,13 @@
+{
+  "id": "P076",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 COP al mes podrían ser razonables por la operación manual, pero no pagaría todavía sin comprobar que sirve para mi clínica y que puedo aprender a manejarlo. La preparación para peluquería y el soporte pendiente no me dan esa seguridad.",
+  "objection": "Me preocupa necesitar al fundador cada vez que tenga una duda y no saber cuándo podría atenderme.",
+  "would_change_my_mind": "Una prueba guiada del alcance manual para mi clínica en la que luego pueda completar solo las tareas, con acompañamiento inicial y horarios de soporte acordados por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

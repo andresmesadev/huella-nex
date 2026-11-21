@@ -1,0 +1,13 @@
+{
+  "id": "P051",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No contrataría todavía: los $49.000 mensuales son una referencia, pero antes de poner la agenda y la caja de la clínica necesito condiciones claras de soporte, respaldos y exportación. Que ya se use en Mateos Pet no me confirma que pueda confiarle mi operación.",
+  "objection": "Si el sistema falla o decido salir, ¿cómo recupero la información y continúo atendiendo sin depender de que el responsable esté disponible?",
+  "would_change_my_mind": "Una evaluación asistida que compruebe el encaje de mi operación manual y deje por escrito cómo funcionan el soporte, los respaldos, los permisos y la salida de datos.",
+  "price_too_cheap": 20000,
+  "price_cheap": 49000,
+  "price_expensive": 95000,
+  "price_too_expensive": 160000
+}

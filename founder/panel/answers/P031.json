@@ -1,0 +1,13 @@
+{
+  "id": "P031",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "La cuota de $49.000 es razonable, pero todavía no sé si me sirve para la operación de una clínica. No asumiría el costo de cambiar mis registros sin comprobar cómo maneja la duración de las citas y la capacidad de atención.",
+  "objection": "La preparación externa es para peluquería y hay una brecha de capacidad; necesito saber si mi agenda puede funcionar ahí sin cruces.",
+  "would_change_my_mind": "Una evaluación con casos ficticios de mi clínica que demuestre que el alcance manual cubre mi agenda, atención y cierre de caja sin depender de funciones excluidas.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

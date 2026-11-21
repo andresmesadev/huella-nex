@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No pagaría todavía: la preparación para una clínica no está acreditada y siguen pendientes el precio final y las condiciones. Antes de cambiar necesito probar las tareas que haría allí y comprobar que puedo recuperar mis datos.",
+  "objection": "¿Qué terminaría pagando con impuestos y soporte, y cómo saco mis datos si la prueba no funciona para mi clínica?",
+  "would_change_my_mind": "Una evaluación asistida satisfactoria de las tareas manuales acordadas para mi clínica, incluida la salida de datos, con costo total y soporte por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

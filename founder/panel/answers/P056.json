@@ -1,0 +1,13 @@
+{
+  "id": "P056",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No pagaría todavía: necesito probar si puedo hacer las ventas, manejar inventario y cerrar caja sin complicarme el día. La preparación que mencionan es para peluquerías y aún no veo demostrado el encaje con un pet shop ni cómo recuperaría mis datos al salir.",
+  "objection": "¿Puedo completar mis tareas esenciales y llevarme mis datos si después decido cambiar?",
+  "would_change_my_mind": "Una prueba asistida para pet shop en la que pueda completar ventas, inventario y caja y comprobar la exportación de mis datos, con el alcance y soporte de los $49.000 COP definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

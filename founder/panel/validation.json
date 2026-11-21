@@ -1,0 +1,15 @@
+{
+  "valid": true,
+  "expected": 100,
+  "validated_answers": 100,
+  "segments": {
+    "Dueño de peluquería canina o felina independiente": 25,
+    "Dueño de pet shop independiente": 25,
+    "Dueño o administrador decisor de centro veterinario": 25,
+    "Dueño o administrador decisor de clínica veterinaria": 25
+  },
+  "seed": 20261119,
+  "pitch_sha256": "cdc5323f6ec61d7641aaec432286e383d699c36c54cdd343789d30011b2b051c",
+  "customer_sha256": "91d09b87be1a6aea9d1aa141ec7a68f66abef4770aeeff5cb2b1be6cc184c797",
+  "errors": []
+}

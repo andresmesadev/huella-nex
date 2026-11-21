@@ -1,0 +1,100 @@
+{
+ "n": 100,
+ "seed": 20261119,
+ "customer": {
+  "business": "Huella Nex — gestión para negocios de mascotas; panel exploratorio Colombia",
+  "target": "Personas que deciden y pagan software para su peluquería, centro veterinario, clínica veterinaria o pet shop independiente en Colombia. Compra empresarial: todos los precios y el ingreso anual sintético se expresan en COP. Los ingresos son escenarios personales del propietario, no ventas del negocio, presupuesto de software ni datos observados. El ingreso personal no determina por sí solo la capacidad de compra empresarial. Un establecimiento solo puede contratar una suscripción al mes: purchases_first_month debe ser 0 o 1. Responder en español. Evaluar pagar por el alcance manual descrito, no solamente aceptar una demostración gratis. No suponer historia clínica integral, hospitalización, DIAN, capacidad sin cruces, IA o WhatsApp habilitados comercialmente si no se prometen expresamente.",
+  "where": "Colombia",
+  "age": [
+   25,
+   65
+  ],
+  "segments": [
+   {
+    "name": "Dueño de peluquería canina o felina independiente",
+    "share": 0.25,
+    "income": [
+     18000000,
+     120000000
+    ]
+   },
+   {
+    "name": "Dueño o administrador decisor de centro veterinario",
+    "share": 0.25,
+    "income": [
+     18000000,
+     120000000
+    ]
+   },
+   {
+    "name": "Dueño o administrador decisor de clínica veterinaria",
+    "share": 0.25,
+    "income": [
+     18000000,
+     120000000
+    ]
+   },
+   {
+    "name": "Dueño de pet shop independiente",
+    "share": 0.25,
+    "income": [
+     18000000,
+     120000000
+    ]
+   }
+  ],
+  "behaviours": [
+   {
+    "name": "Cuida el gasto fijo",
+    "share": 0.2,
+    "how": "Compara cuota y costos de cambio; no compra solo porque sea barato."
+   },
+   {
+    "name": "Prueba antes de migrar",
+    "share": 0.2,
+    "how": "Necesita completar sus tareas esenciales y recuperar sus datos antes de cambiar."
+   },
+   {
+    "name": "Necesita acompañamiento",
+    "share": 0.15,
+    "how": "Valora ayuda inicial con horarios y límites claros; teme depender siempre del desarrollador."
+   },
+   {
+    "name": "Ya paga una alternativa",
+    "share": 0.15,
+    "how": "Exige una mejora concreta que compense migración y aprendizaje; no presupone cuál es su proveedor."
+   },
+   {
+    "name": "Prioriza el flujo de trabajo",
+    "share": 0.15,
+    "how": "Revisa agenda o ventas según su negocio; rechaza funciones que no resuelvan su tarea principal."
+   },
+   {
+    "name": "Exige continuidad y salida",
+    "share": 0.15,
+    "how": "Pregunta por soporte, respaldos, permisos y exportación antes de confiar datos operativos."
+   }
+  ],
+  "objections": [
+   "¿Qué mejora concreta obtengo frente a mi forma actual de trabajar?",
+   "¿Encaja con la duración, capacidad y atención que necesito?",
+   "¿Qué alcance clínico o de ventas cubre realmente mi negocio?",
+   "¿Puedo aprenderlo y usarlo sin ayuda continua del fundador?",
+   "¿Qué costos adicionales o condiciones faltan por acordar?",
+   "¿Quién responde cuando falla y cómo recupero mis datos?"
+  ],
+  "habits": [
+   "revisas la operación y los cobros al terminar la jornada",
+   "combinas atención del negocio y administración, y dispones de poco tiempo para aprender software",
+   "decides por un establecimiento independiente, no por una red de sedes"
+  ],
+  "research_notes": {
+   "scope_confirmation": "Andrés confirmó incluir los cuatro tipos y ejecutar 100 compradores el 19/11/2026.",
+   "allocation": "25 por tipo para comparación deliberada; no representa tamaño o participación del mercado.",
+   "assumptions": "Edad 25–65 e ingreso personal anual 18–120 millones COP son rangos sintéticos de sensibilidad, idénticos en los cuatro grupos para no confundir tipo de negocio con riqueza. No son estimaciones demográficas. Pesos de comportamientos también son decisiones del ensayo.",
+   "sources": "docs/IDENTIDAD_DEL_PRODUCTO.md; docs/ALCANCE_DEL_PRODUCTO.md; founder/board.md; founder/competitors.md.",
+   "limits": "Un mismo modelo y mensaje no permiten estimar conversión, disposición real a pagar o demanda. No emplear ingresos sintéticos como base del CFO. Centro y clínica pueden solaparse en el mercado; aquí son escenarios de necesidades diferentes, no clasificación estadística excluyente."
+  }
+ },
+ "pitch": "# Huella Nex — propuesta exploratoria de software por establecimiento\n\nHuella Nex reúne clientes y mascotas, agenda, servicios, atención, ventas, inventario y caja, según los módulos habilitados para tu peluquería, centro/clínica veterinaria o pet shop.\nSe usa desde el navegador; la operación manual se valida en Mateos Pet desde el 19/10/2026, sin que eso demuestre aceptación de otros negocios.\nEvaluamos una referencia de $49.000 COP al mes por establecimiento por el alcance manual acordado; precio final, impuestos, condiciones y horario de soporte están pendientes.\nPuedes solicitar una evaluación asistida con datos ficticios al responsable del proyecto; la preparación externa documentada hasta ahora corresponde a peluquería y no acredita admisión para todos los tipos de negocio.\nEsta propuesta no incluye WhatsApp ni IA comerciales, historia clínica integral/hospitalización ni facturación electrónica DIAN; si necesitas capacidad de una mascota simultánea, existe una brecha conocida que debe evaluarse antes de admitir ese uso.\nContratar y usar datos reales requiere confirmar encaje, alcance, soporte, privacidad y salida de datos; no hay cobro automático por pedir una demostración."
+}

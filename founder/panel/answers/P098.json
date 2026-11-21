@@ -1,0 +1,13 @@
+{
+  "id": "P098",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Ya pago otro sistema y no veo una mejora concreta para mi clínica que justifique cambiarlo y dedicar tiempo a aprender. Los $49.000 mensuales no bastan para convencerme si todavía tengo que confirmar que sirve para mi operación.",
+  "objection": "¿Voy a poder usarlo por mi cuenta o tendré que buscar al fundador cada vez que algo no me salga?",
+  "would_change_my_mind": "Una prueba con datos ficticios donde pueda completar sin ayuda mis tareas habituales de clínica y comprobar una mejora concreta frente al sistema que ya pago.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 85000,
+  "price_too_expensive": 150000
+}

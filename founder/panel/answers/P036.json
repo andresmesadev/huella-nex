@@ -1,0 +1,13 @@
+{
+  "id": "P036",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían valer la pena para organizar la peluquería, pero no pagaría sin probar las tareas que necesito y comprobar cómo recupero mis datos. Una demostración con datos ficticios me sirve para empezar a evaluar, pero todavía faltan condiciones de soporte y salida claras.",
+  "objection": "¿Puedo sacar mis clientes, mascotas y registros de trabajo en un archivo útil si decido cambiar de sistema?",
+  "would_change_my_mind": "Una prueba asistida que me permita completar el flujo manual de una peluquería y recuperar los datos de prueba, con las condiciones de soporte y salida por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 65000,
+  "price_too_expensive": 100000
+}

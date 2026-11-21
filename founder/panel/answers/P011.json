@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Por $49.000 podría considerar una herramienta para revisar cobros, pero todavía no veo demostrado qué parte de la operación de una clínica me resolvería. No pagaría este mes sin comprobar el flujo completo de atención, venta y cierre de caja.",
+  "objection": "La preparación que muestran es para peluquería; me falta saber si el alcance manual sirve en una clínica sin dejar la revisión de cobros repartida en varias herramientas.",
+  "would_change_my_mind": "Una prueba asistida con datos ficticios de una jornada de clínica que demuestre que puedo revisar las atenciones y conciliar los cobros al cierre con el alcance y soporte definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

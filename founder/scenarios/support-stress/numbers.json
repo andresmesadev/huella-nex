@@ -1,0 +1,73 @@
+{
+  "business": "Huella Nex — HIPÓTESIS DE SENSIBILIDAD support-stress",
+  "unit": "establecimiento-mes",
+  "price": 49000,
+  "variable": [
+    {
+      "label": "Soporte por cuenta — supuesto, no registro horario",
+      "cost": 37500
+    },
+    {
+      "label": "Cobro — provisión hipotética, no tarifa contratada",
+      "cost": 2500
+    },
+    {
+      "label": "Infraestructura incremental — provisión hipotética",
+      "cost": 3000
+    }
+  ],
+  "fixed_monthly": [
+    {
+      "label": "Infraestructura base — supuesto sin factura",
+      "cost": 250000
+    },
+    {
+      "label": "Mantenimiento y operación del fundador — supuesto",
+      "cost": 500000
+    }
+  ],
+  "startup": [
+    {
+      "label": "Preparación futura — provisión de escenario",
+      "cost": 500000
+    }
+  ],
+  "days_per_month": 30,
+  "plan_per_day": 1.1666666666666667,
+  "ramp_per_day": [
+    0.0,
+    0.03333333333333333,
+    0.06666666666666667,
+    0.1,
+    0.16666666666666666,
+    0.26666666666666666,
+    0.4,
+    0.5333333333333333,
+    0.6666666666666666,
+    0.8333333333333334,
+    1.0,
+    1.1666666666666667
+  ],
+  "capacity_per_day": 1.3333333333333333,
+  "scenario_notes": {
+    "currency": "COP",
+    "observed": false,
+    "monthly_paying_accounts": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      8,
+      12,
+      16,
+      20,
+      25,
+      30,
+      35
+    ],
+    "monthly_capacity_assumption": 40,
+    "tax": "49.000 se supone ingreso antes de impuestos para esta sensibilidad; no afirma tratamiento tributario real.",
+    "exclusions": "Sin IA/WhatsApp comerciales, sin inversión histórica, sin CAC nuevo ni impuestos a utilidades. No es presupuesto integral aprobado."
+  }
+}

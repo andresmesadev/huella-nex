@@ -1,0 +1,13 @@
+{
+  "id": "P097",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los 49.000 COP al mes podrían tener sentido si ventas, inventario y caja me ahorran trabajo, pero todavía no sé si admiten mi pet shop ni cuánto tiempo tomaría aprenderlo. Esta semana no pagaría con ese encaje y el soporte pendientes.",
+  "objection": "La preparación que muestran es para peluquería; necesito comprobar que puedo llevar una venta y su movimiento de inventario y caja sin complicarme la atención.",
+  "would_change_my_mind": "Una evaluación asistida de mi flujo de venta, inventario y caja que confirme un alcance para pet shop y soporte definidos por escrito por 49.000 COP mensuales.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

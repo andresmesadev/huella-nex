@@ -1,0 +1,13 @@
+{
+  "id": "P093",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Ya pago otro sistema y no veo una mejora concreta que justifique cambiarlo y dedicar tiempo a aprender. Los $49.000 son una referencia, pero todavía no sé cuánto terminaría pagando ni qué soporte recibiría.",
+  "objection": "¿Qué ganaría frente al sistema que ya uso y qué costos tendría pasar mis datos y enseñar al equipo?",
+  "would_change_my_mind": "Una prueba comparativa asistida con datos ficticios que demuestre ahorro de tiempo en mi operación, con migración, precio total y soporte acordados por escrito.",
+  "price_too_cheap": 20000,
+  "price_cheap": 40000,
+  "price_expensive": 85000,
+  "price_too_expensive": 140000
+}

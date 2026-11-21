@@ -1,0 +1,13 @@
+{
+  "id": "P071",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales pueden ser razonables, pero todavía no veo qué mejora concreta tendría al revisar mis cobros y mi operación. No asumiría el trabajo de cambiar mientras el encaje para un centro veterinario y las condiciones del servicio sigan pendientes.",
+  "objection": "La preparación externa es para peluquería; me preocupa empezar a pasar datos y descubrir que mi operación no encaja o que no tengo soporte cuando lo necesito.",
+  "would_change_my_mind": "Una evaluación de mi cierre de jornada con datos ficticios que demuestre una mejora clara y deje por escrito alcance, soporte y salida de datos para mi centro veterinario.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

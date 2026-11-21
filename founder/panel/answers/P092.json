@@ -1,0 +1,13 @@
+{
+  "id": "P092",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían servirme para organizar agenda y cobros manualmente, pero todavía no pagaría con el soporte y la recuperación de datos por definir. Necesito ayuda al comenzar sin quedar dependiendo siempre del desarrollador, y aún no está confirmado que admitan mi clínica.",
+  "objection": "Si al cerrar la jornada falla el sistema, ¿quién me responde, en qué horario y cómo saco mis datos?",
+  "would_change_my_mind": "Una evaluación asistida que termine en un acuerdo para mi clínica con alcance manual, acompañamiento inicial, horario de soporte y salida de datos comprobada.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 140000
+}

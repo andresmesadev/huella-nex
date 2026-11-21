@@ -1,0 +1,13 @@
+{
+  "id": "P046",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales me parecen razonables si agenda, servicios y caja resuelven la operación de mi peluquería. Pero no pagaría todavía con el alcance, el soporte y las condiciones de salida pendientes, porque cambiar de sistema también cuesta tiempo.",
+  "objection": "No sé exactamente qué quedaría incluido para mi peluquería ni cómo recuperaría mis datos si no me funciona.",
+  "would_change_my_mind": "Una evaluación asistida que termine en una propuesta escrita con el alcance para mi peluquería, precio total, soporte y salida de datos definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P053",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "quality",
+  "reason": "Los $49.000 mensuales me parecen razonables, pero cambiar la operación cuesta tiempo. No pagaría todavía sin comprobar que la agenda encaja con la duración de los servicios y la capacidad de atención que necesito.",
+  "objection": "La brecha de capacidad me deja la duda de si terminaría aceptando citas que no puedo atender.",
+  "would_change_my_mind": "Una evaluación asistida con una jornada ficticia de peluquería que demuestre que puedo organizar mis servicios y capacidad sin cruces que me compliquen la atención.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

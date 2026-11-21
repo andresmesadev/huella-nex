@@ -1,0 +1,13 @@
+{
+  "id": "P081",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales me parecen razonables, pero no pondría los datos del pet shop mientras el soporte y la salida de datos sigan por confirmar. Necesito poder trabajar sin depender continuamente del fundador.",
+  "objection": "¿Quién me ayuda si algo falla, cómo recupero un respaldo y puedo sacar mis datos completos si decido irme?",
+  "would_change_my_mind": "Una evaluación que demuestre que puedo manejar mi pet shop solo y deje por escrito soporte, respaldos, permisos y exportación de datos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P100",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales suenan manejables, pero no contrataría para mi clínica sin saber qué tareas manuales cubre y cuánto termino pagando. No tengo tiempo para aprenderlo y descubrir después que el alcance preparado no encaja con mi operación.",
+  "objection": "Todavía faltan el precio final, los impuestos y el soporte, y la preparación externa descrita es para peluquerías.",
+  "would_change_my_mind": "Una evaluación asistida que demuestre mi flujo manual de agenda, atención y caja, con alcance y costo total cerrados por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 150000
+}

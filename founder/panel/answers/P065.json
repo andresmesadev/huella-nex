@@ -1,0 +1,13 @@
+{
+  "id": "P065",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Por $49.000 podría considerar algo que me facilite revisar la operación y los cobros al cierre, pero aquí todavía no veo la mejora concreta para mi centro veterinario. Con la preparación externa centrada en peluquería y el alcance pendiente de acordar, no pagaría este mes.",
+  "objection": "¿La agenda, las ventas y la caja se conectan de una manera que realmente me simplifique el cierre de jornada en mi tipo de negocio?",
+  "would_change_my_mind": "Una evaluación asistida que demuestre un cierre diario útil para mi centro veterinario y deje por escrito el alcance y soporte incluidos en los $49.000.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 85000,
+  "price_too_expensive": 150000
+}

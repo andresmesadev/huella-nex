@@ -1,0 +1,13 @@
+{
+  "id": "P039",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No pagaría todavía: antes de llevar mi operación necesito saber cómo recupero mis datos y quién responde si algo falla. Los $49.000 mensuales me parecen abordables, pero las condiciones pendientes me dejan demasiadas dudas para contratar esta semana.",
+  "objection": "¿Podré manejarlo sin depender del fundador y sacar mis datos completos si dejo el servicio?",
+  "would_change_my_mind": "Una prueba de salida satisfactoria con datos ficticios, donde yo mismo pueda exportarlos y verificar el procedimiento de recuperación y soporte acordado para mi clínica.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

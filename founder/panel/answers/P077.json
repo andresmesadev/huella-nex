@@ -1,0 +1,13 @@
+{
+  "id": "P077",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes podrían servirme para ordenar agenda y cobros, pero todavía no sé qué cubre para un centro veterinario ni quién me acompaña cuando tenga dificultades. Con el alcance y el soporte pendientes, esta semana no contrataría.",
+  "objection": "Me preocupa necesitar al desarrollador cada vez que deba ajustar algo y no tener un horario claro para recibir ayuda.",
+  "would_change_my_mind": "Una evaluación asistida que termine en un acuerdo escrito de alcance para mi centro y acompañamiento inicial con horarios y límites definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

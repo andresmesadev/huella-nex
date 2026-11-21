@@ -1,0 +1,13 @@
+{
+  "id": "P010",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "La cuota de $49.000 me parece manejable, pero no pagaría todavía por cambiar la operación de la clínica con soporte y condiciones pendientes. Quiero comprobar que puedo manejar el alcance manual sin depender continuamente del fundador.",
+  "objection": "¿Quién me resuelve un problema de agenda o caja cuando estoy cerrando la jornada y el fundador no está disponible?",
+  "would_change_my_mind": "Una prueba de cierre de jornada con datos ficticios de una clínica como la mía, que pueda completar por mi cuenta usando una guía y con el soporte acordado por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 85000,
+  "price_too_expensive": 150000
+}

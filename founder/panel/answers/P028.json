@@ -1,0 +1,13 @@
+{
+  "id": "P028",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales pueden ser razonables, pero no cambio mi operación con el soporte y las condiciones todavía pendientes. Necesito comprobar que puedo cerrar la jornada con agenda y cobros claros antes de asumir otra cuota fija.",
+  "objection": "¿Quién me responde si algo falla y cómo recupero los datos si decido salir?",
+  "would_change_my_mind": "Una evaluación completa del cierre de jornada de una peluquería, con soporte y salida de datos acordados por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P022",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales me parecen razonables, pero no pagaría todavía sin saber si la agenda encaja con mi clínica y quién me acompaña al empezar. Tengo poco tiempo para aprender y las condiciones de soporte siguen pendientes.",
+  "objection": "Me preocupa necesitar ayuda para configurar horarios y terminar dependiendo del desarrollador cada vez que tenga un problema.",
+  "would_change_my_mind": "Una evaluación asistida que confirme el encaje del alcance manual para mi clínica y deje por escrito la ayuda inicial y los horarios de soporte.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

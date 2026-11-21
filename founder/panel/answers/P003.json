@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 podrían servirme si puedo llevar la agenda y revisar los cobros del día sin enredarme. Pero no pago todavía por módulos que dependen de un alcance acordado y con el soporte y las condiciones pendientes.",
+  "objection": "¿Qué me queda funcionando exactamente para mi peluquería por esa mensualidad y quién me ayuda si no puedo cerrar los cobros?",
+  "would_change_my_mind": "Una prueba asistida del recorrido de agendar, atender y cerrar caja, con el alcance y el soporte incluidos por escrito a un precio final.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 65000,
+  "price_too_expensive": 100000
+}

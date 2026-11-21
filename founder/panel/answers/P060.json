@@ -1,0 +1,13 @@
+{
+  "id": "P060",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Los $49.000 mensuales son una referencia que puedo considerar, pero no veo todavía qué mejora concreta compensaría cambiar mi forma de trabajar. No contrataría solo por reunir varias funciones si aún debo acordar qué incluye y cómo me apoyan.",
+  "objection": "Me preocupa dedicar tiempo al cambio y terminar pagando por algo que no me ahorre trabajo en la peluquería.",
+  "would_change_my_mind": "Una evaluación con datos ficticios que demuestre un ahorro claro de trabajo en una jornada de peluquería, dentro de una oferta con alcance y soporte definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

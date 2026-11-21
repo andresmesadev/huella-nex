@@ -1,0 +1,13 @@
+{
+  "id": "P094",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Ya pago otra herramienta y no veo todavía una mejora concreta que justifique pasar mis datos y aprender de nuevo. Los 49.000 COP pueden ser razonables, pero necesito comprobar cómo organiza los tiempos de peluquería antes de cambiar.",
+  "objection": "Me preocupa invertir tiempo en migrar y luego descubrir que la agenda no encaja con la duración y capacidad de mi atención.",
+  "would_change_my_mind": "Una prueba asistida con casos ficticios de mi jornada que muestre una mejora clara frente a mi herramienta actual y una migración sencilla.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

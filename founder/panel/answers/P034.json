@@ -1,0 +1,13 @@
+{
+  "id": "P034",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales pueden ser razonables, pero hoy no pagaría por cambiar sin comprobar que puedo completar mis tareas y recuperar mis datos. La evaluación asistida todavía no me demuestra que después pueda trabajar sola sin depender del fundador.",
+  "objection": "¿Voy a poder usarlo y sacar mis datos sin estar pidiendo ayuda cada vez?",
+  "would_change_my_mind": "Una prueba en la que yo complete sin ayuda mis tareas esenciales del centro veterinario y exporte los datos de prueba de forma utilizable.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 120000
+}

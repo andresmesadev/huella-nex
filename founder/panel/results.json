@@ -1,0 +1,246 @@
+{
+ "business": "Huella Nex — gestión para negocios de mascotas; panel exploratorio Colombia",
+ "seed": 20261119,
+ "dealt": 100,
+ "answered": 100,
+ "skipped": [],
+ "buys": 0,
+ "passes": 100,
+ "buy_rate": 0.0,
+ "by_segment": [
+  [
+   "Dueño de peluquería canina o felina independiente",
+   25,
+   0.0
+  ],
+  [
+   "Dueño de pet shop independiente",
+   25,
+   0.0
+  ],
+  [
+   "Dueño o administrador decisor de centro veterinario",
+   25,
+   0.0
+  ],
+  [
+   "Dueño o administrador decisor de clínica veterinaria",
+   25,
+   0.0
+  ]
+ ],
+ "by_behaviour": [
+  [
+   "Exige continuidad y salida",
+   15,
+   0.0
+  ],
+  [
+   "Prueba antes de migrar",
+   20,
+   0.0
+  ],
+  [
+   "Prioriza el flujo de trabajo",
+   15,
+   0.0
+  ],
+  [
+   "Cuida el gasto fijo",
+   20,
+   0.0
+  ],
+  [
+   "Ya paga una alternativa",
+   15,
+   0.0
+  ],
+  [
+   "Necesita acompañamiento",
+   15,
+   0.0
+  ]
+ ],
+ "by_income": [
+  [
+   "$45,723,000 to $79,976,000",
+   33,
+   0.0
+  ],
+  [
+   "$79,976,000 and up",
+   34,
+   0.0
+  ],
+  [
+   "under $45,723,000",
+   33,
+   0.0
+  ]
+ ],
+ "why_not": [
+  [
+   "trust",
+   76,
+   [
+    "Los $49.000 mensuales me parecen evaluables, pero no pagaría mientras el precio final y la continuidad del servicio sigan pendientes. Antes de confiar la agenda y los datos necesito condiciones claras de soporte, respaldos y exportación.",
+    "Los $49.000 mensuales me parecen razonables si resuelve la operación de mi peluquería, pero esta semana no pagaría sin probar mis tareas esenciales y comprobar cómo recuperaría mis datos. La evaluación con datos ficticios me interesa, aunque todavía no me da razones suficientes para cambiar."
+   ],
+   [
+    "P001",
+    "P002"
+   ]
+  ],
+  [
+   "habit",
+   11,
+   [
+    "Ya pago un sistema y no veo todavía una mejora concreta que justifique pasar los datos y volver a aprender. Los $49.000 mensuales pueden ser razonables, pero no cambiaría con el soporte y las condiciones pendientes.",
+    "Ya pago otro sistema y aquí no veo todavía una mejora concreta para mi pet shop que compense cambiarme y aprender de nuevo. Los $49.000 pueden ser razonables, pero no contrataría con el alcance y el soporte pendientes de confirmar."
+   ],
+   [
+    "P005",
+    "P024"
+   ]
+  ],
+  [
+   "need",
+   8,
+   [
+    "Por $49.000 podría considerar una herramienta para revisar cobros, pero todavía no veo demostrado qué parte de la operación de una clínica me resolvería. No pagaría este mes sin comprobar el flujo completo de atención, venta y cierre de caja.",
+    "Los $49.000 mensuales no me parecen excesivos, pero todavía no veo una mejora concreta para mi pet shop que compense aprender y cambiar la forma de trabajar. No pagaría mientras el alcance y las condiciones sigan pendientes."
+   ],
+   [
+    "P011",
+    "P020"
+   ]
+  ],
+  [
+   "quality",
+   4,
+   [
+    "La cuota de $49.000 me parece manejable, pero no pagaría por mover la operación sin comprobar que la agenda y los cobros encajan con mi centro veterinario. La preparación descrita es para peluquería y todavía faltan condiciones de soporte y salida de datos.",
+    "Los $49.000 pueden ser manejables, pero no cambiaría la operación de la clínica sin comprobar que la agenda y los módulos manuales encajan. La preparación externa para peluquería y las condiciones pendientes todavía no me dan base para pagar."
+   ],
+   [
+    "P015",
+    "P017"
+   ]
+  ],
+  [
+   "convenience",
+   1,
+   [
+    "Ya pago otra solución y aquí no veo una mejora concreta que me compense cambiar y aprender de nuevo. Además, la preparación para recibir pet shops todavía no está acreditada."
+   ],
+   [
+    "P061"
+   ]
+  ]
+ ],
+ "why_yes": [],
+ "flip": [
+  "Una propuesta escrita que cierre precio total, soporte, respaldos, permisos y salida de datos, con una demostración de recuperación y exportación usando datos ficticios.",
+  "Una prueba asistida que me permita completar un turno de peluquería de principio a fin y verificar la salida de los datos, con alcance y soporte por escrito.",
+  "Una prueba asistida del recorrido de agendar, atender y cerrar caja, con el alcance y el soporte incluidos por escrito a un precio final.",
+  "Una prueba asistida del flujo de pet shop que termine con condiciones escritas de soporte y una exportación de datos comprobada.",
+  "Una prueba en la que pueda completar por mi cuenta una jornada de peluquería con datos ficticios y comprobar una mejora clara frente a mi sistema actual.",
+  "Un acuerdo escrito que cierre el costo total y las condiciones de soporte, respaldos, permisos y exportación de datos.",
+  "Una propuesta escrita para mi peluquería con costo total cerrado, alcance manual, soporte y condiciones de salida de datos.",
+  "Una prueba asistida satisfactoria del flujo completo de mi pet shop, incluida la salida de datos, con el alcance y las condiciones de soporte definidos.",
+  "Una evaluación asistida que termine en una propuesta escrita para mi centro, con alcance manual confirmado, costo total y acompañamiento inicial y soporte definidos.",
+  "Una prueba de cierre de jornada con datos ficticios de una clínica como la mía, que pueda completar por mi cuenta usando una guía y con el soporte acordado por escrito.",
+  "Una prueba asistida con datos ficticios de una jornada de clínica que demuestre que puedo revisar las atenciones y conciliar los cobros al cierre con el alcance y soporte definidos.",
+  "Una evaluación asistida satisfactoria de las tareas manuales acordadas para mi clínica, incluida la salida de datos, con costo total y soporte por escrito.",
+  "Una evaluación asistida que termine en una propuesta escrita con el flujo manual que sí me sirve, costo total y soporte definidos.",
+  "Una evaluación asistida que confirme el encaje de la operación manual de mi clínica y deje por escrito la configuración inicial y el horario de soporte incluidos por el precio final.",
+  "Una prueba asistida con datos ficticios que reproduzca mi jornada y confirme por escrito el alcance manual que puedo contratar para el centro veterinario.",
+  "Una prueba asistida para pet shop en la que complete ventas, inventario y cierre de caja y pueda exportar los datos, con el alcance y soporte de la suscripción definidos.",
+  "Una prueba asistida de nuestros flujos con datos ficticios que confirme el encaje y deje por escrito el alcance, soporte y salida de datos por la cuota ofrecida.",
+  "Una evaluación asistida que confirme el alcance manual para mi centro y deje por escrito el acompañamiento inicial, el horario de soporte y cómo exportar mis datos.",
+  "Una prueba guiada con datos ficticios en la que después pueda completar solo una jornada de peluquería y su cierre de caja, con el soporte y la cuota total definidos por escrito.",
+  "Una evaluación asistida de una jornada típica de pet shop que muestre un ahorro de tiempo claro con el alcance incluido en la cuota.",
+  "Una evaluación asistida que termine en un acuerdo claro de puesta en marcha y soporte, y me permita manejar por mi cuenta la agenda que necesito.",
+  "Una evaluación asistida que confirme el encaje del alcance manual para mi clínica y deje por escrito la ayuda inicial y los horarios de soporte.",
+  "Una prueba en la que yo complete sin ayuda mis tareas esenciales de agenda, clientes y caja, y exporte los datos de prueba en un formato utilizable.",
+  "Una prueba comparativa de mi flujo de ventas, inventario y caja que demuestre ahorro de tiempo, incluyendo la migración de datos.",
+  "Una evaluación comparativa con datos ficticios de mi operación que demuestre un ahorro de trabajo suficiente para compensar la migración.",
+  "Una prueba asistida de una jornada típica de pet shop que demuestre un ahorro concreto de pasos y tiempo, con el alcance y soporte definidos.",
+  "Una evaluación con datos ficticios que demuestre una mejora concreta en mi cierre de ventas, inventario y caja frente al sistema que pago hoy.",
+  "Una evaluación completa del cierre de jornada de una peluquería, con soporte y salida de datos acordados por escrito.",
+  "Una evaluación asistida que confirme el flujo manual de ventas, inventario y caja para mi pet shop y termine con un alcance y acompañamiento inicial por escrito.",
+  "Una prueba asistida de cierre de jornada y recuperación de datos para mi clínica, con el alcance y el responsable de soporte acordados por escrito.",
+  "Una evaluación con casos ficticios de mi clínica que demuestre que el alcance manual cubre mi agenda, atención y cierre de caja sin depender de funciones excluidas.",
+  "Una evaluación con datos ficticios que demuestre un alcance manual útil para mi centro, con sus límites y condiciones de contratación claros.",
+  "Una evaluación asistida que demuestre el encaje de mi operación manual y deje por escrito soporte, respaldos, permisos y exportación de datos.",
+  "Una prueba en la que yo complete sin ayuda mis tareas esenciales del centro veterinario y exporte los datos de prueba de forma utilizable.",
+  "Una validación asistida que deje por escrito el alcance útil para mi centro y compruebe respaldo, recuperación y exportación de datos con condiciones de soporte claras.",
+  "Una prueba asistida que me permita completar el flujo manual de una peluquería y recuperar los datos de prueba, con las condiciones de soporte y salida por escrito.",
+  "Una evaluación asistida que demuestre el encaje de la agenda de mi clínica y deje acordado un acompañamiento inicial con horario y límites claros.",
+  "Una evaluación asistida del cierre diario de un pet shop que deje por escrito el alcance, el costo total, el soporte y cómo recuperar mis datos.",
+  "Una prueba de salida satisfactoria con datos ficticios, donde yo mismo pueda exportarlos y verificar el procedimiento de recuperación y soporte acordado para mi clínica.",
+  "Completar una prueba asistida de una jornada de peluquería, desde agendar hasta cerrar caja y exportar los datos, con alcance y soporte definidos.",
+  "Una evaluación asistida que me demuestre la recuperación y exportación de los datos, con condiciones de soporte y continuidad por escrito antes de contratar.",
+  "Una evaluación asistida que termine con una prueba de que puedo operar solo el alcance manual que necesita mi centro, y un acuerdo escrito de acompañamiento inicial y horarios de soporte.",
+  "Una evaluación asistida de mi flujo de agenda con datos ficticios que incluya un compromiso escrito de soporte y una prueba de exportación de los datos.",
+  "Una prueba asistida de una jornada de pet shop con datos ficticios que termine en una propuesta escrita con módulos, cuota total y soporte definidos.",
+  "Una evaluación de mi operación con datos ficticios que termine en un acuerdo escrito de alcance para pet shop, soporte y recuperación y salida de datos por un costo total definido.",
+  "Una evaluación asistida que termine en una propuesta escrita con el alcance para mi peluquería, precio total, soporte y salida de datos definidos.",
+  "Una prueba con datos ficticios de mi operación en la que pueda completar las tareas habituales por mi cuenta y quede definido el soporte incluido.",
+  "Una prueba de migración y salida con datos ficticios que demuestre una mejora útil frente a mi alternativa y deje por escrito quién responde ante fallos.",
+  "Una prueba en la que complete por mi cuenta las tareas esenciales acordadas para mi centro y exporte los datos de prueba de forma utilizable.",
+  "Una prueba asistida que demuestre mis tareas esenciales y la exportación de datos, con el alcance para mi clínica y las condiciones de soporte por escrito.",
+  "Una evaluación asistida que compruebe el encaje de mi operación manual y deje por escrito cómo funcionan el soporte, los respaldos, los permisos y la salida de datos.",
+  "Una validación asistida del alcance para mi clínica que demuestre recuperación y exportación de datos, con soporte y responsabilidades definidos por escrito.",
+  "Una evaluación asistida con una jornada ficticia de peluquería que demuestre que puedo organizar mis servicios y capacidad sin cruces que me compliquen la atención.",
+  "Una prueba del alcance manual donde yo pueda completar sola una jornada y cerrar caja con una guía, con las condiciones de soporte por escrito.",
+  "Una prueba completa para mi pet shop que permita verificar mis tareas esenciales y recuperar los datos, con el costo total y las condiciones por escrito.",
+  "Una prueba asistida para pet shop en la que pueda completar ventas, inventario y caja y comprobar la exportación de mis datos, con el alcance y soporte de los $49.000 COP definidos.",
+  "Una evaluación con datos ficticios que termine en una propuesta escrita con precio total, soporte y el flujo de agenda a cobro funcionando para mi peluquería.",
+  "Una prueba asistida que me permita completar sola el cierre de una jornada de peluquería y deje por escrito el alcance, el precio final y el horario de soporte.",
+  "Una prueba guiada de agenda y cierre de caja con datos ficticios donde después pueda repetir todo por mi cuenta, con el alcance y soporte del plan por escrito.",
+  "Una evaluación con datos ficticios que demuestre un ahorro claro de trabajo en una jornada de peluquería, dentro de una oferta con alcance y soporte definidos.",
+  "Una prueba asistida de mi flujo de pet shop que demuestre un ahorro claro de tiempo frente a mi solución actual, incluyendo la migración.",
+  "Una prueba con datos ficticios de las tareas acordadas para mi clínica en la que pueda trabajar sin ayuda y exportar los datos al terminar.",
+  "Una prueba asistida para mi centro que permita completar mis tareas y exportar los datos, con el costo total y las condiciones de salida por escrito.",
+  "Una prueba asistida para mi pet shop en la que complete ventas, inventario y caja y pueda exportar los datos de prueba, con alcance y soporte definidos para contratar.",
+  "Una evaluación asistida que demuestre un cierre diario útil para mi centro veterinario y deje por escrito el alcance y soporte incluidos en los $49.000.",
+  "Una evaluación asistida de agenda y cierre de caja para mi tipo de negocio, con un acuerdo escrito de soporte y recuperación de datos que pueda comprobar.",
+  "Una prueba con una jornada ficticia de mi peluquería que demuestre una mejora clara frente a lo que ya pago, incluyendo agenda y cierre de cobros.",
+  "Una prueba completa para mi pet shop en la que pueda cerrar caja, exportar los datos y verificar por escrito quién me atiende si algo falla.",
+  "Una evaluación para mi pet shop que termine en condiciones escritas de continuidad, soporte, permisos y exportación, con una recuperación de datos demostrada.",
+  "Una evaluación con datos ficticios que demuestre una mejora concreta frente a mi sistema actual en los procesos que necesito cubrir.",
+  "Una evaluación de mi cierre de jornada con datos ficticios que demuestre una mejora clara y deje por escrito alcance, soporte y salida de datos para mi centro veterinario.",
+  "Una evaluación con datos ficticios que me permita comprobar el respaldo y la exportación, con el compromiso de soporte y salida por escrito.",
+  "Una evaluación con datos ficticios que demuestre mi flujo de ventas, inventario y caja, con el alcance y soporte por escrito para pet shop.",
+  "Una prueba con datos ficticios en la que pueda completar sola mis tareas habituales de ventas, inventario y caja con menos trabajo que en mi programa actual.",
+  "Una validación asistida del alcance manual de mi clínica con condiciones escritas y verificables de soporte, respaldos, permisos y salida de datos.",
+  "Una prueba guiada del alcance manual para mi clínica en la que luego pueda completar solo las tareas, con acompañamiento inicial y horarios de soporte acordados por escrito.",
+  "Una evaluación asistida que termine en un acuerdo escrito de alcance para mi centro y acompañamiento inicial con horarios y límites definidos.",
+  "Una evaluación asistida de mi flujo de agenda que termine en una propuesta escrita con alcance, costo total y soporte definidos.",
+  "Una prueba asistida que demuestre que el alcance acordado cubre mis tareas esenciales y permite exportar los datos para salir sin quedar amarrado.",
+  "Una evaluación comparativa para mi establecimiento que demuestre una mejora operativa concreta y deje por escrito costo total, soporte y recuperación de datos.",
+  "Una evaluación que demuestre que puedo manejar mi pet shop solo y deje por escrito soporte, respaldos, permisos y exportación de datos.",
+  "Una evaluación asistida que termine con condiciones escritas y verificables de soporte, respaldos, permisos y exportación, incluido el costo total.",
+  "Una evaluación asistida que termine en una propuesta escrita para mi establecimiento, con alcance comprobado, costo total y acompañamiento inicial y soporte claramente delimitados.",
+  "Una evaluación asistida con datos ficticios que termine en una propuesta escrita de puesta en marcha y soporte, y en la que yo pueda manejar sola la agenda de la peluquería.",
+  "Una evaluación asistida que me permita comprobar el flujo de agenda y la recuperación de datos, con el soporte acordado por escrito antes de pagar.",
+  "Ver una prueba completa con datos ficticios de ventas, inventario y cierre de caja de un pet shop que confirme el alcance que recibiría por la mensualidad.",
+  "Una prueba en la que complete sin ayuda mi revisión de operación y cobros y exporte los datos, con el alcance contratado y el soporte definidos por escrito.",
+  "Una evaluación asistida que demuestre respaldo, recuperación y exportación de mis datos, con condiciones de soporte por escrito.",
+  "Una evaluación comparativa con datos ficticios que demuestre un ahorro claro de tiempo en mi operación administrativa frente a mi sistema actual.",
+  "Una prueba asistida del flujo que uso hoy, con datos ficticios, que demuestre un ahorro claro de trabajo y una migración sencilla dentro del alcance ofrecido.",
+  "Completar una prueba con datos ficticios en la que yo haga mis tareas de ventas, inventario y caja y exporte los datos sin ayuda continua.",
+  "Una evaluación asistida que termine en un acuerdo para mi clínica con alcance manual, acompañamiento inicial, horario de soporte y salida de datos comprobada.",
+  "Una prueba comparativa asistida con datos ficticios que demuestre ahorro de tiempo en mi operación, con migración, precio total y soporte acordados por escrito.",
+  "Una prueba asistida con casos ficticios de mi jornada que muestre una mejora clara frente a mi herramienta actual y una migración sencilla.",
+  "Una evaluación asistida satisfactoria del alcance manual para mi centro, con condiciones escritas de soporte, respaldos, permisos y exportación verificadas durante la prueba.",
+  "Una evaluación asistida de las tareas de mi pet shop que termine con un acuerdo claro de acompañamiento inicial, horario de soporte y exportación de mis datos.",
+  "Una evaluación asistida de mi flujo de venta, inventario y caja que confirme un alcance para pet shop y soporte definidos por escrito por 49.000 COP mensuales.",
+  "Una prueba con datos ficticios donde pueda completar sin ayuda mis tareas habituales de clínica y comprobar una mejora concreta frente al sistema que ya pago.",
+  "Una prueba guiada para pet shop en la que después pueda completar solo una venta, actualizar inventario y cerrar caja, con soporte y costo total definidos.",
+  "Una evaluación asistida que demuestre mi flujo manual de agenda, atención y caja, con alcance y costo total cerrados por escrito."
+ ],
+ "purchases_first_month_per_buyer": null,
+ "price_answers": 100
+}

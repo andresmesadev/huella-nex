@@ -1,0 +1,13 @@
+{
+  "id": "P037",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes me parecen manejables, pero no contrataría para mi clínica sin saber si la agenda encaja y quién me ayuda a dejarla funcionando. Con el soporte todavía pendiente, temo terminar dependiendo del desarrollador cada vez que necesite ajustar algo.",
+  "objection": "¿Me acompañan al comienzo con horarios claros y después puedo manejar la agenda por mi cuenta?",
+  "would_change_my_mind": "Una evaluación asistida que demuestre el encaje de la agenda de mi clínica y deje acordado un acompañamiento inicial con horario y límites claros.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

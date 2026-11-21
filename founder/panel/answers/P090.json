@@ -1,0 +1,13 @@
+{
+  "id": "P090",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Ya pago otro sistema y aquí no veo todavía una mejora concreta que justifique pasar mis datos y aprender de nuevo. Los $49.000 pueden ser razonables, pero no contrataría sin comprobar que el alcance manual me sirve para la clínica.",
+  "objection": "¿Qué tarea de mi operación voy a resolver mejor como para compensar la migración y el tiempo de aprendizaje?",
+  "would_change_my_mind": "Una prueba asistida del flujo que uso hoy, con datos ficticios, que demuestre un ahorro claro de trabajo y una migración sencilla dentro del alcance ofrecido.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

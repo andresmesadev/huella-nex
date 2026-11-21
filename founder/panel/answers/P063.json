@@ -1,0 +1,13 @@
+{
+  "id": "P063",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales son una referencia que consideraría, pero esta semana no pagaría con el precio final y las condiciones todavía pendientes. Antes de cambiar necesito probar mis tareas esenciales y comprobar que puedo recuperar los datos sin complicaciones.",
+  "objection": "¿Cuánto terminaría pagando y cómo saco mis datos si después no me sirve?",
+  "would_change_my_mind": "Una prueba asistida para mi centro que permita completar mis tareas y exportar los datos, con el costo total y las condiciones de salida por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 130000
+}

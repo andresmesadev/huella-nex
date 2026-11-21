@@ -1,0 +1,13 @@
+{
+  "id": "P038",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales se pueden considerar, pero no cambio la operación del pet shop sin ver cómo quedan ventas, inventario y caja al cerrar el día. La preparación para negocios como el mío y las condiciones de soporte todavía no están claras.",
+  "objection": "Me preocupa asumir el costo de pasar mis datos y luego encontrar que no encaja o no tener quién me ayude.",
+  "would_change_my_mind": "Una evaluación asistida del cierre diario de un pet shop que deje por escrito el alcance, el costo total, el soporte y cómo recuperar mis datos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

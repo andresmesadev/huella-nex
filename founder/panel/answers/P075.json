@@ -1,0 +1,13 @@
+{
+  "id": "P075",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No pagaría todavía: antes de meter clientes, cobros y agenda de la clínica necesito saber quién responde y cómo recupero mi información si dejo el servicio. Los $49.000 son una referencia razonable para evaluar, pero las condiciones pendientes no me permiten contratar esta semana.",
+  "objection": "¿Qué respaldo, permisos, soporte y exportación me garantizan para no quedarme sin operación ni datos?",
+  "would_change_my_mind": "Una validación asistida del alcance manual de mi clínica con condiciones escritas y verificables de soporte, respaldos, permisos y salida de datos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 140000
+}

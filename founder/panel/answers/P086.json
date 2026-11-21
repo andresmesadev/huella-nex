@@ -1,0 +1,13 @@
+{
+  "id": "P086",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Para mi pet shop me interesa que ventas, inventario y caja funcionen bien juntos. No pagaría todavía los $49.000 mensuales sin ver una mejora concreta en esa tarea, porque la preparación externa que explican es para peluquería.",
+  "objection": "¿Puedo registrar una venta, descontar existencias y cuadrar caja de forma sencilla en un pet shop?",
+  "would_change_my_mind": "Ver una prueba completa con datos ficticios de ventas, inventario y cierre de caja de un pet shop que confirme el alcance que recibiría por la mensualidad.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P066",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes pueden tener sentido para agenda y cobros, pero todavía no contrataría con el soporte y la salida de datos pendientes. Además, la preparación externa descrita es para peluquería y no me demuestra que encaje en mi centro veterinario.",
+  "objection": "¿Quién me responde si falla al cerrar caja y cómo recupero mis datos si tengo que dejarlo?",
+  "would_change_my_mind": "Una evaluación asistida de agenda y cierre de caja para mi tipo de negocio, con un acuerdo escrito de soporte y recuperación de datos que pueda comprobar.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P068",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían servirme, pero no pagaría todavía con el soporte y la salida de datos por definir. Primero necesito probar que puedo cerrar mis cobros del día y recuperar lo que registré.",
+  "objection": "Si falla al cerrar la jornada, ¿quién responde y cómo saco mis datos para seguir trabajando?",
+  "would_change_my_mind": "Una prueba completa para mi pet shop en la que pueda cerrar caja, exportar los datos y verificar por escrito quién me atiende si algo falla.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P062",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Por ahora no pagaría: todavía no está confirmado que admitan una clínica como la mía ni que pueda completar mis tareas sin ayuda constante. Los $49.000 mensuales son considerables para probar algo cuyo soporte y salida de datos siguen pendientes.",
+  "objection": "¿Podré operar por mi cuenta y recuperar mis datos si después decido salir?",
+  "would_change_my_mind": "Una prueba con datos ficticios de las tareas acordadas para mi clínica en la que pueda trabajar sin ayuda y exportar los datos al terminar.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

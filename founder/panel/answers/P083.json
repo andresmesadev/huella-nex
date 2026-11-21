@@ -1,0 +1,13 @@
+{
+  "id": "P083",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 me parecen una referencia razonable, pero no pagaría sin saber el costo total y cómo me van a acompañar al comenzar. Además, todavía falta confirmar que el alcance disponible sirva para mi centro veterinario.",
+  "objection": "Me preocupa contratar y descubrir después cobros o condiciones adicionales, o que para manejar lo básico tenga que estar buscando siempre al desarrollador.",
+  "would_change_my_mind": "Una evaluación asistida que termine en una propuesta escrita para mi establecimiento, con alcance comprobado, costo total y acompañamiento inicial y soporte claramente delimitados.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

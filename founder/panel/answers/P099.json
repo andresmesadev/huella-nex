@@ -1,0 +1,13 @@
+{
+  "id": "P099",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían servirme si ventas, inventario y caja funcionan para mi pet shop, pero todavía no está confirmado ese encaje ni el soporte. No asumiría el cambio con esas condiciones abiertas y poco tiempo para aprender.",
+  "objection": "¿Podré manejarlo solo o cada duda me dejará esperando al fundador?",
+  "would_change_my_mind": "Una prueba guiada para pet shop en la que después pueda completar solo una venta, actualizar inventario y cerrar caja, con soporte y costo total definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

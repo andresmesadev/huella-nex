@@ -1,0 +1,13 @@
+{
+  "id": "P069",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Reunir ventas, inventario y caja me podría servir para el cierre del día, pero hoy no pagaría para pasar mi operación a algo cuyas condiciones de soporte y salida todavía están pendientes. Tampoco está confirmado el encaje para mi pet shop.",
+  "objection": "Si dejo allí mis cobros y existencias, ¿quién responde ante una falla y cómo recupero todos mis datos si me retiro?",
+  "would_change_my_mind": "Una evaluación para mi pet shop que termine en condiciones escritas de continuidad, soporte, permisos y exportación, con una recuperación de datos demostrada.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

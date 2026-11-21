@@ -1,0 +1,13 @@
+{
+  "id": "P070",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Ya pago otro sistema y no veo una mejora concreta que justifique migrar y aprender uno nuevo. El alcance para un centro veterinario todavía debe confirmarse y la preparación externa descrita es para peluquería.",
+  "objection": "¿Qué parte de mi operación veterinaria podría reemplazar de verdad sin terminar pagando y usando dos sistemas?",
+  "would_change_my_mind": "Una evaluación con datos ficticios que demuestre una mejora concreta frente a mi sistema actual en los procesos que necesito cubrir.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 120000
+}

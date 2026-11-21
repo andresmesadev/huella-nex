@@ -1,0 +1,13 @@
+{
+  "id": "P008",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían servirme, pero todavía no pagaría: la preparación externa descrita es para peluquería y no sé si puedo cerrar mis ventas y caja como pet shop. Antes de migrar necesito probar las tareas esenciales y recuperar mis datos.",
+  "objection": "¿Puedo completar ventas, inventario y cierre de caja con el alcance ofrecido y llevarme mis datos si decido salir?",
+  "would_change_my_mind": "Una prueba asistida satisfactoria del flujo completo de mi pet shop, incluida la salida de datos, con el alcance y las condiciones de soporte definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

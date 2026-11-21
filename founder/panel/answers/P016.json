@@ -1,0 +1,13 @@
+{
+  "id": "P016",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes me parecen evaluables, pero todavía no pagaría por mover mi pet shop. Primero necesito probar el cierre de ventas, inventario y caja, y comprobar que puedo recuperar mis datos si me retiro.",
+  "objection": "La evaluación externa está preparada para peluquería y no sé si ya resuelve lo esencial de mi pet shop ni cómo me entregaría los datos.",
+  "would_change_my_mind": "Una prueba asistida para pet shop en la que complete ventas, inventario y cierre de caja y pueda exportar los datos, con el alcance y soporte de la suscripción definidos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

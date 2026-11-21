@@ -1,0 +1,13 @@
+{
+  "id": "P052",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No pagaría todavía: para mi clínica necesito saber exactamente qué operación cubre y cómo seguir trabajando si el sistema falla. Los $49.000 pueden ser razonables por una agenda y caja manuales, pero faltan condiciones de soporte, respaldos, permisos y salida de datos para confiarle la operación.",
+  "objection": "¿Quién me responde ante una caída y cómo recupero o exporto mis datos completos si decido salir?",
+  "would_change_my_mind": "Una validación asistida del alcance para mi clínica que demuestre recuperación y exportación de datos, con soporte y responsabilidades definidos por escrito.",
+  "price_too_cheap": 20000,
+  "price_cheap": 40000,
+  "price_expensive": 85000,
+  "price_too_expensive": 150000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P054",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían servirme si me facilita revisar cobros y agenda al cerrar, pero cambiar la operación también cuesta tiempo. No pagaría mientras no sepa si puedo aprenderlo y manejarlo sin depender continuamente del responsable.",
+  "objection": "¿Quién me resuelve una duda cuando esté cerrando caja, y cuánto apoyo voy a necesitar para usarlo sola?",
+  "would_change_my_mind": "Una prueba del alcance manual donde yo pueda completar sola una jornada y cerrar caja con una guía, con las condiciones de soporte por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 65000,
+  "price_too_expensive": 110000
+}

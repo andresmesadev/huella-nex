@@ -1,0 +1,13 @@
+{
+  "id": "P001",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales me parecen evaluables, pero no pagaría mientras el precio final y la continuidad del servicio sigan pendientes. Antes de confiar la agenda y los datos necesito condiciones claras de soporte, respaldos y exportación.",
+  "objection": "¿Cómo recupero mis datos y sigo trabajando si falla el sistema o decido salir, y cuánto termina costando todo?",
+  "would_change_my_mind": "Una propuesta escrita que cierre precio total, soporte, respaldos, permisos y salida de datos, con una demostración de recuperación y exportación usando datos ficticios.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

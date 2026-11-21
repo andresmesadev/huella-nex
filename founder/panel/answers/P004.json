@@ -1,0 +1,13 @@
+{
+  "id": "P004",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales pueden ser razonables, pero no me cambio mientras el soporte y la recuperación de mis datos sigan por definir. Además, todavía no está acreditado que admitan un pet shop como el mío.",
+  "objection": "Si falla en plena venta, ¿quién me responde y cómo saco mis datos para seguir trabajando?",
+  "would_change_my_mind": "Una prueba asistida del flujo de pet shop que termine con condiciones escritas de soporte y una exportación de datos comprobada.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

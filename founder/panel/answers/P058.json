@@ -1,0 +1,13 @@
+{
+  "id": "P058",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes me parecen razonables para probar si me organiza la peluquería, pero no pagaría todavía con el alcance y el soporte pendientes. Necesito saber cómo voy a manejar sola la agenda y los cobros después de la ayuda inicial.",
+  "objection": "Me preocupa quedar dependiendo del desarrollador cada vez que tenga que ajustar horarios o resolver algo al cerrar la jornada.",
+  "would_change_my_mind": "Una prueba asistida que me permita completar sola el cierre de una jornada de peluquería y deje por escrito el alcance, el precio final y el horario de soporte.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

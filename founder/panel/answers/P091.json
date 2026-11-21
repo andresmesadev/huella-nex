@@ -1,0 +1,13 @@
+{
+  "id": "P091",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes podrían servir, pero todavía no pagaría por trasladar mi pet shop a una herramienta cuya preparación externa está enfocada en peluquería. Necesito comprobar que puedo manejar ventas, inventario y caja por mi cuenta y recuperar mis datos antes de cambiar.",
+  "objection": "¿Podré operar mi pet shop sin pedirle ayuda al fundador cada vez que algo no me salga?",
+  "would_change_my_mind": "Completar una prueba con datos ficticios en la que yo haga mis tareas de ventas, inventario y caja y exporte los datos sin ayuda continua.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

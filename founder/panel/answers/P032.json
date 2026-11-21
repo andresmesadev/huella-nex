@@ -1,0 +1,13 @@
+{
+  "id": "P032",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "La cuota de $49.000 me parece manejable, pero todavía no veo qué parte de la operación de mi centro veterinario resolvería. No asumiría otro gasto fijo y un cambio de sistema sin comprobar ese encaje.",
+  "objection": "La preparación externa es para peluquería y no está definido el alcance que podrían habilitar para mi centro veterinario.",
+  "would_change_my_mind": "Una evaluación con datos ficticios que demuestre un alcance manual útil para mi centro, con sus límites y condiciones de contratación claros.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 140000
+}

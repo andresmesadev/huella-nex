@@ -1,0 +1,13 @@
+{
+  "id": "P020",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Los $49.000 mensuales no me parecen excesivos, pero todavía no veo una mejora concreta para mi pet shop que compense aprender y cambiar la forma de trabajar. No pagaría mientras el alcance y las condiciones sigan pendientes.",
+  "objection": "¿Cuánto trabajo me ahorra realmente en ventas, inventario y caja, y cuánto tiempo me va a tomar empezar?",
+  "would_change_my_mind": "Una evaluación asistida de una jornada típica de pet shop que muestre un ahorro de tiempo claro con el alcance incluido en la cuota.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 65000,
+  "price_too_expensive": 100000
+}

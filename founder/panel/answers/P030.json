@@ -1,0 +1,13 @@
+{
+  "id": "P030",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No pagaría este mes sin comprobar que puedo revisar la operación y los cobros de mi clínica y recuperar mis datos. Los $49.000 COP mensuales pueden ser razonables, pero el soporte y la salida de datos siguen por confirmar.",
+  "objection": "Si el sistema falla al cerrar la jornada, ¿quién me responde y cómo recupero lo que registré?",
+  "would_change_my_mind": "Una prueba asistida de cierre de jornada y recuperación de datos para mi clínica, con el alcance y el responsable de soporte acordados por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 120000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P085",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "La agenda y el manejo de clientes y mascotas podrían servirme, pero no pagaría mientras sigan pendientes el soporte y la salida de datos. Tengo poco tiempo para aprender y necesito saber quién me ayuda si el sistema falla durante la atención.",
+  "objection": "¿Quién responde cuando se cae y cómo recupero mi agenda y mis datos si dejo de usarlo?",
+  "would_change_my_mind": "Una evaluación asistida que me permita comprobar el flujo de agenda y la recuperación de datos, con el soporte acordado por escrito antes de pagar.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 65000,
+  "price_too_expensive": 100000
+}

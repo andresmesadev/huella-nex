@@ -1,0 +1,13 @@
+{
+  "id": "P064",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían servirme si puedo manejar ventas, inventario y caja de mi pet shop, pero todavía no está confirmado que reciban negocios como el mío. Antes de pagar necesito probar mis tareas esenciales y comprobar cómo recuperaría mis datos.",
+  "objection": "La preparación que muestran es para peluquería; no sé si mi operación de pet shop encaja ni cómo sacaría mis datos si decido irme.",
+  "would_change_my_mind": "Una prueba asistida para mi pet shop en la que complete ventas, inventario y caja y pueda exportar los datos de prueba, con alcance y soporte definidos para contratar.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

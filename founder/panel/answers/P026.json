@@ -1,0 +1,13 @@
+{
+  "id": "P026",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 COP mensuales podrían tener sentido si ventas, inventario y caja me ahorran trabajo, pero todavía no veo ese resultado para un pet shop. No pagaría mientras la preparación para mi tipo de negocio y las condiciones de uso sigan por confirmar.",
+  "objection": "¿Puedo llevar una venta y su movimiento de inventario y caja sin terminar haciendo el trabajo dos veces?",
+  "would_change_my_mind": "Una prueba asistida de una jornada típica de pet shop que demuestre un ahorro concreto de pasos y tiempo, con el alcance y soporte definidos.",
+  "price_too_cheap": 10000,
+  "price_cheap": 30000,
+  "price_expensive": 70000,
+  "price_too_expensive": 120000
+}

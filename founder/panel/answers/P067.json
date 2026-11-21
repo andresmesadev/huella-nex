@@ -1,0 +1,13 @@
+{
+  "id": "P067",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Ya pago otra alternativa y no veo todavía qué mejora concreta me daría para compensar cambiar mis datos y aprender de nuevo. Los $49.000 podrían ser razonables, pero reunir funciones no me demuestra que vaya a manejar mejor la peluquería ni los cobros al cerrar.",
+  "objection": "Me pesa cambiarme sin comprobar cómo maneja las duraciones y la capacidad de atención; la brecha de simultaneidad me deja dudas sobre el encaje.",
+  "would_change_my_mind": "Una prueba con una jornada ficticia de mi peluquería que demuestre una mejora clara frente a lo que ya pago, incluyendo agenda y cierre de cobros.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P096",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los 49.000 COP mensuales me parecen considerables para evaluar, pero no pagaría todavía con el soporte y la salida de datos pendientes. Tengo poco tiempo para aprender y la preparación que mencionan es para peluquería; necesito saber si me sirve para operar mi pet shop sin depender siempre del desarrollador.",
+  "objection": "Si falla mientras estoy atendiendo, ¿quién me responde, en qué horario y cómo recupero mis datos?",
+  "would_change_my_mind": "Una evaluación asistida de las tareas de mi pet shop que termine con un acuerdo claro de acompañamiento inicial, horario de soporte y exportación de mis datos.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

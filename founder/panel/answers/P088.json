@@ -1,0 +1,13 @@
+{
+  "id": "P088",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "No pagaría todavía: reunir agenda y caja puede servirme, pero no confiaría mis datos sin saber quién responde si algo falla y cómo puedo recuperarlos. Los $49.000 COP me parecen evaluables, aunque las condiciones pendientes me frenan.",
+  "objection": "¿Puedo sacar todos mis datos y seguir trabajando si el servicio falla o decido irme?",
+  "would_change_my_mind": "Una evaluación asistida que demuestre respaldo, recuperación y exportación de mis datos, con condiciones de soporte por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

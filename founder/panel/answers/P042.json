@@ -1,0 +1,13 @@
+{
+  "id": "P042",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 al mes me parecen manejables, pero no pagaría todavía con el acompañamiento y sus horarios pendientes. Tengo poco tiempo para aprender y necesito saber que después podré manejar lo acordado sin depender del fundador.",
+  "objection": "¿Quién me ayuda a arrancar y qué pasa si me atasco cuando el responsable no está disponible?",
+  "would_change_my_mind": "Una evaluación asistida que termine con una prueba de que puedo operar solo el alcance manual que necesita mi centro, y un acuerdo escrito de acompañamiento inicial y horarios de soporte.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales me parecen evaluables, pero no pagaría mientras el soporte y las condiciones sigan pendientes. Cambiar mi forma de cerrar cobros cuesta tiempo y necesito saber que puedo manejarlo sin depender del fundador.",
+  "objection": "¿Voy a poder aprenderlo y resolver el cierre del día por mi cuenta, o cada duda me va a dejar esperando ayuda?",
+  "would_change_my_mind": "Una prueba guiada con datos ficticios en la que después pueda completar solo una jornada de peluquería y su cierre de caja, con el soporte y la cuota total definidos por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 70000,
+  "price_too_expensive": 110000
+}

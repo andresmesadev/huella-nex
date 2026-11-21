@@ -1,0 +1,13 @@
+{
+  "id": "P021",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales podrían servirme, pero no contrataría mientras el soporte siga sin horario definido y no se haya comprobado que encaja en un centro veterinario. Tengo poco tiempo para aprender y necesito saber cómo arrancaría y resolvería dudas después.",
+  "objection": "Me preocupa quedar dependiendo del desarrollador cada vez que necesite ajustar horarios o resolver algo de la operación.",
+  "would_change_my_mind": "Una evaluación asistida que termine en un acuerdo claro de puesta en marcha y soporte, y me permita manejar por mi cuenta la agenda que necesito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 75000,
+  "price_too_expensive": 120000
+}

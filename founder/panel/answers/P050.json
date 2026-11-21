@@ -1,0 +1,13 @@
+{
+  "id": "P050",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Los $49.000 mensuales no son lo que me frena; antes de pagar necesito probar si el alcance manual me sirve para revisar la operación y los cobros de mi clínica. Con la admisión para clínicas y la salida de datos todavía por confirmar, esta semana no cambiaría mi forma de trabajar.",
+  "objection": "¿Puedo completar mis tareas esenciales y recuperar mis datos sin complicaciones si después no me sirve?",
+  "would_change_my_mind": "Una prueba asistida que demuestre mis tareas esenciales y la exportación de datos, con el alcance para mi clínica y las condiciones de soporte por escrito.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}

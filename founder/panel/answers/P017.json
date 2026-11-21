@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "quality",
+  "reason": "Los $49.000 pueden ser manejables, pero no cambiaría la operación de la clínica sin comprobar que la agenda y los módulos manuales encajan. La preparación externa para peluquería y las condiciones pendientes todavía no me dan base para pagar.",
+  "objection": "Me pesa migrar y aprender otro sistema para después descubrir que la duración y capacidad de la agenda no sirven para nuestra atención.",
+  "would_change_my_mind": "Una prueba asistida de nuestros flujos con datos ficticios que confirme el encaje y deje por escrito el alcance, soporte y salida de datos por la cuota ofrecida.",
+  "price_too_cheap": 15000,
+  "price_cheap": 35000,
+  "price_expensive": 80000,
+  "price_too_expensive": 130000
+}
