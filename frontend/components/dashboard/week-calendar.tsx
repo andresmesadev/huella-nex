@@ -228,6 +228,12 @@ function TimeGrid({
 
 // ── Month view ────────────────────────────────────────────────
 
+const MONTH_VISIBLE = 3;
+
+function monthDayLabel(ymd: string) {
+  return new Date(`${ymd}T12:00:00Z`).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+}
+
 function MonthView({
   year, month, appointments, today,
   onDayClick, onSelect,
@@ -266,27 +272,60 @@ function MonthView({
       {/* Cells */}
       <div className="grid grid-cols-7">
         {cells.map((cell, i) => {
-          if (!cell) return <div key={i} className="min-h-[90px] border-b border-r last:border-r-0 bg-muted/20" />;
+          if (!cell) return <div key={i} aria-hidden="true" className="min-h-16 border-b border-r bg-muted/20 sm:min-h-[7.5rem] [&:nth-child(7n)]:border-r-0" />;
           const isToday = cell.ymd === today;
+          const count = cell.appts.length;
+          const dateLabel = monthDayLabel(cell.ymd);
+          const hidden = count - MONTH_VISIBLE;
           return (
             <div
               key={cell.ymd}
-              className={`min-h-[90px] border-b border-r last:border-r-0 p-1.5 text-left hover:bg-muted/40 transition-colors ${isToday ? "bg-primary/5" : ""}`}
+              className={`relative min-h-16 border-b border-r sm:min-h-[7.5rem] [&:nth-child(7n)]:border-r-0 ${isToday ? "bg-primary/5" : ""}`}
             >
-              <button type="button" onClick={() => onDayClick(cell.ymd)} aria-label={`Ver agenda del ${cell.ymd}`} className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${isToday ? "bg-primary text-primary-foreground" : "text-foreground"}`}>
-                {cell.day}
-              </button>
-              <div className="mt-1 space-y-0.5">
-                {cell.appts.slice(0, 3).map((a) => (
-                  <button type="button" key={a.id} onClick={() => onSelect(a)} aria-label={`Abrir cita de ${a.petName}`} className="flex w-full items-center gap-1 rounded bg-muted/60 px-1 py-0.5 text-left hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-teal-700">
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${STATUS_DOT[a.status] ?? "bg-slate-400"}`} />
-                    <span className="text-[10px] truncate leading-tight">{getPetEmoji(a.petType)} {a.petName}</span>
-                  </button>
-                ))}
-                {cell.appts.length > 3 && (
-                  <p className="text-[10px] text-muted-foreground pl-1">+{cell.appts.length - 3} más</p>
+              {/* Toda la celda abre el día: objetivo táctil amplio también en celular. */}
+              <button
+                type="button"
+                onClick={() => onDayClick(cell.ymd)}
+                aria-label={`${dateLabel}: ${count === 0 ? "sin citas" : count === 1 ? "1 cita" : `${count} citas`}. Ver agenda del día`}
+                aria-current={isToday ? "date" : undefined}
+                className="absolute inset-0 flex flex-col items-start p-1.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+              >
+                <span aria-hidden="true" className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${isToday ? "bg-primary text-primary-foreground" : "text-foreground"}`}>
+                  {cell.day}
+                </span>
+                {count > 0 && (
+                  <span aria-hidden="true" className="mt-auto self-center rounded-full bg-teal-100 px-1.5 text-[11px] font-semibold text-teal-900 sm:hidden">{count}</span>
                 )}
-              </div>
+              </button>
+              {count > 0 && (
+                <ul className="pointer-events-none relative mt-9 hidden space-y-1 px-1.5 pb-1.5 sm:block" aria-label={`Citas del ${dateLabel}`}>
+                  {cell.appts.slice(0, MONTH_VISIBLE).map((a) => (
+                    <li key={a.id}>
+                      <button
+                        type="button"
+                        onClick={() => onSelect(a)}
+                        aria-label={`${a.petName}, ${a.serviceName ?? a.serviceType}, ${formatStatus(a.status)}. Abrir cita`}
+                        className="pointer-events-auto flex min-h-6 w-full items-center gap-1 rounded bg-muted/70 px-1 text-left hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-teal-700"
+                      >
+                        <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[a.status] ?? "bg-slate-400"}`} />
+                        <span aria-hidden="true" className="truncate text-xs leading-tight">{getPetEmoji(a.petType)} {a.petName}</span>
+                      </button>
+                    </li>
+                  ))}
+                  {hidden > 0 && (
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => onDayClick(cell.ymd)}
+                        aria-label={`Ver ${hidden} ${hidden === 1 ? "cita más" : "citas más"} del ${dateLabel}`}
+                        className="pointer-events-auto inline-flex min-h-6 items-center rounded px-1 text-xs font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-teal-700"
+                      >
+                        +{hidden} más
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              )}
             </div>
           );
         })}
