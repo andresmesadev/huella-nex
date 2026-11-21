@@ -106,6 +106,7 @@ function billingViewFixture({ existing = false, status = 200, billingStatus = {}
       if (name === 'react/jsx-runtime') return { jsx: node, jsxs: node };
       if (name === 'react') return { useState: initial => [initial, value => states.push(value)] };
       if (name === '@/lib/billing-plan-request') return requestModule.exports;
+      if (name === '@/lib/product-brand') return { PRODUCT_SUPPORT_EMAIL: 'support@example.invalid' };
       if (name.endsWith('/action-confirmation')) return { useActionConfirmation: () => ({ confirm: async () => true, confirmation: null }) };
       if (name.endsWith('/badge')) return { Badge: 'Badge' };
       if (name.endsWith('/button')) return { Button: 'Button' };

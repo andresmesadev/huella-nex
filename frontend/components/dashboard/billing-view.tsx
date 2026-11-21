@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type BillingStatus } from "@/app/dashboard/billing/page";
 import { billingPlanRequest } from "@/lib/billing-plan-request";
+import { PRODUCT_SUPPORT_EMAIL } from "@/lib/product-brand";
+
+function supportMailto(subject: string) {
+  return `mailto:${PRODUCT_SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}`;
+}
 
 // ── Plan definitions ──────────────────────────────────────────
 
@@ -19,6 +24,8 @@ type Plan = {
   price: string;
   period: string;
   features: string[];
+  /** Condiciones aún no confirmadas: se muestran aparte, sin marca de incluido. */
+  pending?: string[];
   highlight?: boolean;
 };
 
@@ -27,8 +34,8 @@ const OPERATIONAL_FEATURES = [
   "Agenda, clientes y mascotas según módulos habilitados",
   "Equipo con roles y permisos",
   "Caja, inventario y comprobantes operativos",
-  "Cupo de IA por confirmar en la oferta",
 ];
+const PENDING_AI = ["Cupo de IA por confirmar en la oferta"];
 
 const PLANS: Plan[] = [
   {
@@ -49,6 +56,7 @@ const PLANS: Plan[] = [
     period: "mes",
     highlight: true,
     features: OPERATIONAL_FEATURES,
+    pending: PENDING_AI,
   },
   {
     id: "pro",
@@ -56,6 +64,7 @@ const PLANS: Plan[] = [
     price: "$89.000",
     period: "mes",
     features: OPERATIONAL_FEATURES,
+    pending: PENDING_AI,
   },
   {
     id: "custom",
@@ -143,6 +152,12 @@ function PlanCard({
             {f}
           </li>
         ))}
+        {plan.pending?.map((p) => (
+          <li key={p} className="flex items-start gap-2 text-sm text-muted-foreground">
+            <span aria-hidden="true" className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current text-[10px] font-bold">?</span>
+            <span><span className="sr-only">Pendiente: </span>{p}</span>
+          </li>
+        ))}
       </ul>
 
       {isCurrent && !canReactivate ? (
@@ -151,11 +166,16 @@ function PlanCard({
         <details className="rounded-lg border p-3 text-sm">
           <summary className="cursor-pointer font-medium focus-visible:outline-2 focus-visible:outline-offset-2">Cómo acordar este plan</summary>
           <p className="mt-2 text-muted-foreground">Consulta con el equipo de Huella Nex para definir el alcance y recibir una propuesta. La cotización se acuerda antes de contratar este plan.</p>
+          <a className="mt-3 inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4" href={supportMailto("Plan Personalizado de Huella Nex")}>Escribir a {PRODUCT_SUPPORT_EMAIL}</a>
         </details>
       ) : plan.id === "free" ? (
-        <Button disabled variant="ghost" className="w-full text-muted-foreground">
-          {isDowngrade ? "Contactar soporte para bajar de plan" : "Acceso de evaluación"}
-        </Button>
+        isDowngrade ? (
+          <Button asChild variant="outline" className="w-full">
+            <a href={supportMailto("Bajar al plan de evaluación")}>Contactar soporte para bajar de plan</a>
+          </Button>
+        ) : (
+          <Button disabled variant="ghost" className="w-full text-muted-foreground">Acceso de evaluación</Button>
+        )
       ) : (
         <Button
           className="w-full"
@@ -211,7 +231,7 @@ export function BillingView({ status }: { status: BillingStatus | null }) {
   }
 
   async function handleCancel() {
-    if (!await confirm("¿Seguro que deseas cancelar tu suscripción? Perderás acceso a las funciones de tu plan actual.")) {
+    if (!await confirm("¿Seguro que deseas cancelar tu suscripción? La cancelación es inmediata: el establecimiento quedará suspendido y tu equipo no podrá usar el dashboard hasta que vuelvas a contratar un plan. Los datos registrados se conservan.")) {
       return;
     }
     setLoading(true);
@@ -270,7 +290,7 @@ export function BillingView({ status }: { status: BillingStatus | null }) {
             {status.planExpiresAt && (
               <div>
                 <div className="text-sm text-muted-foreground">
-                  {status.subscriptionStatus === "canceled" ? "Acceso hasta" : "Próximo cobro"}
+                  {status.subscriptionStatus === "canceled" ? "Fin del período pagado" : "Próximo cobro"}
                 </div>
                 <div className="font-semibold">{fmtDate(status.planExpiresAt)}</div>
               </div>

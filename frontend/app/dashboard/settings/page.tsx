@@ -75,7 +75,7 @@ export default async function SettingsPage({ searchParams }: PageProps) {
         description="Información del negocio, servicios, horarios y equipo"
         icon={Settings}
         tint="bg-slate-100 text-slate-700"
-      ><Link href={tenant ? `/dashboard/settings/integrations?tenant=${encodeURIComponent(tenant)}` : '/dashboard/settings/integrations'} className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-primary">WhatsApp e IA</Link></PageHeader>
+      ><Link href={tenant ? `/dashboard/settings/integrations?tenant=${encodeURIComponent(tenant)}` : '/dashboard/settings/integrations'} className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-primary">WhatsApp e IA</Link><Link href={tenant ? `/dashboard/billing?tenant=${encodeURIComponent(tenant)}` : '/dashboard/billing'} className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-primary">Plan y facturación</Link></PageHeader>
       {profile && services ? (
         <SettingsTabs key={profile.id} profile={profile} services={services} initialTab={tab} guideOpen={guide === "1"} />
       ) : (
