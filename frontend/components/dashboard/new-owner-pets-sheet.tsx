@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/toast";
 import { useDashboardAccess } from "@/components/dashboard/dashboard-access-provider";
 import { ProtectedDialog, useDialogEditGuard } from "@/components/dashboard/protected-dialog";
 import { proxyUrl } from "@/lib/api";
+import { PetSpeciesSelect } from "@/components/dashboard/pet-species-select";
 import { useTenant, tenantQuery } from "@/lib/use-tenant";
 import { FieldError, FormSubmissionError, useFormFeedback } from "@/components/dashboard/form-feedback";
 import { submissionErrorMessage } from "@/lib/form-feedback";
@@ -197,16 +198,7 @@ function NewOwnerPetsContent({ onOpenChange, onCreated }: Props) {
                       <FieldError id={`pet-name-${pet.uid}`} message={feedback.errors[`pet-name-${pet.uid}`]} />
                     </div>
 
-                      <div className="space-y-1.5">
-                        <label htmlFor={`pet-type-${pet.uid}`} className="text-sm font-semibold">Especie *</label>
-                        <select id={`pet-type-${pet.uid}`} value={pet.type} onChange={(e) => updatePet(pet.uid, "type", e.target.value)} className={SELECT_CLASS} disabled={saving}>
-                          <option value="dog">Perro</option>
-                          <option value="cat">Gato</option>
-                          <option value="bird">Ave</option>
-                          <option value="rabbit">Conejo</option>
-                          <option value="other">Otro</option>
-                        </select>
-                      </div>
+                      <PetSpeciesSelect id={`pet-type-${pet.uid}`} value={pet.type} onChange={(value) => updatePet(pet.uid, "type", value)} disabled={saving} />
                     </div>
 
                     <div className="grid min-w-0 items-end gap-3 sm:grid-cols-3">

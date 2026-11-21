@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { ProtectedDialog, useDialogEditGuard } from "@/components/dashboard/protected-dialog";
 import { proxyUrl } from "@/lib/api";
+import { PetSpeciesSelect } from "@/components/dashboard/pet-species-select";
 import { FieldError, FormSubmissionError, useFormFeedback } from "@/components/dashboard/form-feedback";
 import { submissionErrorMessage } from "@/lib/form-feedback";
 import { FormDialogContent, FormDialogHeader, FormDialogBody, FormDialogFooter, FormSection } from "./form-layout";
@@ -28,14 +29,6 @@ type Props = {
   defaultOwnerName?: string;
   lockOwner?: boolean;
 };
-
-const PET_TYPES = [
-  { value: "dog",   label: "🐶 Perro" },
-  { value: "cat",   label: "🐱 Gato" },
-  { value: "bird",  label: "🐦 Ave" },
-  { value: "rabbit",label: "🐰 Conejo" },
-  { value: "other", label: "🐾 Otro" },
-];
 
 function NewPetContent({ open, onOpenChange, onCreated, defaultOwnerPhone, defaultOwnerName = "", lockOwner = false }: Props) {
   const { toast } = useToast();
@@ -132,29 +125,7 @@ function NewPetContent({ open, onOpenChange, onCreated, defaultOwnerPhone, defau
             </div>
 
             {/* Especie */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Especie *
-              </label>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                {PET_TYPES.map((pt) => (
-                  <button
-                    key={pt.value}
-                    type="button"
-                    aria-pressed={type === pt.value}
-                    onClick={() => setType(pt.value)}
-                    className={`flex flex-col items-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition-all duration-150 ${
-                      type === pt.value
-                        ? "border-amber-500/40 bg-amber-500/10 text-amber-800"
-                        : "border-black/[0.06] text-muted-foreground hover:border-black/15 hover:bg-accent"
-                    }`}
-                  >
-                    <span className="text-base">{pt.label.split(" ")[0]}</span>
-                    <span>{pt.label.split(" ")[1]}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <PetSpeciesSelect id="np-type" value={type} onChange={setType} disabled={saving} labelClassName="text-xs font-semibold uppercase tracking-wider text-muted-foreground" />
 
             {/* Raza */}
             <div className="space-y-1.5">

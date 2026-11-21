@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { useDashboardAccess } from "@/components/dashboard/dashboard-access-provider";
 import { proxyUrl } from "@/lib/api";
+import { PetSpeciesSelect } from "@/components/dashboard/pet-species-select";
 import { useTenant } from "@/lib/use-tenant";
 import { formatPhone } from "@/lib/pets";
 import { ProtectedDialog, useDialogEditGuard } from "./protected-dialog";
@@ -175,7 +176,7 @@ function AddPetContent({ onOpenChange, onCreated, onNewOwner }: Props & { onNewO
           <fieldset disabled={saving} className="min-w-0 space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-name" className="text-sm font-semibold">Nombre *</label><Input id="apt-pet-name" value={petName} onChange={e => setPetName(e.target.value)} placeholder="Ej. Max" required /></div>
-              <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-type" className="text-sm font-semibold">Especie *</label><select id="apt-pet-type" value={petType} onChange={e => setPetType(e.target.value)} className={SELECT_CLASS}><option value="dog">Perro</option><option value="cat">Gato</option><option value="other">Otro</option></select></div>
+              <PetSpeciesSelect id="apt-pet-type" value={petType} onChange={setPetType} />
             </div>
             <div className="grid items-end gap-3 sm:grid-cols-3">
               <div className="min-w-0 space-y-1.5"><label htmlFor="apt-pet-breed" className="text-sm font-semibold">Raza (opcional)</label><Input id="apt-pet-breed" value={petBreed} onChange={e => setPetBreed(e.target.value)} placeholder="Sin especificar" /></div>
