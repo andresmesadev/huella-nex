@@ -1,6 +1,7 @@
 import { LoginForm } from "@/components/auth/login-form";
 import Link from "next/link";
 import { ProductBrand } from "@/components/brand/product-brand";
+import { LegalLinks } from "@/components/brand/legal-links";
 import { PRODUCT_DESCRIPTOR } from "@/lib/product-brand";
 
 export default function LoginPage() {
@@ -10,6 +11,7 @@ export default function LoginPage() {
         <ProductBrand size="lg" subtitle={PRODUCT_DESCRIPTOR} />
       </Link>
       <LoginForm />
+      <LegalLinks />
     </main>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Check, ChevronDown, CircleDollarSign, HeartPulse, Mail, Package, PawPrint, Scissors, ShoppingBag, UsersRound } from "lucide-react";
 import { ProductBrand } from "@/components/brand/product-brand";
+import { LEGAL_LINKS } from "@/components/brand/legal-links";
 import { OperationPreview } from "@/components/marketing/operation-preview";
 import { PRODUCT_DESCRIPTION, PRODUCT_SUPPORT_EMAIL } from "@/lib/product-brand";
 import styles from "./landing.module.css";
@@ -89,7 +90,7 @@ export default function LandingPage() {
           <div className={styles.finalActions}><DemoLink className={styles.lightButton} /><small>Se abrirá tu aplicación de correo.</small></div>
         </div></section>
       </main>
-      <footer className={styles.footer}><div className={styles.footerInner}><div><Brand /><p>Gestión para quienes cuidan mascotas.</p></div><nav aria-label="Enlaces del pie de página"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><Link href="/login">Ingresar al dashboard</Link><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`}>Contacto</a></nav><small>© {new Date().getFullYear()} Huella Nex</small></div></footer>
+      <footer className={styles.footer}><div className={styles.footerInner}><div><Brand /><p>Gestión para quienes cuidan mascotas.</p></div><nav aria-label="Enlaces del pie de página"><a href="#plataforma">La plataforma</a><a href="#sectores">Para tu negocio</a><Link href="/login">Ingresar al dashboard</Link><a href={`mailto:${PRODUCT_SUPPORT_EMAIL}`}>Contacto</a>{LEGAL_LINKS.map(({ href, label }) => <Link key={href} href={href}>{label}</Link>)}</nav><small>© {new Date().getFullYear()} Huella Nex</small></div></footer>
     </div>
   );
 }

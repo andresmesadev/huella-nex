@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, HeartPulse, Scissors, ShoppingBag, ShieldCheck, LoaderCircle } from "lucide-react";
 import { RegistrationShell } from "@/components/onboarding/registration-shell";
+import { LegalLinks } from "@/components/brand/legal-links";
 import styles from "@/components/onboarding/registration.module.css";
 import { onboardingProvisioning, onboardingNotice, onboardingSupportHref, type OnboardingProvisioning } from "@/lib/onboarding-result";
 
@@ -183,6 +184,7 @@ export default function OnboardingPage() {
         </div>
         {step === 2 && <p className={styles.notice}>Serás administrador de este establecimiento. Después podrás crear los accesos de tu equipo.</p>}
       </form>
+      <LegalLinks className="mt-6" />
     </RegistrationShell>
   );
 }
