@@ -13,12 +13,13 @@ const marker = 'onboarding-check-' + randomBytes(6).toString('hex');
 const password = 'Frase de prueba ' + randomBytes(12).toString('hex');
 const secret = randomBytes(32).toString('hex');
 const guidedBusinessSetup = process.argv.includes('--guided-business-setup');
-const supportLifecycle = process.argv.includes('--support-lifecycle');
+const supportLifecycle = process.argv.includes('--support-lifecycle') || process.argv.includes('--protected-exit-drill');
 const tenantConfiguration = process.argv.includes('--tenant-configuration');
 const serviceVisibility = process.argv.includes('--service-visibility');
 const generalBusinessCycles = serviceVisibility || tenantConfiguration || supportLifecycle || guidedBusinessSetup || process.argv.includes('--general-business-cycles') || process.argv.includes('--assisted-beta-browser');
-const productReview = generalBusinessCycles || process.argv.includes('--product-final-review');
-const output = path.join(root, serviceVisibility && guidedBusinessSetup ? '.cache/external-business-demo' : serviceVisibility ? '.cache/service-visibility' : tenantConfiguration ? '.cache/tenant-configuration' : supportLifecycle ? '.cache/support-lifecycle' : guidedBusinessSetup ? '.cache/guided-business-setup' : generalBusinessCycles ? '.cache/general-business-cycles' : productReview ? '.cache/product-final-review' : '.cache/onboarding-verification');
+const basicGrooming = process.argv.includes('--basic-grooming');
+const productReview = basicGrooming || generalBusinessCycles || process.argv.includes('--product-final-review');
+const output = path.join(root, basicGrooming ? '.cache/basic-grooming' : serviceVisibility && guidedBusinessSetup ? '.cache/external-business-demo' : serviceVisibility ? '.cache/service-visibility' : tenantConfiguration ? '.cache/tenant-configuration' : supportLifecycle ? '.cache/support-lifecycle' : guidedBusinessSetup ? '.cache/guided-business-setup' : generalBusinessCycles ? '.cache/general-business-cycles' : productReview ? '.cache/product-final-review' : '.cache/onboarding-verification');
 const image = 'pgvector/pgvector:0.8.6-pg18-bookworm';
 let container, pool, prisma, backend, frontend, browser, base, apiBase, passed = 0;
 let frontendLogs = '';
@@ -261,14 +262,21 @@ async function main() {
     if (process.argv.includes('--new-owner-prices')) {
       await require('./verify-new-owner-prices-scenario.cjs')({ prisma, base, context, page, output, check, tenantId: session.user.tenantId });
     }
+    if (basicGrooming) {
+      await require('./verify-basic-grooming.cjs')({ prisma, base, context, page, output, check, tenantId: session.user.tenantId, reviewFixture });
+    }
+    if (process.argv.includes('--servigroom-scheduling')) {
+      await require('./verify-servigroom-scheduling.cjs')({ prisma, base, context, output, check, tenantId: session.user.tenantId });
+    }
     if (process.argv.includes('--assisted-beta-browser')) {
       await require('./verify-assisted-beta-browser.cjs')({ prisma, base, context, page, output, check, tenantId: session.user.tenantId });
     }
     if (generalBusinessCycles) {
       const businesses = await require('./verify-general-business-cycles.cjs')({ prisma, base, browser, password, output, check, reviewFixture });
       if (supportLifecycle) await require('./verify-support-lifecycle.cjs')({ prisma, base, browser, password, output, check, reviewFixture, businesses });
+      if (process.argv.includes('--protected-exit-drill')) await require('./verify-protected-handover-erasure.cjs')({ prisma, container, marker, businesses, output, check });
     }
-    else if (reviewFixture) await require('./verify-product-final-review.cjs')({ prisma, base, browser, context, page, password, output, check, reviewFixture });
+    else if (reviewFixture && !basicGrooming) await require('./verify-product-final-review.cjs')({ prisma, base, browser, context, page, password, output, check, reviewFixture });
     await prisma.staffCredential.update({ where: { staffId: session.user.staffId }, data: { active: false } });
     assert.equal((await context.request.get(base + '/api/proxy/dashboard/access')).status(), 403);
     check('revoking the new administrator immediately blocks its existing session');

@@ -1,0 +1,41 @@
+// Characterization of requested reception cadence versus treatment capacity.
+// Called only by the disposable onboarding harness. No real business identities.
+const assert=require('node:assert/strict');
+const fs=require('node:fs');const path=require('node:path');
+module.exports=async({prisma,base,context,output,check,tenantId})=>{
+ const db=new URL(process.env.DATABASE_URL);assert.equal(db.hostname,'127.0.0.1');assert.equal(db.pathname,'/onboarding_test');
+ const evidence={synthetic:true,externalAcceptance:false,productionConnected:false,serviceDurationMinutes:90,receptionIntervalMinutes:20,observations:[],admissionApproved:false};
+ const api=async(method,route,data,expected=200)=>{const response=await context.request[method](base+'/api/proxy/dashboard'+route,data===undefined?{}:{data});assert.equal(response.status(),expected,await response.text());return response.json();};
+ const hours=Object.fromEntries(['mon','tue','wed','thu','fri','sat','sun'].map(day=>[day,{active:day!=='sun',open:'09:00',close:'17:00'}]));
+ await api('put','/tenant/profile',{businessHours:hours});await api('put','/tenant/config',{activeModules:['grooming']});
+ await prisma.eventType.createMany({data:[['StaffRegistrado','Staff'],['ServicioCreado','Servicios']].map(([name,originContext])=>({name,originContext})),skipDuplicates:true});
+ const staff=await api('post','/staff',{name:'QA profesional único',role:'groomer'},201);
+ const services=[];
+ for(const name of ['QA canino 90 minutos','QA felino 90 minutos'])services.push(await api('post','/services',{name,category:'grooming',duration:90,basePrice:null,requiresAppointment:true,appliesCommissionSplit:false},201));
+ assert.equal(await prisma.service.count({where:{tenantId,id:{in:services.map(s=>s.id)},duration:90,basePrice:null,appliesCommissionSplit:false}}),2);
+ check('90-minute canine/feline synthetic services retain unresolved price and no commission; grooming-only scope');
+ const dateKey='2099-01-06';
+ const slots=async(day=dateKey,staffId)=> (await api('get','/appointments/available-slots?'+new URLSearchParams({dateKey:day,serviceId:services[0].id,...(staffId?{staffId}:{})}))).slots;
+ const minuteSlots=values=>values.map(h=>Math.round(h*60));
+ const initial=minuteSlots(await slots());assert.equal(initial[0],540);assert.equal(initial.at(-1),1000);assert.equal(initial.length,24);for(let i=1;i<initial.length;i++)assert.equal(initial[i]-initial[i-1],20);
+ evidence.observations.push({case:'empty day',offeredStartsMinutes:initial});check('Monday-Saturday 09-17 configuration yields 24 reception starts from 09:00 through 16:40 at 20-minute steps');
+ assert.deepEqual(await slots('2099-01-04'),[]);check('configured Sunday closed yields no appointment slots');
+ const owner=await prisma.user.create({data:{tenantId,name:'QA propietario ficticio',phone:'qa-scheduling-90'}});
+ const pets=[];for(let i=0;i<4;i++)pets.push(await prisma.pet.create({data:{tenantId,ownerId:owner.id,name:'QA mascota '+i,type:i===1?'cat':'dog'}}));
+ const create=async(pet,hour,serviceId=services[0].id)=>{const response=await context.request.post(base+'/api/proxy/dashboard/appointments',{data:{userId:owner.id,petId:pet.id,serviceId,dateKey,hour,staffId:staff.id}});const body=await response.json();return {status:response.status(),body};};
+ const first=await create(pets[0],9);assert.equal(first.status,201,JSON.stringify(first));
+ const offeredAfterFirst=minuteSlots(await slots(dateKey,staff.id));
+ const second=await create(pets[1],9+20/60,services[1].id);assert.equal(second.status,201,JSON.stringify(second));
+ const saved=await prisma.appointment.findMany({where:{tenantId,id:{in:[first.body.id,second.body.id]}},include:{service:true}});assert(saved.every(a=>a.staffId===staff.id&&a.service.duration===90));
+ evidence.observations.push({case:'same professional overlap',secondStartOffered:offeredAfterFirst.includes(560),firstStart:'09:00',firstExpectedEnd:'10:30',secondStart:'09:20',secondExpectedEnd:'10:50',secondHttpStatus:second.status,sameProfessional:true,blockingForSingleProfessional:true});
+ check('characterized capacity gap: same professional accepts 09:00 and 09:20 for 90-minute services (not approval)');
+ const duplicate=await create(pets[2],9);assert.equal(duplicate.status,409);check('same reception start remains blocked with HTTP 409');
+ const late=await create(pets[3],16+40/60);assert.equal(late.status,201,JSON.stringify(late));
+ evidence.observations.push({case:'closing overrun',start:'16:40',expectedEnd:'18:10',businessClose:'17:00',httpStatus:late.status,blockingIfTreatmentMustFinishByClose:true});
+ check('characterized closing gap: 16:40 start is accepted although 90 minutes finish at 18:10 (not approval)');
+ const outside=await context.request.get(base+'/api/proxy/dashboard/appointments/available-slots?'+new URLSearchParams({dateKey:'2099-01-07',serviceId:services[0].id,staffId:staff.id}));assert.equal(outside.status(),200);
+ const nextDay=minuteSlots((await outside.json()).slots);assert(nextDay.includes(540));check('bookings remain scoped to their day; next day 09:00 stays available');
+ evidence.decision='BLOCKED_FOR_SINGLE_PROFESSIONAL_90_MINUTE_CAPACITY';
+ evidence.requestedBehaviorPending='Confirm whether 20-minute arrivals intentionally overlap, or reserve 90 minutes per professional and finish before close; do not change global reception policy.';
+ fs.writeFileSync(path.join(output,'servigroom-scheduling-characterization.json'),JSON.stringify(evidence,null,2)+'\n');
+};

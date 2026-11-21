@@ -75,6 +75,37 @@ test('browser signup accepts asset hints only from exact Meta origins and the st
   assert.equal(signupAssets('https://www.facebook.com',{ ...data,data: { ...data.data,is_on_biz_app: true } },true).phoneNumberId,'200');
   assert.equal(signupAssets('https://www.facebook.com',{ ...data,data: { waba_id: '100',phone_number_id: '../other' } }),null);
 });
+test('Meta signup waits for the real SDK instead of retaining the bootstrap client', async () => {
+  const scripts = [];
+  const window = { setTimeout, clearTimeout };
+  const document = {
+    getElementById: () => null,
+    createElement: () => ({ remove() {} }),
+    head: { appendChild(script) { scripts.push(script); } },
+  };
+  const { loadMetaSignup } = load('frontend/lib/whatsapp-signup.ts', {}, { window, document });
+  const config = { appId: '100', configId: '200', version: 'v25.0' };
+  const prepared = loadMetaSignup(config);
+  const concurrent = loadMetaSignup(config);
+  let resolved = false;
+  void prepared.then(() => { resolved = true; });
+
+  assert.equal(scripts.length, 1);
+  window.FB = { __buffer: {}, init() { assert.fail('bootstrap must not be initialized'); } };
+  scripts[0].onload?.();
+  await new Promise(setImmediate);
+  assert.equal(resolved, false);
+
+  const calls = [];
+  const actual = { init(options) { calls.push(options); }, login() {} };
+  window.FB = actual;
+  window.fbAsyncInit();
+  assert.equal(await prepared, actual);
+  assert.equal(await concurrent, actual);
+  assert.equal(calls[0].appId, config.appId);
+  assert.equal(window.fbAsyncInit, undefined);
+});
+
 test('the Mateos Pet popup requests coexistence and completes with only a WABA ID', async () => {
   const listeners = new Map();
   const window = {

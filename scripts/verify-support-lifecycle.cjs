@@ -132,9 +132,10 @@ module.exports = async function supportLifecycle({ prisma, base, browser, passwo
     assert(!JSON.stringify(retailPacket).includes(medical.id));
     check('handover: consistent read-only operational package includes medical/chat/assistant children, excludes foreign tenant and credential/session/billing sentinels, preserves closes and stock');
 
-    await prisma.appointment.update({ where: { id: visit.id }, data: { staffId: foreignOwner.id } });
-    try { await assert.rejects(buildTenantHandover(prisma, request), /FOREIGN_OR_MISSING_REFERENCE/); }
-    finally { await prisma.appointment.update({ where: { id: visit.id }, data: { staffId: visit.staffId } }); }
+    await assert.rejects(prisma.appointment.update({ where: { id: visit.id }, data: { staffId: foreignOwner.id } }), /Reference belongs to another establishment/);
+    assert.equal((await prisma.appointment.findUniqueOrThrow({ where: { id: visit.id } })).staffId, visit.staffId);
+    assert.deepEqual((await buildTenantHandover(prisma, request)).records, packet.records);
+    check('handover: PostgreSQL itself rejects a foreign staff reference; source assignment and subsequent export remain unchanged');
     const directory = path.resolve(__dirname, '../.cache/tenant-handovers', 'qa-' + randomUUID());
     const artifact = writeHandover(packet, directory);
     assert.equal(verifyHandover(directory).dataSha256, artifact.dataSha256);
@@ -157,7 +158,50 @@ module.exports = async function supportLifecycle({ prisma, base, browser, passwo
     assert.equal(JSON.stringify(await prisma.inventoryLot.findMany({ orderBy: { id: 'asc' } })), beforeStocks);
     check('handover CLI: explicit temporary database and verified-case arguments produce a complete checked package without changing the source');
     record('verify-handover', { counts: packet.counts, dataSha256: artifact.dataSha256, manifestSha256: artifact.manifestSha256, directory: path.relative(path.resolve(__dirname, '..'), directory), externalDelivery: false });
-    record('close-case', 'Synthetic recovery and package checks complete; no deletion, suspension or provider action performed');
+    const grooming = businesses.find(b => b.module === 'grooming');
+    const groomingOwner = await prisma.staff.findFirstOrThrow({ where: { tenantId: grooming.tenantId, role: 'admin' }, include: { credential: true } });
+    const groomingSession = await login(groomingOwner.credential.email, password);
+    const groomingRequest = { ...request, tenantId: grooming.tenantId };
+    const groomingPacket = await buildTenantHandover(prisma, groomingRequest);
+    assert.equal(groomingPacket.records.Tenant.length, 1);
+    assert.equal(groomingPacket.records.Tenant[0].id, grooming.tenantId);
+    assert.equal(groomingPacket.counts.Transaction, 2);
+    assert.equal(groomingPacket.records.Transaction.reduce((sum, r) => sum + Number(r.total), 0), 140000);
+    assert.equal(groomingPacket.records.Commission.filter(r => r.status === 'active').reduce((sum,r) => sum + Number(r.staffShare),0), 43000);
+    assert(groomingPacket.records.Transaction.some(r => r.paymentMethod === 'mixed' && Number(r.cashAmount) === 50000 && Number(r.transferAmount) === 50000));
+    assert.equal(Number(groomingPacket.records.DailyClose[0].netAmount),135000);
+    assert(!JSON.stringify(groomingPacket).includes('FOREIGN-SUPPORT-SENTINEL'));
+    const groomingDirectory = path.resolve(__dirname, '../.cache/tenant-handovers', 'grooming-exit-' + randomUUID());
+    const groomingArtifact = writeHandover(groomingPacket, groomingDirectory);
+    const opened = JSON.parse(fs.readFileSync(path.join(groomingDirectory, 'data.json'), 'utf8'));
+    assert.deepEqual(opened.records,groomingPacket.records);
+    assert.equal(verifyHandover(groomingDirectory).dataSha256,groomingArtifact.dataSha256);
+    const activeBefore = await prisma.staffCredential.count({where:{staff:{tenantId:grooming.tenantId},active:true}});
+    assert.equal(activeBefore,1,'Fixture must have exactly one active business login');
+    const revoked = await support.context.request.delete(base + '/api/proxy/dashboard/staff/' + groomingOwner.id + '/credential?tenantId=' + encodeURIComponent(grooming.tenantId));
+    assert.equal(revoked.status(),204,await revoked.text());
+    assert.equal((await groomingSession.context.request.get(base + '/api/proxy/dashboard/access')).status(),403);
+    assert.equal(await prisma.staffCredential.count({where:{staff:{tenantId:grooming.tenantId},active:true}}),0);
+    const deniedContext = await browser.newContext(); contexts.push(deniedContext);
+    await reviewFixture.guardBrowser(deniedContext);
+    const deniedPage = await deniedContext.newPage();
+    await deniedPage.goto(base + '/login');
+    await deniedPage.getByLabel('Correo electrónico', { exact: true }).fill(groomingOwner.credential.email);
+    await deniedPage.getByLabel('Contraseña', { exact: true }).fill(password);
+    await deniedPage.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await deniedPage.getByRole('alert').getByText('Correo o contraseña incorrectos.', { exact: true }).waitFor();
+    const deniedSession = await (await deniedContext.request.get(base + '/api/auth/session')).json();
+    assert(!deniedSession?.user);
+
+    assert.equal((await foreign.context.request.get(base + '/api/proxy/dashboard/access')).status(),200);
+    assert.equal((await prisma.tenant.findUniqueOrThrow({where:{id:grooming.tenantId}})).active,true);
+    assert.deepEqual((await buildTenantHandover(prisma,groomingRequest)).records,groomingPacket.records);
+    assert.equal(verifyHandover(groomingDirectory).dataSha256,groomingArtifact.dataSha256);
+    assert.equal(JSON.stringify(await prisma.dailyClose.findMany({ orderBy: { id: 'asc' } })), beforeFinancial);
+    assert.equal(JSON.stringify(await prisma.inventoryLot.findMany({ orderBy: { id: 'asc' } })), beforeStocks);
+    record('grooming-handover-and-exit',{synthetic:true,income:140000,commission:43000,netBeforeCommission:135000,balanceAfterReserve:92000,activeBusinessLoginsAfter:0,otherBusinessAccess:'preserved',dataUnchanged:true,directory:path.relative(path.resolve(__dirname,'..'),groomingDirectory),dataSha256:groomingArtifact.dataSha256,externalDelivery:false,deletionPerformed:false});
+    check('grooming exit: independent JSON package opens and reconciles 140000 income/43000 commission; revocation blocks existing business login, preserves all exported records and other business access');
+    record('close-case', 'Synthetic recovery, handover and grooming access closure complete; no business deletion, external delivery or provider action performed');
     const caseRecord = { caseId, synthetic: true, tenantId: target.tenantId, category: 'administrator-recovery-and-operational-handover', events, status: 'closed-test-only' };
     const contents = JSON.stringify(caseRecord, null, 2);
     assert(!contents.includes(newPassword) && !contents.includes(secretSentinel) && !contents.includes(after.credential.passwordHash));
