@@ -1,7 +1,7 @@
-const { summarizeDay } = require("../../domain/rules/financial-summary.rules");
+const { summarizeDay, summarizeCommissions } = require("../../domain/rules/financial-summary.rules");
 const { enumerateDates } = require("../../domain/rules/period-completeness.rules");
 // Día civil del negocio (ADR 008) — misma frontera que GenerateDailyCloseUseCase.
-const { civilDayBounds } = require("../../../shared/business-day");
+const { civilDayBounds, civilDateKey } = require("../../../shared/business-day");
 
 /**
  * GetFinancialHistoryUseCase — Consulta.
@@ -31,18 +31,45 @@ function createGetFinancialHistoryUseCase({
     const dailyCloses = await dailyCloseRepository.listByDateRange(tenantId ?? null, start, end, ctx);
     const byDate = new Map(dailyCloses.map((d) => [d.date.toISOString().slice(0, 10), d]));
 
+    const datesWithMissingActivity = expectedDates.filter(ymd => {
+      const close = byDate.get(ymd);
+      return !close || (Array.isArray(close.staffBreakdown) && close.staffBreakdown.some(row => !row.activity));
+    });
+    const commissionsByDay = new Map();
+    if (datesWithMissingActivity.length) {
+      const from = civilDayBounds(datesWithMissingActivity[0]).start;
+      const to = civilDayBounds(datesWithMissingActivity.at(-1)).end;
+      const commissions = await commissionReader.listByDateRange(tenantId ?? null, from, to, ctx);
+      for (const commission of commissions) {
+        const date = civilDateKey(commission.completedAt);
+        const rows = commissionsByDay.get(date) ?? [];
+        rows.push(commission);
+        commissionsByDay.set(date, rows);
+      }
+    }
+
     const days = await Promise.all(
       expectedDates.map(async (ymd) => {
         const existing = byDate.get(ymd);
+        const commissions = commissionsByDay.get(ymd) ?? [];
         if (existing) {
-          return { date: ymd, closed: true, dailyClose: existing };
+          if (!Array.isArray(existing.staffBreakdown) || existing.staffBreakdown.every(row => row.activity)) {
+            return { date: ymd, closed: true, dailyClose: existing };
+          }
+          const liveByStaff = new Map(summarizeCommissions(commissions).map(row => [row.staffId, row]));
+          const staffBreakdown = existing.staffBreakdown.map(row => {
+            if (row.activity) return row;
+            const live = liveByStaff.get(row.staffId ?? null);
+            if (!live || live.count !== row.count || live.staffShare !== Number(row.staffShare) || live.businessShare !== Number(row.businessShare)) return row;
+            return { ...row, activity: live.activity };
+          });
+          return { date: ymd, closed: true, dailyClose: existing, staffBreakdown };
         }
 
         const { start: dayStart, end: dayEnd } = civilDayBounds(ymd);
-        const [charges, expenses, commissions] = await Promise.all([
+        const [charges, expenses] = await Promise.all([
           transactionRepository.listByDateRange(tenantId ?? null, dayStart, dayEnd, ctx),
           expenseRepository.listByDateRange(tenantId ?? null, dayStart, dayEnd, ctx),
-          commissionReader.listByDateRange(tenantId ?? null, dayStart, dayEnd, ctx),
         ]);
         const preview = summarizeDay({ charges, expenses, commissions });
 

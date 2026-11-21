@@ -111,7 +111,7 @@ router.get("/financial-history", async (req, res) => {
               incomeTotal: Number(d.dailyClose.incomeTotal),
               expenseTotal: Number(d.dailyClose.expenseTotal),
               netAmount: Number(d.dailyClose.netAmount),
-              staffBreakdown: d.dailyClose.staffBreakdown,
+              staffBreakdown: d.staffBreakdown ?? d.dailyClose.staffBreakdown,
               ...commissionReserve(d.dailyClose),
             }
           : {
