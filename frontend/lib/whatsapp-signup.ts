@@ -1,8 +1,11 @@
 type SignupConfig = { appId: string; configId: string; version: string; coexistence?: boolean };
 type SignupAssets = { wabaId: string; phoneNumberId?: string };
 type MetaClient = { init: (config: { appId: string; version: string; xfbml: boolean; cookie: boolean }) => void;
-  login: (callback: (response: { authResponse?: { code?: string } }) => void, options: object) => void };
-declare global { interface Window { FB?: MetaClient } }
+  login: (callback: (response: { authResponse?: { code?: string } }) => void, options: object) => void;
+  __buffer?: unknown };
+declare global { interface Window { FB?: MetaClient; fbAsyncInit?: () => void } }
+
+let metaClientPromise: Promise<MetaClient> | undefined;
 
 // Asset IDs from the browser are hints. The server verifies the actual grant.
 export function signupAssets(origin: string, value: unknown, coexistence = false): SignupAssets | null {
@@ -22,20 +25,53 @@ export function signupAssets(origin: string, value: unknown, coexistence = false
   return coexistence && phoneNumberId === undefined ? { wabaId } : null;
 }
 
-export async function loadMetaSignup(config: SignupConfig): Promise<MetaClient> {
-  if (!window.FB) await new Promise<void>((resolve,reject) => {
+function waitForMetaClient(): Promise<MetaClient> {
+  if (window.FB && !window.FB.__buffer) return Promise.resolve(window.FB);
+  if (metaClientPromise) return metaClientPromise;
+
+  metaClientPromise = new Promise<MetaClient>((resolve, reject) => {
     const existing = document.getElementById('huella-meta-sdk');
-    if (existing) { reject(new Error('Recarga la página para reintentar la conexión.')); return; }
-    const script = document.createElement('script'); script.id = 'huella-meta-sdk'; script.async = true;
-    script.src = 'https://connect.facebook.net/es_LA/sdk.js'; script.referrerPolicy = 'strict-origin';
-    const timeout = window.setTimeout(() => { script.remove(); reject(new Error('Meta no respondió. Recarga antes de reintentar.')); },15000);
-    script.onload = () => { window.clearTimeout(timeout); resolve(); };
-    script.onerror = () => { window.clearTimeout(timeout); script.remove(); reject(new Error('No se pudo abrir Meta.')); };
-    document.head.appendChild(script);
+    const script = document.createElement('script');
+    script.id = 'huella-meta-sdk';
+    script.async = true;
+    script.src = 'https://connect.facebook.net/es_LA/sdk.js';
+    script.referrerPolicy = 'strict-origin';
+
+    const previous = window.fbAsyncInit;
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      if (window.fbAsyncInit === ready) window.fbAsyncInit = previous;
+      script.onerror = null;
+    };
+    const fail = (message: string) => {
+      cleanup();
+      script.remove();
+      reject(new Error(message));
+    };
+    const ready = () => {
+      const client = window.FB;
+      if (!client || client.__buffer) return;
+      cleanup();
+      resolve(client);
+      previous?.();
+    };
+    // sdk.js first installs a temporary buffer. Its load event can fire
+    // before FB.login is available on the real SDK.
+    const timeout = window.setTimeout(() => fail('Meta no terminó de cargar. Recarga la página antes de reintentar.'), 15000);
+    window.fbAsyncInit = ready;
+    script.onerror = () => fail('No se pudo cargar Meta. Reintenta la conexión.');
+    if (!existing && !window.FB) document.head.appendChild(script);
+  }).catch(error => {
+    metaClientPromise = undefined;
+    throw error;
   });
-  if (!window.FB) throw new Error('Meta no está disponible.');
-  window.FB.init({ appId: config.appId, version: config.version, xfbml: false, cookie: false });
-  return window.FB;
+  return metaClientPromise;
+}
+
+export async function loadMetaSignup(config: SignupConfig): Promise<MetaClient> {
+  const client = await waitForMetaClient();
+  client.init({ appId: config.appId, version: config.version, xfbml: false, cookie: false });
+  return client;
 }
 
 export function runMetaSignup(client: MetaClient, config: SignupConfig, signal: AbortSignal): Promise<SignupAssets & { code: string }> {
