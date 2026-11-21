@@ -45,6 +45,16 @@ test("reception can collect but cannot complete a medical consultation or write 
   expect((await request(client).put("/appointments/a/medical-record").send({})).status).toBe(403);
   expect((await request(client).patch("/appointments/a").send({ finalPrice: 10 })).status).toBe(403);
 });
+test.each([["veterinary"], ["grooming"], ["veterinary", "grooming"]])("inventory stays closed without Pet shop (%s)", (...modules) => {
+  for (const [type, permissions] of [["admin", []], ["vet", ["inventory_consume", "cash"]], ["groomer", ["inventory_consume", "cash"]], ["receptionist", ["cash"]]]) {
+    const { capabilities, navigation } = effectiveAccess({ type, accessPermissions: permissions }, modules);
+    expect([capabilities.inventory_read, capabilities.inventory_manage, capabilities.inventory_consume]).toEqual([false, false, false]);
+    expect(navigation).not.toContain("/dashboard/inventory");
+  }
+  const withRetail = effectiveAccess({ type: "vet", accessPermissions: ["inventory_consume"] }, [...modules, "retail"]);
+  expect(withRetail.capabilities.inventory_consume).toBe(modules.includes("veterinary"));
+  expect(effectiveAccess({ type: "admin" }, [...modules, "retail"]).navigation).toContain("/dashboard/inventory");
+});
 test("empty modules never silently reactivate appointments and unknown modules stay closed", async () => {
   prisma.tenant.findUnique.mockResolvedValue({ activeModules: [] });
   expect((await request(app("receptionist")).post("/appointments").send({})).status).toBe(403);

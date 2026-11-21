@@ -117,7 +117,7 @@ export function InventoryWorkspace() {
   function clearFilters() { continuity.clear(); setCursor(""); }
 
   if (!access) return <p role="status" className="p-6">Comprobando permisos…</p>;
-  if (!access.capabilities.retail) return <p className="p-6">Inventario está disponible cuando Pet Shop está activo.</p>;
+  if (!access.capabilities.retail) return <p className="p-6">Inventario está disponible cuando Pet shop está activo. Puedes activarlo en Administración → Áreas del negocio.</p>;
   if (!showInventory) return <p className="p-6">Tu perfil no tiene acceso al inventario.</p>;
   if (!continuity.ready) return <p role="status" className="p-6">Preparando filtros de Inventario…</p>;
   const disabled = busy || operation.busy || operation.pending.length > 0;

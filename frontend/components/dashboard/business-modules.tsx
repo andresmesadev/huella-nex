@@ -14,7 +14,7 @@ import { useDashboardAccess } from "@/components/dashboard/dashboard-access-prov
 const MODULES = [
   { id: "veterinary", name: "Veterinaria", icon: Stethoscope, detail: "Consultas y cuidado de la salud de las mascotas.", features: ["Agenda veterinaria", "Consultas e historia clínica"], team: "Atención por administradores y veterinarios con acceso." },
   { id: "grooming", name: "Peluquería", icon: Scissors, detail: "Baños, cortes y cuidado del pelaje.", features: ["Agenda de peluquería", "Atenciones y notas de cada visita"], team: "Atención por administradores y peluqueros con acceso." },
-  { id: "retail", name: "Pet shop", icon: ShoppingBag, detail: "Venta de productos del inventario.", features: ["Catálogo de productos en Punto de venta", "Stock actualizado al confirmar ventas"], team: "Venta por administradores, recepción y equipo autorizado para cobrar." },
+  { id: "retail", name: "Pet shop", icon: ShoppingBag, detail: "Venta de productos e Inventario, incluidos los insumos de consultas y peluquería.", features: ["Catálogo de productos en Punto de venta", "Inventario: existencias, entradas e insumos utilizados"], team: "Venta por administradores, recepción y equipo autorizado para cobrar." },
 ] as const;
 
 function sameSelection(left: string[], right: string[]) {
@@ -110,7 +110,8 @@ export function BusinessModules({ initial, onDirtyChange, onSavingChange }: Prop
           <details className="mt-3 text-sm"><summary className="cursor-pointer py-2 font-medium text-muted-foreground">Ver opciones y accesos disponibles</summary><ul className="mt-2 space-y-2 text-sm text-muted-foreground">
             <li>{hasAppointments ? "Agenda disponible para las áreas de atención seleccionadas." : "Sin Agenda, consultas ni peluquería: una tienda sola puede trabajar directamente desde Punto de venta."}</li>
             <li>{selected.includes("retail") ? "Venta de productos habilitada, además del cobro de los servicios que ofrezcas." : "Punto de venta disponible para cobrar servicios; la venta de productos requiere activar Pet shop."}</li>
-            <li>El administrador mantiene Clientes y mascotas, WhatsApp, Inventario, Seguimiento de clientes y Administración.</li>
+            <li>{selected.includes("retail") ? "Inventario habilitado: productos, existencias e insumos utilizados en consultas y peluquería." : "Inventario e insumos requieren activar Pet shop."}</li>
+            <li>El administrador mantiene Clientes y mascotas, WhatsApp, Seguimiento de clientes y Administración.</li>
           </ul>
           <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">Activar un área no concede permisos adicionales al equipo. Cada persona ve las opciones permitidas por su perfil y por las áreas activas. Los accesos se gestionan en Equipo y accesos.</p></details>
         </div>

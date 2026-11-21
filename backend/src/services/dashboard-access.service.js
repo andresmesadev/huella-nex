@@ -12,7 +12,11 @@ function effectiveAccess(actor, modules) {
   const clinical = activeModules.includes("veterinary") && (admin || role === "vet");
   const grooming = activeModules.includes("grooming") && (admin || role === "groomer");
   const cash = known && (admin || role === "receptionist" || extras.includes("cash"));
-  const inventoryConsume = (clinical || grooming) && (admin || extras.includes("inventory_consume"));
+  // Inventario (productos, existencias e insumos) requiere Pet shop activo.
+  // Decisión de producto del 18/11/2026, consolidada el 21/11/2026: sin Pet shop
+  // no se lee, administra ni consume inventario, en ningún canal.
+  const retail = activeModules.includes("retail");
+  const inventoryConsume = retail && (clinical || grooming) && (admin || extras.includes("inventory_consume"));
   const capabilities = {
     administration: admin, finance: admin, chat: known,
     contacts: admin || role === "receptionist",
@@ -20,10 +24,10 @@ function effectiveAccess(actor, modules) {
     schedule: services && (admin || role === "receptionist"),
     clinical, grooming, cash,
     appointmentPrice: services && (admin || extras.includes("appointment_price")),
-    retail: activeModules.includes("retail"),
+    retail,
     services,
-    inventory_read: admin || (cash && activeModules.includes("retail")) || inventoryConsume,
-    inventory_manage: admin,
+    inventory_read: retail && (admin || cash || inventoryConsume),
+    inventory_manage: retail && admin,
     inventory_consume: inventoryConsume,
   };
   const navigation = ["/dashboard"];
@@ -33,7 +37,7 @@ function effectiveAccess(actor, modules) {
   if (capabilities.contacts) navigation.push("/dashboard/contacto", "/dashboard/clients", "/dashboard/pets");
   if (known) navigation.push("/dashboard/conversations");
   if (cash) navigation.push("/dashboard/pos");
-  if (capabilities.retail && capabilities.inventory_read) navigation.push("/dashboard/inventory");
+  if (capabilities.inventory_read) navigation.push("/dashboard/inventory");
   if (capabilities.finance || capabilities.inventory_read) navigation.push("/dashboard/assistants");
   if (admin) navigation.push("/dashboard/settings", "/dashboard/staff", "/dashboard/services", "/dashboard/billing", "/dashboard/recuperacion", "/dashboard/churn", "/dashboard/opportunities", "/dashboard/reactivation", "/dashboard/revenue", "/dashboard/reports", "/dashboard/admin/tenants-overview");
   return { role, professionalRole, staffId: actor?.staffId ?? null, activeModules, accessPermissions: extras, capabilities, navigation: known ? navigation : [] };

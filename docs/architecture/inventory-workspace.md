@@ -60,7 +60,7 @@ Las siguientes reglas concretan el alcance aceptado y fueron aprobadas explícit
 | Consultar costos y movimientos completos | Sí | No | No |
 | Anular venta y confirmar devolución | Sí, respetando reglas financieras | No | No |
 
-- Inventario puede utilizarse en Veterinaria o Peluquería sin activar Pet shop, para controlar insumos. Vender productos mantiene el requisito vigente de Pet shop; cobrar consultas o baños no lo requiere.
+- ~~Inventario puede utilizarse en Veterinaria o Peluquería sin activar Pet shop, para controlar insumos.~~ **Reemplazado el 21/11/2026:** Inventario (productos, existencias, entradas e insumos utilizados) requiere Pet shop activo. La decisión de producto se tomó el 18/11/2026 (commit 86f9247, alcance de la beta externa sin inventario) y se consolidó el 21/11/2026 en el único punto de autorización, `effectiveAccess` (`backend/src/services/dashboard-access.service.js`). Sin Pet shop, `inventory_read`, `inventory_manage` e `inventory_consume` son falsos en todos los canales: menú, API, botón de insumos, Asistentes y la habilitación «Registrar insumos utilizados» de Equipo. Los datos de inventario existentes se conservan y vuelven a estar disponibles al reactivar Pet shop. Cobrar consultas o baños sigue sin requerir Pet shop.
 - Se conservan los cuatro perfiles existentes y una sola cuenta para el administrador que también atiende. No se agrega otro perfil obligatorio.
 - La nueva habilitación para consumo será concedida/revocada por administración; nombre técnico y contrato se decidirán en la Etapa 3. Tener acceso a Caja no concede ajustes de stock ni consumo profesional automáticamente.
 - Un producto podrá estar destinado a venta, a consumo de una o ambas áreas profesionales, o a ambos usos. Cada operación valida su destino, módulo y autorización actuales.
@@ -186,8 +186,8 @@ Las siguientes reglas concretan el alcance aceptado y fueron aprobadas explícit
 ### 2.9 Escenarios de aceptación de esta etapa
 
 1. Pet shop vende un producto del catálogo y la disponibilidad disminuye exactamente una vez por las unidades vendidas.
-2. Veterinaria sin Pet shop controla y consume insumos; no obtiene por ello permiso de venta minorista.
-3. Peluquería sin Veterinaria registra insumos de su área sin acceder a historia clínica.
+2. ~~Veterinaria sin Pet shop controla y consume insumos; no obtiene por ello permiso de venta minorista.~~ **Reemplazado el 21/11/2026:** Veterinaria sin Pet shop no ve ni consume Inventario; con Pet shop activo, controla y consume insumos de su área.
+3. Peluquería sin Veterinaria (con Pet shop activo) registra insumos de su área sin acceder a historia clínica.
 4. Recepción vende y consulta disponibilidad; no puede obtener costos, registrar entrada, ajustar stock ni anular ventas.
 5. Profesional con Caja puede vender si hay Pet shop; necesita habilitación independiente para consumo. Sin esa habilitación, la operación se rechaza en servidor.
 6. Dos ventas concurrentes de la última unidad producen una venta y un rechazo verificables, sin stock negativo.
