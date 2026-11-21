@@ -177,6 +177,9 @@ Un respaldo válido es un directorio `mateos-pet-ai-YYYYMMDDTHHMMSSZ` que contie
 
 ## Recuperación
 
+**Cambio preparado el 17/11, sin desplegar por este trabajo:** el script actual exige un registro externo de supresiones, su huella confiable y una imagen local para el replay. Completar los requisitos del [procedimiento de replay](RESTORE_SUPPRESSION_REPLAY.md) antes de usar el comando siguiente. La restauración solo declara éxito después de aplicar y verificar el registro. Los ensayos históricos conservan el alcance de su fecha.
+
+
 1. Copiar el directorio cifrado desde la VPS al equipo de recuperación.
 2. Instalar `age` y Docker en ese equipo.
 3. Ejecutar el ensayo con la clave SSH privada correspondiente:

@@ -169,7 +169,7 @@ no sustituyen la validación con otros negocios.
 | ID | Prioridad y alcance | Evidencia y mejora necesaria | Comprobación para cerrar |
 | --- | --- | --- | --- |
 | BETA-01 | Cerrado para la publicación 3.0.0 del 30/10 | Lote publicado: versiones coherentes, CI aprobado, respaldo y migraciones verificados; lecturas autenticadas correctas. | Mantener la evidencia de esta versión y las capacidades comerciales pendientes desactivadas. No sustituye los demás criterios de admisión. |
-| BETA-02 | Antes de asumir custodia de otro negocio | Recuperación ante pérdida completa de VPS. Se retiró la copia del computador y no hay un destino externo automático nuevo documentado. | Elegir almacenamiento independiente gestionado desde la plataforma; probar copia cifrada, restauración y custodia de claves. No requiere Google ni un computador del cliente. |
+| BETA-02 | Cerrado el 11/11 para recuperación del dashboard manual 3.0.4 | Copia cifrada automática en R2 y restauración local aislada con clave custodiada fuera de la VPS. | Conservar la evidencia del [ensayo](../operations/R2_INDEPENDENT_RECOVERY_DRILL_20261111.md) y repetirlo ante cambios del respaldo o del entorno de recuperación. |
 | BETA-03 | Cerrado el 06/11 para dashboard manual 3.0.0 | 577 muestras correctas durante 48 horas del 30/10 al 01/11; cero huecos/cambios de versión, contenedores sin reinicios y contraste operacional. | Conservar alcance y evidencia del [acta](../operations/STABILITY_48H_CLOSURE_20261106.md); no equivale a disponibilidad absoluta entre muestras ni aceptación de WhatsApp/IA comercial. Revaluar ante cambios o incidentes nuevos. |
 | BETA-04 | Antes de incorporar un cliente externo | Condiciones y privacidad del software comercial. Los documentos aprobados del centro describen la operación de Mateos Pet. | Paquete específico para el negocio externo: prestador real, alcance, tratamiento/acceso a datos, proveedores, soporte, salida y constancia de aceptación. Revisar su adecuación antes de utilizarlo. |
 | BETA-05 | Antes de cobrar o prometer un plan | Oferta y costos finales. Precios y cupos aceptados son una base propuesta; Básico y Pro comparten operación y su diferencia de IA no está activa comercialmente. | Acordar la oferta de beta y qué incluye/excluye, coste total y límites; no presentar márgenes simulados como observados ni comprobantes operativos como facturación electrónica. |
@@ -177,10 +177,7 @@ no sustituyen la validación con otros negocios.
 | BETA-07 | Para abrir y evaluar la beta | Procedimiento y ficha preparados el 30/10; ejecución con un negocio independiente pendiente. Un primer cliente propio no prueba por sí solo que otro aprenda y opere con autonomía. | Acordar participante y condiciones de admisión; ejecutar el recorrido, medir ayuda/tiempos, conciliar y conservar su decisión. Ampliar a cada nicho antes de afirmar validación comercial en los tres. |
 | BETA-08 | Solo si se ofrece WhatsApp/IA comercial | HN-04: documentación/aprobación Meta, configuración, presupuesto/cupos y aceptación externa con cuentas apropiadas. | Completar las condiciones de activación y probar conexión, entrega/recepción, consumo, renovación/desconexión; no usar clientes del centro como prueba externa implícita. |
 
-BETA-02 mantiene la decisión previa de retirar la tarea del PC. El hallazgo
-no autoriza reactivarla ni contratar almacenamiento. Los respaldos del mismo
-servidor protegen ciertos errores y pérdidas lógicas, pero no acreditan
-recuperación si desaparece ese servidor y sus copias.
+La copia automática sale desde la VPS hacia R2. La tarea periódica del PC sigue retirada. El ensayo de recuperación se ejecutó de forma puntual en un equipo independiente.
 
 BETA-03 se cerró mediante **evidencia de una ventana identificada**, no por el
 mero transcurso del tiempo. Las ventanas anteriores con fallos siguen intactas;

@@ -8,6 +8,10 @@ if [[ $# -ne 2 ]]; then
   exit 64
 fi
 
+repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+suppression_journal=${HUELLA_RESTORE_SUPPRESSION_JOURNAL:-}
+suppression_sha=${HUELLA_RESTORE_SUPPRESSION_SHA256:-}
+replay_image=${HUELLA_RESTORE_REPLAY_IMAGE:-mateos-pet-ai-backend}
 backup_set=$1
 identity_file=$2
 pg_image=${MATEOS_BACKUP_PG_IMAGE:-pgvector/pgvector:0.8.6-pg18-bookworm}
@@ -18,6 +22,17 @@ required_tables=${MATEOS_RESTORE_REQUIRED_TABLES:-}
 fail() {
   echo "restore drill failed: $*" >&2
   exit 1
+}
+
+# Mandatory external suppression checkpoint; never infer an empty register.
+[[ "$suppression_journal" = /* && -f "$suppression_journal" ]] || fail "external suppression journal is required"
+[[ "$suppression_sha" =~ ^[a-f0-9]{64}$ ]] || fail "trusted external suppression SHA-256 is required"
+actual_suppression_sha=$(sha256sum "$suppression_journal" | cut -d ' ' -f 1)
+[[ "$actual_suppression_sha" == "$suppression_sha" ]] || fail "suppression journal integrity failed"
+[[ -f "$repo_dir/scripts/replay-restore-suppressions.cjs" ]] || fail "suppression replay helper is missing"
+docker image inspect "$replay_image" >/dev/null 2>&1 || fail "local suppression replay image is required"
+host_path() {
+  if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi
 }
 
 [[ -z "$expected_migrations" || "$expected_migrations" =~ ^[1-9][0-9]*$ ]] || fail "expected migration count must be a positive integer"
@@ -80,6 +95,22 @@ age --decrypt -i "$identity_file" "$backup_set/database.dump.age" | \
     --no-owner \
     --no-acl \
     --exit-on-error
+
+# Share only the network namespace of this invocation's network-none PostgreSQL.
+# No application container, environment file, provider key or production URL is used.
+[[ $(docker inspect --format '{{.HostConfig.NetworkMode}}' "$container_id") == none ]] || fail "restore database must remain offline"
+[[ $(docker inspect --format '{{ index .Config.Labels "com.mateos.operation" }}' "$container_id") == restore-drill ]] || fail "unexpected restore target"
+MSYS_NO_PATHCONV=1 docker run --rm --pull never \
+  --network "container:$container_id" --read-only --cap-drop ALL --security-opt no-new-privileges \
+  --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+  --mount "type=bind,source=$(host_path "$repo_dir/scripts/replay-restore-suppressions.cjs"),target=/app/scripts/replay-restore-suppressions.cjs,readonly" \
+  --mount "type=bind,source=$(host_path "$suppression_journal"),target=/run/suppressions.json,readonly" \
+  -e HUELLA_RESTORE_SUPPRESSION_JOURNAL=/run/suppressions.json \
+  -e "HUELLA_RESTORE_SUPPRESSION_SHA256=$suppression_sha" \
+  -e HUELLA_RESTORE_DATABASE_URL=postgresql://postgres@127.0.0.1:5432/mateos_restore_drill \
+  --entrypoint node "$replay_image" /app/scripts/replay-restore-suppressions.cjs
+
+echo "restore suppression replay verified; restored database remains offline"
 
 table_count=$(docker exec "$container" psql -U postgres -d mateos_restore_drill -Atc \
   "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';")

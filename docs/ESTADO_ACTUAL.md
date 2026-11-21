@@ -1,5 +1,10 @@
 # Estado actual del proyecto
 
+**11 de noviembre — recuperación independiente BETA-02 cerrada:** copia cifrada
+cada 30 minutos en R2 privado y restauración aislada del dashboard 3.0.4.
+Se comprobaron 80 tablas, 69 migraciones y diez lecturas autenticadas.
+[Acta del ensayo](operations/R2_INDEPENDENT_RECOVERY_DRILL_20261111.md).
+
 **10 de noviembre — 3.0.4 publicada:** revisión de interfaz y formularios del
 software; reportes por fechas, categorías de gastos y persistencia de sexo/peso
 al agregar mascotas. Código `4866562`, seis trabajos CI aprobados y 2.234 pruebas
@@ -15,7 +20,7 @@ del 30/10 18:32:56 al 01/11 18:32:56 Colombia, cero fallos/huecos/versiones
 inesperadas. Contenedores sin reinicios; cinco lecturas autenticadas actuales
 200 y actividad real contrastada. Logs conservan rechazos CORS a sondeos y una
 conexión abortada, con sus límites documentados. Se cierran ítem 9/BETA-03 en
-este alcance; recuperación independiente BETA-02 continúa pendiente.
+este alcance.
 [Acta y evidencia](operations/STABILITY_48H_CLOSURE_20261106.md).
 
 **30 de octubre — Huella Nex 3.0.0 publicada a las 18:32 Colombia:** código
