@@ -39,7 +39,9 @@ function effectiveAccess(actor, modules) {
   if (cash) navigation.push("/dashboard/pos");
   if (capabilities.inventory_read) navigation.push("/dashboard/inventory");
   if (capabilities.finance || capabilities.inventory_read) navigation.push("/dashboard/assistants");
-  if (admin) navigation.push("/dashboard/settings", "/dashboard/staff", "/dashboard/services", "/dashboard/billing", "/dashboard/recuperacion", "/dashboard/churn", "/dashboard/opportunities", "/dashboard/reactivation", "/dashboard/revenue", "/dashboard/reports", "/dashboard/admin/tenants-overview");
+  if (admin) navigation.push("/dashboard/settings", "/dashboard/staff", "/dashboard/services", "/dashboard/billing", "/dashboard/recuperacion", "/dashboard/churn", "/dashboard/opportunities", "/dashboard/reactivation", "/dashboard/revenue", "/dashboard/reports");
+  // /dashboard/admin/tenants-overview no forma parte del manifiesto de un
+  // establecimiento: es exclusiva de superadmin y el proxy la autoriza aparte.
   return { role, professionalRole, staffId: actor?.staffId ?? null, activeModules, accessPermissions: extras, capabilities, navigation: known ? navigation : [] };
 }
 

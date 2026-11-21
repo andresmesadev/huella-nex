@@ -23,6 +23,7 @@ import {
   Scissors,
   Package,
   Bot,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -147,6 +148,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             ))}
           </div>
         ))}
+        {session?.user?.isSuperAdmin && (
+          <div className="space-y-1">
+            <p className="px-3 pb-2 text-xs font-semibold text-muted-foreground">Plataforma</p>
+            <NavLink item={{ href: "/dashboard/admin/tenants-overview", label: "Operación centralizada", icon: Building2 }} pathname={pathname} onNavigate={onNavigate} />
+          </div>
+        )}
       </nav>
 
       {/* Perfil + logout */}

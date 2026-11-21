@@ -19,6 +19,14 @@ const authenticatedProxy = auth(async (req, event: NextFetchEvent) => {
     return NextResponse.redirect(login);
   }
   if (!protectedPath || !req.auth?.user) return NextResponse.next();
+  // Operación centralizada (Entregable 6.6, Fase A) es transversal: no depende
+  // del manifiesto de un establecimiento. La página exige superadmin y el
+  // backend exige X-View-All-Tenants; aquí solo se evita pedir un tenant.
+  if (path === "/dashboard/admin/tenants-overview") {
+    if (req.auth.user.isSuperAdmin) return NextResponse.next();
+    const home = req.nextUrl.clone(); home.pathname = "/dashboard"; home.search = "";
+    return NextResponse.redirect(home);
+  }
   if (path === "/dashboard/billing") {
     const authorization = await verifyBillingAdministrator(req.auth);
     if (authorization.allowed) return NextResponse.next();

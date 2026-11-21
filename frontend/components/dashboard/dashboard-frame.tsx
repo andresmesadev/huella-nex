@@ -31,10 +31,14 @@ export function DashboardFrame({ children }: { children: React.ReactNode }) {
       document.removeEventListener("keydown", preventArrowStep, true);
     };
   }, []);
-  if (pathname === "/dashboard/billing") {
+  // Pantallas fuera del manifiesto de un establecimiento: Facturación debe
+  // abrirse aunque el negocio esté suspendido, y Operación centralizada no
+  // tiene establecimiento seleccionado.
+  if (pathname === "/dashboard/billing" || pathname === "/dashboard/admin/tenants-overview") {
+    const billing = pathname === "/dashboard/billing";
     return <div className="min-h-screen bg-background text-foreground">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b bg-white px-4 py-4 md:px-8">
-        <Link href="/dashboard" aria-label="Huella Nex, volver al panel"><ProductBrand size="md" /></Link>
+        <Link href={billing ? "/dashboard" : pathname} aria-label={billing ? "Huella Nex, volver al panel" : "Huella Nex, operación centralizada"}><ProductBrand size="md" /></Link>
         <form action="/api/auth/signout" method="get" onSubmit={() => {
           clearWorkspaceSession(workspaceStorage());
           try { clearSaleDrafts(sessionStorage); } catch { /* Storage cannot block explicit sign-out. */ }

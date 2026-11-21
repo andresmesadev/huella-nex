@@ -1,5 +1,6 @@
 ﻿import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Building2 } from "lucide-react";
 
 import { auth } from "@/auth";
@@ -19,6 +20,8 @@ export type TenantOverviewRow = {
   netTotal: number;
 };
 
+const PLAN_LABELS: Record<string, string> = { free: "Evaluación", basic: "Básico", pro: "Pro", custom: "Personalizado" };
+
 const currency = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
@@ -36,13 +39,25 @@ export default async function TenantsOverviewPage() {
   if (!session?.user?.isSuperAdmin) notFound();
 
   const cookieHeader = (await cookies()).toString();
-  const res = await fetch(`${proxyUrl("/api/dashboard/tenants/overview")}?viewAllTenants=1`, {
-    cache: "no-store",
-    headers: { Cookie: cookieHeader },
-  });
-
-  const data: { tenants: TenantOverviewRow[] } | null = res.ok ? await res.json() : null;
-  const tenants = data?.tenants ?? [];
+  let status: number | null = null;
+  let tenants: TenantOverviewRow[] = [];
+  try {
+    const res = await fetch(`${proxyUrl("/api/dashboard/tenants/overview")}?viewAllTenants=1`, {
+      cache: "no-store",
+      headers: { Cookie: cookieHeader },
+    });
+    status = res.status;
+    if (res.ok) tenants = ((await res.json()) as { tenants: TenantOverviewRow[] }).tenants ?? [];
+  } catch {
+    status = null;
+  }
+  const loaded = status !== null && status >= 200 && status < 300;
+  // Con SINGLE_TENANT_ID el backend nunca concede la vista de todos los
+  // establecimientos: es una instalación de un solo negocio, no un fallo.
+  const failureMessage = loaded ? null
+    : status === 403 ? "Esta instalación opera con un único establecimiento, o tu sesión no tiene la vista de todos los establecimientos. El resumen centralizado no está disponible aquí."
+    : status === 401 ? "Tu sesión ya no es válida. Vuelve a iniciar sesión."
+    : "No se pudo cargar el resumen de establecimientos. El servidor de datos no está disponible; intenta de nuevo en unos segundos.";
 
   return (
     <div className="space-y-6">
@@ -53,13 +68,16 @@ export default async function TenantsOverviewPage() {
         tint="bg-indigo-500/15 text-indigo-700"
       />
 
-      {!res.ok && (
-        <div className="rounded-lg border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30 px-4 py-3 text-sm text-red-800 dark:text-red-300">
-          No se pudo cargar el resumen de establecimientos.
+      {failureMessage && (
+        <div role="alert" className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p>{failureMessage}</p>
+          {status === 401
+            ? <Link href="/login" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-2">Iniciar sesión</Link>
+            : status !== 403 && <Link href="/dashboard/admin/tenants-overview" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-2">Reintentar</Link>}
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border">
+      {loaded && <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
@@ -77,7 +95,7 @@ export default async function TenantsOverviewPage() {
             {tenants.map((t) => (
               <tr key={t.tenantId} className="border-t">
                 <td className="px-4 py-2">{t.name}</td>
-                <td className="px-4 py-2">{t.plan}</td>
+                <td className="px-4 py-2">{PLAN_LABELS[t.plan] ?? t.plan}</td>
                 <td className="px-4 py-2 text-right">{t.usersCount}</td>
                 <td className="px-4 py-2 text-right">{t.appointmentsCount}</td>
                 <td className="px-4 py-2 text-right">{t.conversationsCount}</td>
@@ -95,7 +113,7 @@ export default async function TenantsOverviewPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
     </div>
   );
 }
