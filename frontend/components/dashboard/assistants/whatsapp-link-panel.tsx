@@ -9,7 +9,7 @@ type Status = { enabled: boolean; tenantId?: string; links: Link[]; challenge: C
 export function WhatsappLinkPanel({ tenant }: { tenant: string | null }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [phone, setPhone] = useState(""); const [password, setPassword] = useState("");
-  const [command, setCommand] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  const [command, setCommand] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [pollFailed, setPollFailed] = useState(false);
   const [review, setReview] = useState<unknown>(null);
   const api = useCallback(async (path = "", body?: unknown) => {
     const response = await fetch(proxyUrl(`/api/dashboard/operational-assistants/whatsapp${path}${tenant ? "?tenantId=" + encodeURIComponent(tenant) : ""}`), {
@@ -20,7 +20,7 @@ export function WhatsappLinkPanel({ tenant }: { tenant: string | null }) {
   useEffect(() => { let active = true; api().then(data => { if (active) setStatus(data as Status); }).catch(() => { if (active) setError("No se pudo consultar tu acceso por WhatsApp."); }); return () => { active = false; }; }, [api]);
   useEffect(() => {
     if (status?.challenge?.state !== "pending") return;
-    const timer = setInterval(() => { void load().catch(() => {}); }, 4000); return () => clearInterval(timer);
+    const timer = setInterval(() => { void load().then(() => setPollFailed(false), () => setPollFailed(true)); }, 4000); return () => clearInterval(timer);
   }, [status?.challenge?.state, load]);
   async function perform(fn: () => Promise<void>) {
     setBusy(true); setError(""); try { await fn(); await load(); } catch (e) { setError(e instanceof Error ? e.message : "No se pudo comprobar el resultado."); } finally { setPassword(""); setBusy(false); }
@@ -35,7 +35,8 @@ export function WhatsappLinkPanel({ tenant }: { tenant: string | null }) {
     <h2 id="whatsapp-link-title" className="font-semibold">Acceso privado por WhatsApp</h2>
     <p className="mt-2 text-sm text-slate-600">Vincula tu propio teléfono para consultar el negocio y preparar operaciones. Tu acceso conserva los permisos de tu cuenta.</p>
     {error && <p role="alert" className="mt-3 text-sm text-amber-900">{error}</p>}
-    {!status ? <p role="status" className="mt-3 text-sm">Consultando tu vínculo…</p> : !status.enabled ? <p className="mt-3 text-sm text-slate-600">El canal privado aún no está habilitado en este entorno.</p> : <>
+    {pollFailed && !error && <p role="status" className="mt-3 text-sm text-warning">No se pudo comprobar el vínculo pendiente. Seguimos intentando; revisa tu conexión.</p>}
+    {!status ? <p role="status" className="mt-3 text-sm">Consultando tu vínculo…</p> : !status.enabled ? <p className="mt-3 text-sm text-slate-600">El acceso privado por WhatsApp todavía no está habilitado para tu negocio. Escríbenos si quieres activarlo.</p> : <>
       {!!status.issues?.length && <div role="alert" className="mt-4 space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm"><p>Un mensaje requiere revisión. Comprueba la última atención y sus recibos antes de continuar; el envío no se repetirá automáticamente.</p>{status.issues.map(issue => <div className="space-y-3" key={issue.id}><p>Mensaje del {new Date(issue.createdAt).toLocaleString("es-CO")}</p>{issue.taskId && <Button variant="outline" disabled={busy} onClick={() => void perform(async () => {
         const response = await fetch(proxyUrl(`/api/dashboard/operational-assistants/tasks/${encodeURIComponent(issue.taskId!)}${tenant ? "?tenantId=" + encodeURIComponent(tenant) : ""}`), { cache: "no-store", signal: AbortSignal.timeout(14000) });
         const result = await response.json(); if (!response.ok) throw Error(result.error || "No se pudo comprobar la atención."); setReview(result.action?.receipt || result.action?.preview || result.result);

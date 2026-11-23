@@ -45,13 +45,19 @@ function Workspace({ tenant, storageKey }: { tenant: string | null; storageKey: 
     setEmployees(previous => next ? [...previous, ...page.data] : page.data); setCursor(page.nextCursor);
   }, [api]);
   useEffect(() => {
-    controller.current = new AbortController();
+    // Cada arranque tiene su propio controlador: una carga cancelada al reiniciar
+    // el efecto no debe reportarse como error de la carga nueva.
+    const local = new AbortController();
+    controller.current = local;
     const boot = async () => {
       try { await loadEmployees(); const saved = sessionStorage.getItem(storageKey); if (saved) { const item = JSON.parse(saved) as Pending; setPending(item); if (item.taskId) setAttention(await api("/operational-assistants/tasks/" + encodeURIComponent(item.taskId)) as Attention); else setUncertain(true); } }
-      catch (e) { if (!controller.current?.signal.aborted) setError(e instanceof Error ? e.message : "No se pudo cargar el espacio."); }
-      finally { setLoading(false); }
+      catch (e) {
+        if (local.signal.aborted) return;
+        setError(e instanceof DOMException && e.name === "TimeoutError" ? "El servidor tardó demasiado en responder. Intenta de nuevo." : e instanceof Error && e.name !== "AbortError" ? e.message : "No se pudo cargar el espacio.");
+      }
+      finally { if (!local.signal.aborted) setLoading(false); }
     };
-    void boot(); return () => controller.current?.abort();
+    void boot(); return () => local.abort();
   }, [api, loadEmployees, storageKey]);
   async function perform(action: () => Promise<void>) {
     setBusy(true); setError("");
@@ -67,25 +73,25 @@ function Workspace({ tenant, storageKey }: { tenant: string | null; storageKey: 
   async function recover() {
     if (!pending) return;
     if (!pending.taskId) return prepare(pending);
-    await perform(async () => { const result = await api("/operational-assistants/tasks/" + encodeURIComponent(pending.taskId!)) as Attention; setAttention(result); if (["pendiente", "procesando"].includes(result.state)) setError("La atención sigue en proceso. Recupera de nuevo; si el proceso se interrumpió, usa Reintentar atención."); });
+    await perform(async () => { const result = await api("/operational-assistants/tasks/" + encodeURIComponent(pending.taskId!)) as Attention; setAttention(result); if (["pendiente", "procesando"].includes(result.state)) setError("La atención sigue en proceso. Consulta su estado de nuevo; si el proceso se interrumpió, usa Reintentar solicitud."); });
   }
   const action = attention?.action;
   return <div className="mx-auto max-w-5xl space-y-6 [&_button]:min-h-11 [&_button]:whitespace-normal [&_input]:min-w-0 [&_select]:min-w-0 [&_textarea]:min-w-0">
     <PageHeader title="Asistentes del negocio" description="Consulta Finanzas e Inventario y prepara operaciones. Tú revisas y confirmas cada gasto o entrada." icon={Bot} />
     {error && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">{error}</div>}
     <WhatsappLinkPanel tenant={tenant} />
-    {loading ? <div role="status" className="rounded-2xl border bg-white p-6">Cargando empleados…</div> : <>
-      {!employees.length && <section className="rounded-2xl border bg-white p-6"><h2 className="font-semibold">Aún no hay empleados registrados para estas tareas</h2><p className="mt-2 text-sm text-slate-600">Un administrador puede registrar los empleados para este establecimiento.</p></section>}
-      {access?.capabilities.administration && !cursor && Object.keys(NAMES).some(s => !employees.some(e => e.specialization === s)) && <section className="rounded-2xl border bg-white p-6"><h2 className="font-semibold">Completa tu equipo digital</h2><div className="mt-4 flex flex-wrap gap-3">{Object.entries(NAMES).filter(([s]) => !employees.some(e => e.specialization === s)).map(([specialization, label]) => <Button key={specialization} variant="outline" disabled={busy} onClick={() => void perform(async () => { await api("/digital-employees", "POST", { specialization }); await loadEmployees(); })}>Registrar {label}</Button>)}</div></section>}
+    {loading ? <div role="status" className="rounded-2xl border bg-white p-6">Cargando asistentes…</div> : <>
+      {!employees.length && <section className="rounded-2xl border bg-white p-6"><h2 className="font-semibold">Aún no hay asistentes activos para estas tareas</h2><p className="mt-2 text-sm text-slate-600">Un administrador puede activarlos para este establecimiento.</p></section>}
+      {access?.capabilities.administration && !cursor && Object.keys(NAMES).some(s => !employees.some(e => e.specialization === s)) && <section className="rounded-2xl border bg-white p-6"><h2 className="font-semibold">Activa los asistentes disponibles</h2><div className="mt-4 flex flex-wrap gap-3">{Object.entries(NAMES).filter(([s]) => !employees.some(e => e.specialization === s)).map(([specialization, label]) => <Button key={specialization} variant="outline" disabled={busy} onClick={() => void perform(async () => { await api("/digital-employees", "POST", { specialization }); await loadEmployees(); })}>Activar {label}</Button>)}</div></section>}
       {!!employees.length && <section className="rounded-2xl border bg-white p-5 sm:p-6"><h2 className="mb-4 font-semibold">Elige el asistente y la tarea</h2><fieldset disabled={busy || uncertain} className="space-y-4 disabled:opacity-60">
-        <label className="block text-sm font-medium">Empleado<select className="mt-1 min-h-11 w-full rounded-lg border px-3" value={employeeId} onChange={e => { setEmployeeId(e.target.value); setIntent(""); setFields({}); }}><option value="">Selecciona un empleado</option>{employees.map(e => <option key={e.id} value={e.id}>{NAMES[e.specialization]} · {e.status === "activo" ? "Activo" : "Pausado"} · {e.id.slice(-6)}</option>)}</select></label>
-        {cursor && <Button type="button" variant="outline" onClick={() => void perform(() => loadEmployees(cursor))}>Ver más empleados</Button>}
-        {selected && <><label className="flex min-h-11 items-center gap-3 text-sm"><input className="size-4 shrink-0 accent-teal-700" type="checkbox" checked={natural} onChange={e => setNatural(e.target.checked)} />Describir la tarea con mis palabras</label>
+        <label className="block text-sm font-medium">Asistente<select className="mt-1 min-h-11 w-full rounded-lg border px-3" value={employeeId} onChange={e => { setEmployeeId(e.target.value); setIntent(""); setFields({}); }}><option value="">Selecciona un asistente</option>{employees.map(e => <option key={e.id} value={e.id}>{NAMES[e.specialization]} · {e.status === "activo" ? "Activo" : "Pausado"}</option>)}</select></label>
+        {cursor && <Button type="button" variant="outline" onClick={() => void perform(() => loadEmployees(cursor))}>Ver más asistentes</Button>}
+        {selected && <><label className="flex min-h-11 items-center gap-3 text-sm"><input className="size-4 shrink-0 accent-teal-700" type="checkbox" checked={natural} onChange={e => setNatural(e.target.checked)} /><span>Describir la tarea con mis palabras <span className="text-muted-foreground">(usa créditos del agente de IA de tu plan)</span></span></label>
           {natural ? <label className="block text-sm font-medium">¿Qué necesitas?<textarea className="mt-1 min-h-28 w-full rounded-lg border p-3" value={description} maxLength={4000} onChange={e => setDescription(e.target.value)} placeholder="Ejemplo: preparar un gasto de 25.000 pesos por insumos" /><span className="text-xs text-slate-500">Si faltan datos, puedes completar el formulario.</span></label> : <><label className="block text-sm font-medium">Tarea<select className="mt-1 min-h-11 w-full rounded-lg border px-3" value={intent} onChange={e => { setIntent(e.target.value); setFields({}); }}><option value="">Selecciona una tarea</option>{selected.intents.map(i => <option value={i} key={i}>{TASKS[i]?.label || i}</option>)}</select></label>{intent && <TaskFields intent={intent} fields={fields} setFields={setFields} api={api} />}</>}
           <Button disabled={selected.status !== "activo" || (natural ? !description.trim() : !intent)} onClick={() => void prepare()}>{busy ? "Atendiendo…" : "Preparar solicitud"}</Button></>}
       </fieldset></section>}
     </>}
-    {pending && <div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled={busy} onClick={() => void recover()}><RefreshCw className="h-4 w-4" />Recuperar atención</Button>{attention && ["pendiente", "procesando"].includes(attention.state) && <Button variant="outline" disabled={busy} onClick={() => void prepare(pending)}>Reintentar atención</Button>}{uncertain && <p role="status" className="text-sm text-amber-800">Comprueba la atención guardada antes de iniciar otra operación.</p>}</div>}
+    {pending && <div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled={busy} onClick={() => void recover()}><RefreshCw className="h-4 w-4" />Consultar estado de la solicitud</Button>{attention && ["pendiente", "procesando"].includes(attention.state) && <Button variant="outline" disabled={busy} onClick={() => void prepare(pending)}>Reintentar solicitud</Button>}{uncertain && <p role="status" className="text-sm text-amber-800">Comprueba la atención guardada antes de iniciar otra operación.</p>}</div>}
     {attention?.result.kind === "query" && <section className="rounded-2xl border bg-white p-6"><h2 className="mb-3 font-semibold">Resultado de la consulta</h2><p className="mb-4 text-xs text-slate-500">Consultado: {attention.result.observedAt ? new Date(attention.result.observedAt).toLocaleString("es-CO") : "—"}. Los datos conservan el instante de consulta.</p><ResultDetails value={attention.result.data} />{Boolean((attention.result.data as { nextCursor?: string })?.nextCursor) && pending && <Button className="mt-4" variant="outline" disabled={busy || uncertain} onClick={() => void prepare({ employeeId: pending.employeeId, body: { requestId: crypto.randomUUID(), intent: attention.result.intent, fields: { ...attention.result.parameters, cursor: (attention.result.data as { nextCursor: string }).nextCursor } } })}>Ver siguientes resultados</Button>}</section>}
     {attention?.result.kind === "clarification" && <p role="status" className="rounded-xl border bg-white p-4 text-sm">{attention.result.message}</p>}
     {action && <Review key={`${action.id}:${action.revision}`} action={action} api={api} busy={busy} uncertain={uncertain} perform={perform} update={value => setAttention(previous => previous ? { ...previous, action: value } : previous)} />}
