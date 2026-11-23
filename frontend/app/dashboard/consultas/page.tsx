@@ -100,7 +100,7 @@ export default async function ConsultasPage({ searchParams }: PageProps) {
       ) : appointments ? (
         <VetConsultationsView key={`${tenant ?? "current"}:${appointment ?? "list"}:${date ?? "today"}`} appointments={appointments} preview={isPreview} tenantId={tenant} clinician={clinician} clinicianStaffId={clinicianStaffId} initialAppointmentId={appointment} initialDate={date} />
       ) : (
-        <div role="alert" className="max-w-2xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
+        <div role="alert" className="max-w-2xl rounded-2xl border border-warning-border bg-warning-surface p-6 text-sm text-amber-950">
           <h2 className="font-semibold">No se pudieron cargar las consultas</h2>
           <p className="mt-1">El servidor de datos no está disponible. Intenta de nuevo para ver las citas veterinarias.</p>
           <div className="mt-4 flex flex-wrap gap-2">

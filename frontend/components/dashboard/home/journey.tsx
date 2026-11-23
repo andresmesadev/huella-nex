@@ -33,7 +33,7 @@ export function HomeJourney({ appointments: initial, access, tenant, initialRevi
     agenda.current?.focus({ preventScroll: true });
   }
   const schedule = access.capabilities.agenda ? <div ref={agenda} id="home-day-agenda" tabIndex={-1} data-home-section="agenda" className="min-w-0 scroll-mt-28 rounded-2xl focus-visible:outline-2 focus-visible:outline-primary">
-    {stale && <p role="alert" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{appointments ? "No se pudo actualizar la jornada. Se muestran las últimas citas cargadas; confirma los datos antes de actuar." : "No se pudo comprobar la jornada. Las cifras y las citas no están disponibles."}</p>}
+    {stale && <p role="alert" className="mb-3 rounded-xl border border-warning-border bg-warning-surface p-4 text-sm text-amber-900">{appointments ? "No se pudo actualizar la jornada. Se muestran las últimas citas cargadas; confirma los datos antes de actuar." : "No se pudo comprobar la jornada. Las cifras y las citas no están disponibles."}</p>}
     {appointments ? <TodaySchedule appointments={appointments} initialReview={initialReview} compact access={access} filter={filter} onFilterChange={setFilter} onAppointmentsChange={setAppointments} /> : <section className="rounded-2xl border bg-white p-6"><h2 className="font-bold">Agenda no disponible</h2><Link prefetch={false} href={homeHref("/dashboard/calendar", tenant)} className="mt-4 inline-flex min-h-11 items-center font-semibold text-primary underline">Abrir agenda</Link></section>}
   </div> : null;
   const priorities = <div data-home-section="attention" className="min-w-0">{attention}</div>;

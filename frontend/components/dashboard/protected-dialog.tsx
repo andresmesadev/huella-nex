@@ -75,7 +75,7 @@ export function useDialogEditGuard(dirty: boolean, saving: boolean) {
 }
 
 export function SavedChangesStatus({ dirty, saving, savedAt }: { dirty: boolean; saving: boolean; savedAt: Date | null }) {
-  return <p role="status" aria-live="polite" className={`text-sm ${dirty ? "text-amber-800" : "text-muted-foreground"}`}>
+  return <p role="status" aria-live="polite" className={`text-sm ${dirty ? "text-warning" : "text-muted-foreground"}`}>
     {saving ? "Guardando cambios…" : dirty ? "Cambios sin guardar" : savedAt ? `Cambios guardados a las ${savedAt.toLocaleTimeString("es-CO", { timeZone: "America/Bogota", hour: "2-digit", minute: "2-digit" })}` : ""}
   </p>;
 }

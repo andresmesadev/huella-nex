@@ -32,13 +32,13 @@ export function StaffContractEditor({ member, onSaved, onDirtyChange, onSavingCh
     finally { lock.current = false; setBusy(false); }
   }
   return <form id={`staff-contract-${member.id}`} onSubmit={save} className="space-y-5" aria-label="Tipo de contrato">
-    {!member.contractType && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">Sin configurar. Se conserva el reparto actual hasta que guardes el tipo de contrato de esta persona.</p>}
+    {!member.contractType && <p className="rounded-lg border border-warning-border bg-warning-surface p-3 text-sm text-amber-950">Sin configurar. Se conserva el reparto actual hasta que guardes el tipo de contrato de esta persona.</p>}
     <fieldset disabled={busy} className="space-y-4">
       <label className="block space-y-2 text-sm font-semibold"><span>Tipo de contrato</span><select className="h-11 w-full rounded-md border bg-background px-3 font-normal" value={contractType} onChange={event => { setContractType(event.target.value as typeof contractType); setError(""); }}><option value="" disabled>Selecciona el tipo de contrato</option><option value="fixed">Fijo</option><option value="service">Prestación de servicios</option></select></label>
       {contractType === "fixed" && <p className="rounded-lg border bg-muted/30 p-4 text-sm">Sin reparto porcentual para este integrante. Su pago fijo se administra aparte.</p>}
       {contractType === "service" && <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/[0.03] p-4"><label htmlFor={field} className="block text-sm font-semibold">Porcentaje para el profesional (%)</label><Input id={field} inputMode="decimal" value={percentage} onChange={event => { setPercentage(event.target.value); setError(""); }} placeholder="Ej. 50" required className="h-11 bg-background" /><div className="grid grid-cols-2 gap-3 text-sm"><p>Profesional<br /><strong className="text-lg">{valid ? `${value}%` : "Por definir"}</strong></p><p>Establecimiento<br /><strong className="text-lg">{valid ? `${Number((100 - value).toFixed(2))}%` : "Por definir"}</strong></p></div><p className="text-xs text-muted-foreground">Solo aplica en servicios que tengan activado el reparto por porcentaje. Ambas partes suman 100%.</p></div>}
     </fieldset>
     <p className="text-xs text-muted-foreground">Se usará en nuevas comisiones. Las comisiones y cierres anteriores conservan su porcentaje e importes.</p>
-    {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
+    {error && <p role="alert" className="text-sm text-danger">{error}</p>}
   </form>;
 }

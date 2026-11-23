@@ -38,13 +38,13 @@ function fmtHour(h: number, clock: ClockMode): string {
 // ── Status colours ────────────────────────────────────────────
 
 const STATUS_BG: Record<string, string> = {
-  pending:     "bg-slate-100 border-l-slate-400 dark:bg-slate-800 dark:border-l-slate-500",
-  confirmed:   "bg-blue-50 border-l-blue-400 dark:bg-blue-950 dark:border-l-blue-500",
-  arrived:     "bg-cyan-50 border-l-cyan-400 dark:bg-cyan-950 dark:border-l-cyan-500",
-  in_progress: "bg-amber-50 border-l-amber-400 dark:bg-amber-950 dark:border-l-amber-500",
-  completed:   "bg-green-50 border-l-green-400 dark:bg-green-950 dark:border-l-green-500",
-  cancelled:   "bg-red-50 border-l-red-300 dark:bg-red-950 dark:border-l-red-800 opacity-50",
-  no_show:     "bg-red-50 border-l-red-300 dark:bg-red-950 dark:border-l-red-800 opacity-50",
+  pending:     "bg-slate-100 border-l-slate-400",
+  confirmed:   "bg-info-surface border-l-blue-400",
+  arrived:     "bg-cyan-50 border-l-cyan-400",
+  in_progress: "bg-warning-surface border-l-amber-400",
+  completed:   "bg-success-surface border-l-green-400",
+  cancelled:   "bg-danger-surface border-l-red-300 opacity-50",
+  no_show:     "bg-danger-surface border-l-red-300 opacity-50",
 };
 
 const STATUS_DOT: Record<string, string> = {
@@ -108,7 +108,7 @@ function ApptBlock({ appt, topPx, heightPx, lane, lanes, onClick }: {
         {getPetEmoji(appt.petType)} {appt.petName}
       </span>
       <span className="block truncate text-muted-foreground">{appt.clientName ?? appt.clientPhone}</span>
-      <span className="block truncate font-medium text-slate-700 dark:text-slate-200">{appt.serviceName ?? appt.serviceType}</span>
+      <span className="block truncate font-medium text-slate-700">{appt.serviceName ?? appt.serviceType}</span>
     </button>
   );
 }
@@ -640,7 +640,7 @@ export function WeekCalendar({
       )}
 
       {view === "month" && visibleMonthResult?.key === monthKey && visibleMonthResult.error && (
-        <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
+        <div role="alert" className="rounded-2xl border border-warning-border bg-warning-surface p-6 text-sm text-amber-950">
           No se pudieron cargar las citas de este mes. Selecciona otro período o vuelve a abrir Mes para intentarlo de nuevo.
         </div>
       )}

@@ -83,13 +83,13 @@ const PLANS: Plan[] = [
 // ── Status helpers ────────────────────────────────────────────
 
 const STATUS_LABEL: Record<string, { label: string; class: string }> = {
-  active:    { label: "Activo",          class: "border-green-300 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-700" },
-  trialing:  { label: "Prueba",          class: "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-700" },
-  past_due:  { label: "Pago pendiente",  class: "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-700" },
-  canceled:  { label: "Cancelado",       class: "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-700" },
-  inactive:  { label: "Inactivo",        class: "border-gray-300 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-500" },
-  none:      { label: "Sin suscripción", class: "border-gray-300 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-500" },
-  unknown:   { label: "Por confirmar",   class: "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-700" },
+  active:    { label: "Activo",          class: "border-green-300 bg-success-surface text-green-700" },
+  trialing:  { label: "Prueba",          class: "border-blue-300 bg-info-surface text-blue-700" },
+  past_due:  { label: "Pago pendiente",  class: "border-amber-300 bg-warning-surface text-amber-700" },
+  canceled:  { label: "Cancelado",       class: "border-red-300 bg-danger-surface text-red-700" },
+  inactive:  { label: "Inactivo",        class: "border-gray-300 bg-gray-50 text-gray-700" },
+  none:      { label: "Sin suscripción", class: "border-gray-300 bg-gray-50 text-gray-700" },
+  unknown:   { label: "Por confirmar",   class: "border-amber-300 bg-warning-surface text-amber-700" },
 };
 
 function StatusBadge({ subscriptionStatus }: { subscriptionStatus: string | null }) {

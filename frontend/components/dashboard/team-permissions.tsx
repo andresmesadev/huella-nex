@@ -38,6 +38,6 @@ export function TeamPermissions({ member, activeModules, onSaved, onDirtyChange,
   return <div className="space-y-4">
     <TeamPermissionFields role={member.role} selected={selected} onChange={values => { setError(''); setSelected(values); }} activeModules={activeModules} disabled={busy} />
     <Button disabled={busy || !dirty} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar permisos"}</Button>
-    {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+    {error && <p role="alert" className="rounded-xl border border-danger-border bg-danger-surface p-3 text-sm text-danger">{error}</p>}
   </div>;
 }

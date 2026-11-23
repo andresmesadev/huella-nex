@@ -40,7 +40,7 @@ export function ReportSection<T>({ title, description, result, children }: {
     <header className="border-b p-5 sm:p-6"><h3 className="text-lg font-semibold">{title}</h3><p className="mt-1 text-sm text-muted-foreground">{description}</p></header>
     <div className="p-5 sm:p-6">
       {result.loading ? <div role="status" aria-label={`Cargando ${title}`} className="space-y-3"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-24 w-full" /><span className="sr-only">Cargando {title}…</span></div>
-        : result.error ? <div role="alert" className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4"><p className="font-medium">No se pudo cargar {title.toLocaleLowerCase("es")}.</p><p className="text-sm">Intenta de nuevo para consultar las cifras.</p><Button variant="outline" className="min-h-11" onClick={result.retry}><RotateCw />Reintentar</Button></div>
+        : result.error ? <div role="alert" className="space-y-3 rounded-xl border border-warning-border bg-warning-surface p-4"><p className="font-medium">No se pudo cargar {title.toLocaleLowerCase("es")}.</p><p className="text-sm">Intenta de nuevo para consultar las cifras.</p><Button variant="outline" className="min-h-11" onClick={result.retry}><RotateCw />Reintentar</Button></div>
           : result.data !== undefined ? children(result.data) : null}
     </div>
   </section>;

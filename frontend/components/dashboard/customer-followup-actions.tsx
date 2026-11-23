@@ -41,7 +41,7 @@ export function CustomerFollowupActions({ ownerId, petId, conversationId, catego
       {access?.capabilities.chat && ownerId && <Button variant="outline" size="sm" disabled={loading} onClick={openChat}>{loading ? "Abriendo…" : "WhatsApp"}</Button>}
       {access?.capabilities.schedule && ownerId && <Button variant="outline" size="sm" onClick={() => setAppointment(true)}>Agendar cita</Button>}
     </div>
-    {error && <p role="status" className="max-w-lg text-sm text-amber-800">{error}</p>}
+    {error && <p role="status" className="max-w-lg text-sm text-warning">{error}</p>}
     {appointment && <NewAppointmentDialog initialDate={new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date())} initialClientId={ownerId ?? undefined} initialPetId={petId} serviceCategory={category} onClose={() => setAppointment(false)} onCreated={() => { setAppointment(false); router.refresh(); }} />}
   </div>;
 }

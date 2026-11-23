@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { NATIVE_SELECT_CLASS } from "@/components/ui/native-select";
 
 /**
  * Especies que acepta el backend (`Pet.type`): mismos valores que validan
@@ -33,11 +33,7 @@ export function PetSpeciesSelect({ id, value, onChange, disabled = false, labelC
         required
         disabled={disabled}
         onChange={(event) => onChange(event.target.value as PetSpecies)}
-        className={cn(
-          "flex h-11 w-full min-w-0 rounded-lg border border-input bg-white px-3 text-base transition-colors sm:text-sm",
-          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:border-ring",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-        )}
+        className={NATIVE_SELECT_CLASS}
       >
         {PET_SPECIES.map((species) => <option key={species.value} value={species.value}>{species.label}</option>)}
       </select>

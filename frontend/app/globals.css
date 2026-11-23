@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "./shadcn-utilities.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -18,11 +16,6 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -39,8 +32,6 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-warm-foreground: var(--warm-foreground);
-  --color-warm: var(--warm);
   --color-warning: var(--warning);
   --color-warning-surface: var(--warning-surface);
   --color-warning-border: var(--warning-border);
@@ -50,6 +41,9 @@
   --color-info: var(--info);
   --color-info-surface: var(--info-surface);
   --color-info-border: var(--info-border);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-danger-border: var(--danger-border);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -100,16 +94,9 @@
   --info: #1e40af;
   --info-surface: #eff6ff;
   --info-border: #bfdbfe;
-
-  /* ── Verde fresco: acento de marca (salud/naturaleza) ─────── */
-  --warm: oklch(0.55 0.14 152);
-  --warm-foreground: oklch(0.99 0 0);
-
-  --chart-1: oklch(0.60 0.16 232);
-  --chart-2: oklch(0.58 0.14 152);
-  --chart-3: oklch(0.68 0.11 210);
-  --chart-4: oklch(0.55 0.09 190);
-  --chart-5: oklch(0.48 0.15 250);
+  --danger: #991b1b;
+  --danger-surface: #fef2f2;
+  --danger-border: #fecaca;
 
   --radius: 0.625rem;
 
@@ -122,89 +109,6 @@
   --sidebar-accent-foreground: #1b353b;
   --sidebar-border: #dce8e5;
   --sidebar-ring: #137568;
-
-  /* ── Custom glow/gradient tokens (usados por .glow-* y .gradient-text) ── */
-  --glow-cyan: 0 0 16px oklch(0.60 0.16 232 / 30%), 0 0 32px oklch(0.60 0.16 232 / 10%);
-  --glow-violet: 0 0 16px oklch(0.55 0.14 152 / 28%), 0 0 32px oklch(0.55 0.14 152 / 10%);
-  --gradient-text-from: oklch(0.55 0.16 232);
-  --gradient-text-to: oklch(0.52 0.14 152);
-}
-
-.dark {
-  /* ── Paleta "Clinical Sky + Fresh Green" (2026-09-08, v2) ──
-   * Reemplaza la paleta teal+naranja anterior — pedido explícito del
-   * responsable del proyecto: "clínico de mascotas, azul cielo o verde
-   * con blanco", sin naranja. Azul cielo (confianza clínica) como color
-   * primario + verde fresco (salud/naturaleza) como acento, sobre fondo
-   * frío neutro y blancos limpios/nítidos — nada de calidez cálida ni
-   * tinte teal-orgánico de la iteración anterior.
-   */
-
-  /* ── Fondo clínico frío-neutro ─────────────────────────────── */
-  --background: oklch(0.14 0.018 235);
-  --foreground: oklch(0.97 0.004 235);
-
-  /* ── Cards semi-transparentes para glassmorphism ─────────── */
-  --card: oklch(0.25 0.02 233 / 68%);
-  --card-foreground: oklch(0.97 0.004 235);
-
-  /* ── Popovers/dropdowns opacos (legibilidad) ─────────────── */
-  --popover: oklch(0.21 0.02 234);
-  --popover-foreground: oklch(0.97 0.004 235);
-
-  /* ── Azul cielo vibrante (confianza clínica) ──────────────── */
-  --primary: oklch(0.72 0.14 232);
-  --primary-foreground: oklch(0.12 0.03 232);
-
-  --secondary: oklch(0.29 0.02 233 / 80%);
-  --secondary-foreground: oklch(0.97 0.004 235);
-  --muted: oklch(0.29 0.02 233 / 70%);
-  --muted-foreground: oklch(0.70 0.014 233);
-  --accent: oklch(0.31 0.035 231 / 80%);
-  --accent-foreground: oklch(0.97 0.004 235);
-
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.72 0.14 232);
-
-  /* Estados semánticos (el tema oscuro no se activa hoy; se definen para
-     que los tokens nunca queden vacíos). */
-  --warning: #fbbf24;
-  --warning-surface: oklch(0.30 0.06 75 / 40%);
-  --warning-border: oklch(0.55 0.12 75 / 50%);
-  --success: #4ade80;
-  --success-surface: oklch(0.30 0.06 150 / 40%);
-  --success-border: oklch(0.55 0.12 150 / 50%);
-  --info: #93c5fd;
-  --info-surface: oklch(0.30 0.06 255 / 40%);
-  --info-border: oklch(0.55 0.12 255 / 50%);
-
-  /* ── Verde fresco: acento de marca (salud/naturaleza) ─────── */
-  --warm: oklch(0.72 0.15 152);
-  --warm-foreground: oklch(0.14 0.03 152);
-
-  --chart-1: oklch(0.72 0.14 232);
-  --chart-2: oklch(0.72 0.15 152);
-  --chart-3: oklch(0.78 0.10 210);
-  --chart-4: oklch(0.68 0.10 190);
-  --chart-5: oklch(0.62 0.16 250);
-
-  /* ── Sidebar semi-transparente ───────────────────────────── */
-  --sidebar: oklch(0.15 0.02 233 / 85%);
-  --sidebar-foreground: oklch(0.95 0.006 235);
-  --sidebar-primary: oklch(0.72 0.14 232);
-  --sidebar-primary-foreground: oklch(0.12 0.03 232);
-  --sidebar-accent: oklch(0.27 0.022 233 / 70%);
-  --sidebar-accent-foreground: oklch(0.97 0.004 235);
-  --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.72 0.14 232);
-
-  /* ── Custom glow tokens ──────────────────────────────────── */
-  --glow-cyan: 0 0 20px oklch(0.72 0.14 232 / 40%), 0 0 40px oklch(0.72 0.14 232 / 15%);
-  --glow-violet: 0 0 20px oklch(0.72 0.15 152 / 35%), 0 0 40px oklch(0.72 0.15 152 / 12%);
-  --gradient-text-from: oklch(0.72 0.14 232);
-  --gradient-text-to: oklch(0.72 0.15 152);
 }
 
 @layer base {
@@ -248,62 +152,6 @@
   .glass-card {
     background-image: none;
     box-shadow: 0 2px 8px rgb(27 53 59 / 6%);
-  }
-
-  /* Glow neon en el color primario (cyan) */
-  .glow-primary {
-    box-shadow: var(--glow-cyan);
-  }
-
-  /* Glow violet para elementos secundarios */
-  .glow-violet {
-    box-shadow: var(--glow-violet);
-  }
-
-  /* Texto con gradiente cyan → violet
-   * NOTA: usar `background-image` (no el shorthand `background`) es
-   * deliberado. Con `var(--gradient-text-from, oklch(...))`, Lightning CSS
-   * (el procesador de Tailwind v4) emite un fallback de color duplicando la
-   * regla completa dentro de un bloque `@supports (color: lab(...))` que
-   * SOLO reafirma `background:` — y `background` es shorthand: resetea
-   * `background-clip` a su valor inicial (`border-box`) en cualquier
-   * navegador moderno que soporte `lab()` (Chrome/Firefox/Safari actuales),
-   * anulando el recorte y dejando el texto invisible sobre un bloque sólido.
-   * `background-image` no forma parte de ese shorthand, así que nunca
-   * resetea `background-clip`, sin importar cómo se divida la regla. */
-  .gradient-text {
-    background-image: linear-gradient(
-      135deg,
-      var(--gradient-text-from, oklch(0.78 0.18 195)) 0%,
-      var(--gradient-text-to, oklch(0.65 0.25 290)) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* Texto con gradiente slate → azul cielo (para números, sobre fondo claro)
-   * Mismo tratamiento con `background-image` que `.gradient-text` — ver nota
-   * arriba. Esta regla no mostraba el bug porque, al usar valores oklch()
-   * literales en vez de var(), Lightning CSS generaba ambas variantes de
-   * color dentro de la MISMA regla (sin @supports) con el recorte declarado
-   * después de ambas, pero se deja igual por consistencia y para no
-   * depender de un detalle de implementación del compilador. */
-  .gradient-text-value {
-    background-image: linear-gradient(
-      145deg,
-      oklch(0.30 0.03 235) 0%,
-      oklch(0.50 0.15 232) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* Borde luminoso azul cielo */
-  .neon-border-cyan {
-    border-color: oklch(0.72 0.14 232 / 40%);
-    box-shadow: 0 0 0 1px oklch(0.72 0.14 232 / 20%);
   }
 }
 

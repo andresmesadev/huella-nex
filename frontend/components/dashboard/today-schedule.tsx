@@ -208,7 +208,7 @@ export function TodaySchedule({ appointments: initial, initialReview = false, co
         </CardHeader>
 
         <CardContent className={compact ? "flex min-h-0 flex-1 flex-col" : undefined}>
-          {refreshError && <p role="alert" className="mb-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">No se pudo actualizar. Se muestran los últimos datos cargados.</p>}
+          {refreshError && <p role="alert" className="mb-3 rounded-lg bg-warning-surface p-3 text-xs text-amber-900">No se pudo actualizar. Se muestran los últimos datos cargados.</p>}
           {agendaAppointments.length > 0 && !compact && <DaySummary appointments={agendaAppointments} prices={prices} />}
           {agendaAppointments.length > 0 && <div role="group" aria-label="Filtros de la agenda del día" className="mb-2 flex flex-wrap items-center gap-2 border-b border-border pb-3">
             <button type="button" onClick={() => changeFilter("all")} aria-pressed={selectedFilter === "all"} className={`min-h-11 rounded-lg px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${selectedFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>Todas las citas</button>
@@ -247,7 +247,7 @@ export function TodaySchedule({ appointments: initial, initialReview = false, co
                   </button>
                   <div className="flex flex-wrap items-center justify-end gap-2 px-1 pb-2 sm:px-3 xl:py-2 [&_a]:min-h-11 [&_button]:min-h-11">
                     <AppointmentQuickActions appointment={appt} onUpdated={updated => { setAppointments(current => current.map(value => value.id === updated.id ? updated : value)); if (compact) router.refresh(); }} />
-                    {access?.capabilities.appointmentPrice && isGroomingAppointment(appt) && appt.finalPrice === null && !["completed", "cancelled", "no_show"].includes(appt.status) && <button type="button" onClick={() => { setStartInPriceEdit(true); setSelected(appt); }} className="shrink-0 rounded-lg px-2 py-2 text-xs font-semibold text-amber-800 underline underline-offset-2 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-amber-700">Definir precio</button>}
+                    {access?.capabilities.appointmentPrice && isGroomingAppointment(appt) && appt.finalPrice === null && !["completed", "cancelled", "no_show"].includes(appt.status) && <button type="button" onClick={() => { setStartInPriceEdit(true); setSelected(appt); }} className="shrink-0 rounded-lg px-2 py-2 text-xs font-semibold text-warning underline underline-offset-2 hover:bg-warning-surface focus-visible:outline-2 focus-visible:outline-amber-700">Definir precio</button>}
                   </div>
                 </li>
               ))}

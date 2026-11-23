@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { NATIVE_SELECT_CLASS } from "@/components/ui/native-select";
 import { useCallback, useEffect, useId, useState } from "react";
 import {
   Download,
@@ -85,8 +86,8 @@ const ACTION_BUTTONS: {
   { id: "note",         label: "Nota",             icon: StickyNote,  color: "text-muted-foreground", bg: "bg-accent/40", ring: "ring-black/10 border-black/[0.06]" },
 ];
 
-const SELECT_CLASS =
-  "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring";
+// Estilo común de selects nativos (components/ui/native-select).
+const SELECT_CLASS = NATIVE_SELECT_CLASS;
 
 function TimelineSkeleton() {
   return (
@@ -344,7 +345,7 @@ function PetMedicalSheetContent({
           <p className="mt-2 text-xs text-rose-800">Antecedentes registrados. El profesional debe confirmar su vigencia antes de la atención.</p>
         </section>}
         {error && <p role="alert" className="text-sm text-destructive">No se pudieron comprobar los antecedentes de alergias. Reintenta la carga del historial.</p>}
-        {(profile.notes || operationalAlerts.trim()) && <section aria-label="Cuidados importantes" className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+        {(profile.notes || operationalAlerts.trim()) && <section aria-label="Cuidados importantes" className="rounded-xl border border-warning-border bg-warning-surface/60 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="flex items-center gap-2 font-semibold"><AlertCircle className="h-4 w-4 text-amber-700" />Cuidados importantes</h3></div>
           {operationalAlerts.trim() && <p className="mt-2 whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{operationalAlerts}</p>}
           {profile.notes && <p className="mt-2 whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{profile.notes}</p>}

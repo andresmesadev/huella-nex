@@ -125,7 +125,7 @@ function PaymentEditor({ transaction, onClose, onSaved, onReturnFocus, initialAt
           </FormField></FormAdditional>
         </fieldset>
         <FormSubmissionError message={feedback.submitError} />
-        {attempt && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-950">El resultado está por comprobar. Conservamos el método y la nota; consulta el cobro antes de volver a enviarlos.</p>}
+        {attempt && <p role="status" className="rounded-xl bg-warning-surface p-3 text-sm text-amber-950">El resultado está por comprobar. Conservamos el método y la nota; consulta el cobro antes de volver a enviarlos.</p>}
       </FormDialogBody>
       <FormDialogFooter><Button type="button" variant="outline" disabled={saving} onClick={() => close(onClose)}>Cerrar</Button>{attempt ? <Button type="button" disabled={saving} onClick={() => void checkResult()}>{saving ? "Comprobando…" : "Comprobar resultado"}</Button> : <Button type="submit" disabled={saving}>{saving ? "Guardando…" : transaction.paymentStatus === 'pending' ? "Confirmar pago recibido" : "Confirmar método de pago"}</Button>}</FormDialogFooter>
     </form>

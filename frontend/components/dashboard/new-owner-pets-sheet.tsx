@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { NATIVE_SELECT_CLASS } from "@/components/ui/native-select";
 import { useState } from "react";
 import { Plus, Trash2, Users } from "lucide-react";
 
@@ -45,8 +46,8 @@ function emptyPet(): PetDraft {
   return { uid: uidCounter++, name: "", type: "dog", breed: "", gender: "", weight: "", notes: "", groomingPrice: "", groomingTransportPrice: "" };
 }
 
-const SELECT_CLASS =
-  "flex min-h-11 min-w-0 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+// Estilo común de selects nativos (components/ui/native-select).
+const SELECT_CLASS = NATIVE_SELECT_CLASS;
 
 const TEXTAREA_CLASS =
   "w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none disabled:cursor-not-allowed disabled:opacity-50";

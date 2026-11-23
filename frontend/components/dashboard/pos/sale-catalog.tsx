@@ -126,8 +126,8 @@ export function SaleCatalog(props: Props) {
     <p className="text-xs text-muted-foreground">Busca por nombre{showProducts ? ', código o barras' : ''}. Usa ↑ ↓ y Enter para agregar.</p>
     {visible && <>
       {busy && <p role="status" className="flex items-center gap-2 text-sm"><Loader2 className="size-4 animate-spin" />Buscando artículos…</p>}
-      {productError && <div role="alert" className="text-sm text-red-800">{productError}<Button type="button" variant="outline" size="sm" className="ml-2" onClick={() => setProductRetry(value => value + 1)}>Reintentar productos</Button></div>}
-      {serviceError && <div role="alert" className="text-sm text-red-800">{serviceError}<Button type="button" variant="outline" size="sm" className="ml-2" onClick={() => setServiceRetry(value => value + 1)}>Reintentar servicios</Button></div>}
+      {productError && <div role="alert" className="text-sm text-danger">{productError}<Button type="button" variant="outline" size="sm" className="ml-2" onClick={() => setProductRetry(value => value + 1)}>Reintentar productos</Button></div>}
+      {serviceError && <div role="alert" className="text-sm text-danger">{serviceError}<Button type="button" variant="outline" size="sm" className="ml-2" onClick={() => setServiceRetry(value => value + 1)}>Reintentar servicios</Button></div>}
       <div id={resultsId} role="listbox" aria-label="Productos y servicios encontrados" className="max-h-80 space-y-1 overflow-y-auto">
         {entries.map((entry, index) => {
           const product = entry.kind === 'product' ? entry.product : null, service = entry.kind === 'service' ? entry.service : null;

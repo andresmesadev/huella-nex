@@ -110,7 +110,7 @@ export function DigitalEmployeesSupervision({ tenant }: { tenant: string | null 
         <h2 id="supervision-title" className="font-semibold">Supervisión de empleados digitales</h2>
         <p className="mt-1 text-sm text-muted-foreground">Revisa lo que los asistentes automáticos dejaron para una persona y decide qué recordatorios se envían solos.</p>
       </div>
-      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error} <button type="button" className="font-semibold underline underline-offset-2" onClick={() => void load()}>Reintentar</button></p>}
+      {error && <p role="alert" className="rounded-xl border border-danger-border bg-danger-surface px-4 py-3 text-sm text-danger">{error} <button type="button" className="font-semibold underline underline-offset-2" onClick={() => void load()}>Reintentar</button></p>}
       {notice && <p role="status" className="rounded-xl border border-success-border bg-success-surface px-4 py-3 text-sm text-success">{notice}</p>}
 
       <div>

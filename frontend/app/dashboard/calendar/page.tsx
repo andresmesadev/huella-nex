@@ -92,11 +92,11 @@ export default async function CalendarPage({ searchParams }: PageProps) {
         </div>
       )}
       {ownerError ? (
-        <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><h2 className="font-semibold">No se pudo cargar la agenda de ese propietario</h2><p className="mt-1">Comprueba el establecimiento seleccionado o vuelve a abrir la ficha del cliente.</p><div className="mt-3 flex flex-wrap gap-4"><Link href={`/dashboard/calendar?${retryParams}`} className="inline-flex min-h-11 items-center font-semibold underline">Reintentar</Link><Link href={`/dashboard/calendar${unfilteredParams.size ? `?${unfilteredParams}` : ""}`} className="inline-flex min-h-11 items-center font-semibold underline">Ver toda la agenda</Link></div></div>
+        <div role="alert" className="rounded-2xl border border-warning-border bg-warning-surface p-6 text-sm text-amber-950"><h2 className="font-semibold">No se pudo cargar la agenda de ese propietario</h2><p className="mt-1">Comprueba el establecimiento seleccionado o vuelve a abrir la ficha del cliente.</p><div className="mt-3 flex flex-wrap gap-4"><Link href={`/dashboard/calendar?${retryParams}`} className="inline-flex min-h-11 items-center font-semibold underline">Reintentar</Link><Link href={`/dashboard/calendar${unfilteredParams.size ? `?${unfilteredParams}` : ""}`} className="inline-flex min-h-11 items-center font-semibold underline">Ver toda la agenda</Link></div></div>
       ) : data ? (
         <>
           {profileMissing && !isPreview && (
-            <p role="status" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p role="status" className="mb-4 rounded-xl border border-warning-border bg-warning-surface px-4 py-3 text-sm text-amber-950">
               No se pudieron cargar el horario y las áreas del negocio. La cuadrícula muestra el horario predeterminado; <Link href={`/dashboard/calendar${retryParams.size ? `?${retryParams.toString()}` : ""}`} className="font-semibold underline underline-offset-2">recarga la agenda</Link> para intentarlo de nuevo.
             </p>
           )}

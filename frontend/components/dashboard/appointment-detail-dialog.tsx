@@ -191,7 +191,7 @@ function AppointmentDetailContent({ appointment, onClose, onUpdated, onDeleted, 
               </section>}
             </div>
 
-            {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
+            {error && <p role="alert" className="rounded-xl border border-danger-border bg-danger-surface px-4 py-3 text-sm text-danger">{error}</p>}
             {!readOnly && (secondaryTransitions.length > 0 || canRemove) && <details open={removing} className="rounded-xl border bg-white px-4 py-2">
               <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold">Otras acciones</summary>
               {secondaryTransitions.length > 0 && <div className="flex flex-wrap gap-2 border-t py-3">{secondaryTransitions.map(transition => <Button key={transition.next} type="button" variant="outline" className="min-h-11 whitespace-normal" disabled={busy || transportEdit.saving} onClick={() => discard(() => void updateStatus(transition.next))}>{transition.label}</Button>)}</div>}
@@ -203,8 +203,8 @@ function AppointmentDetailContent({ appointment, onClose, onUpdated, onDeleted, 
               </div>}
             </section>}
             </details>}
-            {graceExpired && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Pasaron 30 minutos sin llegada registrada. Esta cita se marcará automáticamente como “No asistió”.</p>}
-            {previousDayArrival && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Esta cita figura como “Llegó” en un día anterior. Verifica si hubo atención antes de cerrarla.</p>}
+            {graceExpired && <p role="status" className="rounded-xl border border-warning-border bg-warning-surface px-4 py-3 text-sm text-amber-900">Pasaron 30 minutos sin llegada registrada. Esta cita se marcará automáticamente como “No asistió”.</p>}
+            {previousDayArrival && <p role="status" className="rounded-xl border border-warning-border bg-warning-surface px-4 py-3 text-sm text-amber-900">Esta cita figura como “Llegó” en un día anterior. Verifica si hubo atención antes de cerrarla.</p>}
 
             {!readOnly && access?.capabilities.contacts && appointment.petId && <Link prefetch={false} href={homeHref(`/dashboard/contacto?view=mascotas&pet=${encodeURIComponent(appointment.petId)}`, tenant)} onClick={event => { event.preventDefault(); discard(() => { onClose(); router.push(homeHref(`/dashboard/contacto?view=mascotas&pet=${encodeURIComponent(appointment.petId!)}`, tenant)); }); }} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4 hover:text-foreground">Ver ficha de {appointment.petName}</Link>}
           </div>

@@ -18,7 +18,7 @@ export function ReadFailureNotice({ title, reason, retryHref, children }: {
 }) {
   const fallback = reason === "unavailable" || reason === "rejected" ? null : FALLBACK_ACTION[reason];
   return (
-    <div role="alert" className="max-w-2xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
+    <div role="alert" className="max-w-2xl rounded-2xl border border-warning-border bg-warning-surface p-6 text-sm text-amber-950">
       <h2 className="font-semibold">{title}</h2>
       <p className="mt-1">{READ_FAILURE_MESSAGE[reason]}</p>
       <div className="mt-4 flex flex-wrap gap-3">

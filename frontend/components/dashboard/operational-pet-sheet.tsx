@@ -14,7 +14,7 @@ function SaveFeedback({ message }: { message: SaveMessage | null }) {
   if (!message) return null;
   return message.ok
     ? <p role="status" className="text-sm font-medium text-success">{message.text}</p>
-    : <p role="alert" className="text-sm font-medium text-red-800">{message.text}</p>;
+    : <p role="alert" className="text-sm font-medium text-danger">{message.text}</p>;
 }
 
 export function OperationalAlerts({ pet, onSaved }: { pet: DashboardPet; onSaved?: (text: string) => void }) {
@@ -32,7 +32,7 @@ export function OperationalAlerts({ pet, onSaved }: { pet: DashboardPet; onSaved
     } catch (cause) { setMessage({ ok: false, text: cause instanceof Error ? cause.message : "No se pudo guardar. Revisa la conexión e intenta de nuevo." }); }
     finally { setBusy(false); }
   }
-  return <section className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/50 p-4"><h3 className="font-semibold">Alertas para el manejo</h3><p className="text-sm text-muted-foreground">Indicaciones que debe conocer el equipo al recibir o cuidar a la mascota. El diagnóstico y el tratamiento se registran en la historia clínica.</p><label className="block text-sm"><span className="sr-only">Alertas operativas de {pet.name}</span><textarea aria-label={`Alertas operativas de ${pet.name}`} className="mt-2 w-full rounded-lg border bg-white p-3" rows={3} maxLength={2000} placeholder="Ej. Se asusta con el secador; evitar sujetar por la pata derecha." value={text} onChange={event => setText(event.target.value)} /></label><Button type="button" size="sm" disabled={busy} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar alertas"}</Button><SaveFeedback message={message} /></section>;
+  return <section className="space-y-3 rounded-xl border border-warning-border bg-warning-surface/50 p-4"><h3 className="font-semibold">Alertas para el manejo</h3><p className="text-sm text-muted-foreground">Indicaciones que debe conocer el equipo al recibir o cuidar a la mascota. El diagnóstico y el tratamiento se registran en la historia clínica.</p><label className="block text-sm"><span className="sr-only">Alertas operativas de {pet.name}</span><textarea aria-label={`Alertas operativas de ${pet.name}`} className="mt-2 w-full rounded-lg border bg-white p-3" rows={3} maxLength={2000} placeholder="Ej. Se asusta con el secador; evitar sujetar por la pata derecha." value={text} onChange={event => setText(event.target.value)} /></label><Button type="button" size="sm" disabled={busy} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar alertas"}</Button><SaveFeedback message={message} /></section>;
 }
 export function OperationalPetSheet({ pet, open, onOpenChange, onUpdated, readOnly = true }: { readOnly?: boolean; pet: DashboardPet | null; open: boolean; onOpenChange: (open: boolean) => void; onUpdated?: () => void }) {
   return <ProtectedDialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>Ficha de {pet?.name}</DialogTitle><DialogDescription>Datos de identificación y manejo de la mascota.</DialogDescription></DialogHeader>

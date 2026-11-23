@@ -63,7 +63,7 @@ export function PetGroomingPrices({ petId, editable = false, onEditStateChange }
       <div className="space-y-2"><label htmlFor={`${fieldId}-transport`} className="block text-sm font-semibold">Valor del domicilio (COP)</label><Input id={`${fieldId}-transport`} type="number" min="0" max="99999999.99" step="0.01" value={transport} onChange={event => setTransport(event.target.value)} className="h-11" placeholder="Por confirmar" /></div>
     </fieldset>
     <p className="text-xs text-muted-foreground">Domicilio adicional al servicio, según la modalidad habitual. Vacío: por confirmar. 0: gratuito.</p>
-    {previousTotal != null && <p className="text-sm text-amber-800">Total anterior con domicilio: {formatCOP(previousTotal)}. Confirma ambos valores antes de reemplazarlo.</p>}
+    {previousTotal != null && <p className="text-sm text-warning">Total anterior con domicilio: {formatCOP(previousTotal)}. Confirma ambos valores antes de reemplazarlo.</p>}
     <div className="flex justify-end"><Button type="submit" variant="outline" className="min-h-11 w-full gap-2 whitespace-normal border-primary/20 bg-background text-primary sm:w-auto" disabled={!ready || saving || !dirty}><Save aria-hidden="true" className="h-4 w-4" />{saving ? "Guardando…" : "Guardar peluquería y domicilio"}</Button></div>
     {message && <p role="status" className="text-sm">{message}</p>}
   </form>;

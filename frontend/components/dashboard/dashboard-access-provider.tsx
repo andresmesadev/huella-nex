@@ -71,7 +71,7 @@ export function DashboardAccessProvider({ children }: { children: React.ReactNod
   const current = access?.tenant === tenant ? access.value : null;
   if (!current) return failed ? <SessionRecovery onRetry={() => void refresh()} /> : <div className="m-8 rounded-2xl border bg-white p-6" role="status">Preparando tu espacio de trabajo…</div>;
   return <AccessContext.Provider value={current}>
-    {failed && <div role="status" className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"><span>La conexión se está restableciendo. Conservamos tu trabajo y reintentaremos automáticamente.</span><button type="button" className="min-h-11 rounded-lg border border-amber-300 px-3 font-medium" onClick={() => void refresh()}>Reintentar conexión</button></div>}
+    {failed && <div role="status" className="flex flex-wrap items-center justify-between gap-3 border-b border-warning-border bg-warning-surface px-4 py-3 text-sm text-amber-950"><span>La conexión se está restableciendo. Conservamos tu trabajo y reintentaremos automáticamente.</span><button type="button" className="min-h-11 rounded-lg border border-amber-300 px-3 font-medium" onClick={() => void refresh()}>Reintentar conexión</button></div>}
     {children}
   </AccessContext.Provider>;
 }

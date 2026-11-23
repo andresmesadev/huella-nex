@@ -116,7 +116,7 @@ export function ProductPicker({ use, onSelect, resetAfterSelect = false, inputId
     <p className="text-xs text-muted-foreground">Nombre, código o barras. Usa ↑ ↓ y Enter para agregar. Se muestran unidades disponibles al consultar.</p>
     {resultsVisible && <>
     {busy && <p role="status" className="flex items-center gap-2 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Buscando productos…</p>}
-    {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
+    {error && <p role="alert" className="text-sm text-danger">{error}</p>}
     <div id={listId} role="listbox" aria-label="Productos del inventario" className="max-h-64 space-y-1 overflow-y-auto">
       {rows.map((product, index) => <button type="button" id={`${listId}-${product.id}`} role="option" aria-selected={active === index} disabled={!permitted(product)} key={product.id} onFocus={() => setActive(index)} onClick={() => choose(product)} className={`flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-3 text-left disabled:opacity-60 ${index === active ? "border-primary bg-accent" : "border-transparent hover:bg-muted"}`}>
         <Package className="h-5 w-5 shrink-0 text-primary" />

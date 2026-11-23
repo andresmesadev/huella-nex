@@ -37,9 +37,9 @@ export function AttentionList({ items }: { items: AttentionItem[] }) {
 
   if (!items.length) return null;
   return <div className="flex min-h-0 flex-1 flex-col">
-    {unavailable > 0 && <p role="status" className="shrink-0 border-b bg-amber-50 px-5 py-3 text-xs font-medium text-amber-900">{unavailable} {unavailable === 1 ? "revisión no disponible" : "revisiones no disponibles"}. Revisa las páginas o actualiza Inicio.</p>}
+    {unavailable > 0 && <p role="status" className="shrink-0 border-b bg-warning-surface px-5 py-3 text-xs font-medium text-amber-900">{unavailable} {unavailable === 1 ? "revisión no disponible" : "revisiones no disponibles"}. Revisa las páginas o actualiza Inicio.</p>}
     <div ref={list} id={listId} tabIndex={0} aria-label="Lista de prioridades" className="min-h-0 flex-1 divide-y overflow-y-auto overscroll-contain focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-teal-700">
-      {items.map((item, index) => <article key={item.id} hidden={index < first || index >= first + pageSize} data-home-task={item.id} data-unavailable={item.unavailable} className={`break-words p-5 ${item.unavailable ? "bg-amber-50/60" : ""}`}>
+      {items.map((item, index) => <article key={item.id} hidden={index < first || index >= first + pageSize} data-home-task={item.id} data-unavailable={item.unavailable} className={`break-words p-5 ${item.unavailable ? "bg-warning-surface/60" : ""}`}>
         {item.content}
       </article>)}
     </div>

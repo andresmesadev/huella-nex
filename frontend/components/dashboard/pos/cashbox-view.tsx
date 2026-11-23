@@ -100,7 +100,7 @@ export async function CashboxView({ date, tenant }: { date?: string; tenant?: st
     const params = new URLSearchParams({ tab: "caja", date: effectiveDate });
     if (tenant) params.set("tenant", tenant);
     return (
-      <div role="alert" className="max-w-2xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
+      <div role="alert" className="max-w-2xl rounded-2xl border border-warning-border bg-warning-surface p-6 text-sm text-amber-950">
         <h3 className="font-semibold">No se pudo cargar la caja</h3>
         <p className="mt-1">No podemos mostrar los movimientos del día. Comprueba la conexión e inténtalo de nuevo.</p>
         <Link href={`/dashboard/pos?${params.toString()}`} className="mt-4 inline-flex min-h-10 items-center rounded-lg border border-amber-300 bg-white px-4 font-semibold hover:bg-amber-100">Reintentar</Link>

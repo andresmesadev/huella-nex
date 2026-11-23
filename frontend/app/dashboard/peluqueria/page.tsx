@@ -32,7 +32,7 @@ export default async function PeluqueriaPage({ searchParams }: { searchParams: P
   } catch { error = "El servidor de datos no está disponible. Intenta de nuevo para ver las citas de peluquería."; }
 
   return <div className="mx-auto max-w-[1500px] pb-10">
-    <PageHeader title="Peluquería" description="Baños, cortes y cuidados de cada mascota." icon={Scissors} tint="bg-amber-100 text-amber-800" />
+    <PageHeader title="Peluquería" description="Baños, cortes y cuidados de cada mascota." icon={Scissors} tint="bg-amber-100 text-warning" />
     {groomingEnabled === false ? <div className="rounded-2xl border bg-white p-7"><h2 className="font-semibold">El módulo de peluquería no está activo</h2><p className="mt-2 text-sm text-muted-foreground">Esta sección se habilita en establecimientos que prestan servicios de baño o corte.</p></div> : <GroomingView initialVisits={visits} initialHasMore={hasMore} initialError={error} tenantId={tenant} />}
   </div>;
 }

@@ -64,7 +64,7 @@ export function VetPatientContext({ petId, appointmentId, preview = false }: { p
             <div><p className="text-xs text-slate-500">Último peso registrado</p><p className="[overflow-wrap:anywhere] font-semibold text-slate-900">{lastWeight?.weight != null ? `${lastWeight.weight} kg · ${formatRecordDate(lastWeight.date ?? lastWeight.createdAt)}` : data.pet.weight != null ? `${data.pet.weight} kg` : "Sin registro"}</p></div>
             <div><p className="text-xs text-slate-500">Consultas anteriores</p><p className="[overflow-wrap:anywhere] font-semibold text-slate-900">{consultations.length}</p></div>
           </div>
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950">
+          <div className="rounded-xl border border-warning-border bg-warning-surface px-3 py-3 text-sm text-amber-950">
             <div className="flex items-start gap-2"><AlertCircle aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><div><p className="font-semibold">Alergias registradas</p><p className="mt-0.5 [overflow-wrap:anywhere]">{allergies.length ? allergies.map((record) => record.title).join(", ") : "No hay alergias registradas en la historia."}</p></div></div>
           </div>
           <VetClinicalHistory key={`${petId}:${appointmentId}`} records={prior} petId={petId} />

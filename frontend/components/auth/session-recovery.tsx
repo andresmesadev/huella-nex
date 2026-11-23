@@ -27,7 +27,7 @@ export function SessionRecovery({ reason = 'unavailable', onRetry }: { reason?: 
         <button type="button" disabled={busy} onClick={() => void leave()} className="min-h-12 w-full rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-60">{busy ? 'Cerrando sesión…' : 'Cerrar sesión y volver a entrar'}</button>
         <button type="button" disabled={busy} onClick={() => onRetry ? onRetry() : router.replace('/dashboard')} className="min-h-12 w-full rounded-xl border px-4 py-3 text-sm font-semibold hover:bg-muted disabled:opacity-60">Reintentar acceso</button>
       </div>
-      {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <form action="/api/auth/signout" method="get"><input type="hidden" name="callbackUrl" value="/login" /><button type="submit" className="inline-flex min-h-11 items-center text-sm font-medium text-teal-700 underline underline-offset-4">Abrir cierre de sesión alternativo</button></form>
     </section>
   </main>;

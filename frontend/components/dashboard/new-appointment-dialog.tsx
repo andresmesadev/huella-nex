@@ -343,7 +343,7 @@ function NewAppointmentContent({
                 {professionals.filter(s => s.active && [services.find(service => service.id === serviceId)?.category === "grooming" ? "groomer" : "vet", "admin"].includes(s.role)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               <p className="text-xs text-muted-foreground">Los horarios se ajustan al profesional elegido.</p>
-              {staffError && <p className="text-xs text-amber-800">{staffError}</p>}
+              {staffError && <p className="text-xs text-warning">{staffError}</p>}
             </div>}
             </div>
             </FormSection>
@@ -387,7 +387,7 @@ function NewAppointmentContent({
                 <FieldError id="appointment-transport-neighborhood" message={feedback.errors["appointment-transport-neighborhood"]} />
               </div>
             </FormSection>}
-            {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+            {error && <p role="alert" className="rounded-lg border border-danger-border bg-danger-surface px-3 py-2 text-sm text-danger">{error}</p>}
           </fieldset>
           </FormDialogBody>
           <FormDialogFooter className="bg-muted/30 py-3 sm:py-4">

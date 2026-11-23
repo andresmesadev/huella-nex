@@ -24,14 +24,14 @@ import { formatStatus, statusBadgeClass } from "@/lib/appointments";
 // ── Icons / labels per kind ──────────────────────────────────
 
 const KIND_META: Record<string, { icon: string; label: string; color: string }> = {
-  consultation: { icon: "🩺", label: "Consulta veterinaria", color: "text-blue-600 dark:text-blue-700" },
-  grooming: { icon: "✂️", label: "Peluquería", color: "text-violet-600 dark:text-violet-700" },
+  consultation: { icon: "🩺", label: "Consulta veterinaria", color: "text-blue-600" },
+  grooming: { icon: "✂️", label: "Peluquería", color: "text-violet-600" },
   other_appt: { icon: "📅", label: "Cita", color: "text-muted-foreground" },
   vaccine: { icon: "💉", label: "Vacuna", color: "text-success" },
   deworming: { icon: "💊", label: "Desparasitación", color: "text-success" },
   exam: { icon: "🔬", label: "Examen", color: "text-cyan-700" },
   image: { icon: "🩻", label: "Imagen", color: "text-cyan-700" },
-  treatment: { icon: "🩹", label: "Tratamiento", color: "text-blue-600 dark:text-blue-700" },
+  treatment: { icon: "🩹", label: "Tratamiento", color: "text-blue-600" },
   allergy: { icon: "🤧", label: "Alergia", color: "text-orange-700" },
   note: { icon: "📝", label: "Nota", color: "text-muted-foreground" },
   cancelled: { icon: "✗", label: "Cancelada", color: "text-red-700" },
@@ -92,7 +92,7 @@ function ClinicalDetail({ item }: { item: TimelineItem }) {
   if (!hasClinical && !hasWeight && !hasNextControl && !hasDetail) return null;
 
   return (
-    <div className="mt-2 space-y-1.5 border-l-2 border-blue-200 pl-3 text-sm dark:border-blue-900">
+    <div className="mt-2 space-y-1.5 border-l-2 border-info-border pl-3 text-sm">
       {fields.map(
         (f) =>
           f.value && (
@@ -425,8 +425,8 @@ function NextActionsSection({ actions: initial, onReload }: { actions: NextActio
   }
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 dark:border-amber-900 dark:bg-amber-950/20">
-      <p className="mb-2 text-xs font-semibold uppercase text-amber-700 dark:text-amber-700">
+    <div className="rounded-lg border border-warning-border bg-warning-surface/60 px-4 py-3">
+      <p className="mb-2 text-xs font-semibold uppercase text-amber-700">
         📌 Próximas acciones
       </p>
       {actionError && <p role="alert" className="mb-2 text-sm text-destructive">{actionError}</p>}
@@ -447,7 +447,7 @@ function NextActionsSection({ actions: initial, onReload }: { actions: NextActio
                 <button
                   disabled={busy === a.actionId}
                   onClick={() => updateAction(a.actionId!, "done")}
-                  className="rounded px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-950 dark:text-green-300 disabled:opacity-50"
+                  className="rounded px-2 py-0.5 text-xs font-medium bg-green-100 text-success hover:bg-green-200 disabled:opacity-50"
                 >
                   ✓ Hecho
                 </button>

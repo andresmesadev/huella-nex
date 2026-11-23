@@ -23,8 +23,8 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 const VARIANT_STYLES: Record<ToastVariant, string> = {
   default: "border-border bg-background text-foreground",
-  error: "border-red-300 bg-red-50 text-red-900",
-  success: "border-green-300 bg-green-50 text-green-900",
+  error: "border-red-300 bg-danger-surface text-red-900",
+  success: "border-green-300 bg-success-surface text-green-900",
 };
 
 const VARIANT_ICON: Record<ToastVariant, typeof Info> = {

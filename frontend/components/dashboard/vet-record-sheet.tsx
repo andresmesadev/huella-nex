@@ -435,15 +435,15 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
               {hasRecord ? "Registro guardado de esta consulta" : "Nuevo registro para esta consulta"}
             </div>
             {actionsLoading && <p role="status" className="text-sm text-slate-600">Cargando seguimientos…</p>}
-            {actionsLoadError && <div role="alert" className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"><p>{actionsLoadError}</p><Button type="button" variant="outline" disabled={actionsLoading} onClick={() => void loadActions()}>Reintentar seguimientos</Button></div>}
-            {hasRecord && appointment.status === "completed" && !viewMode && !readOnly && <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            {actionsLoadError && <div role="alert" className="space-y-3 rounded-xl border border-warning-border bg-warning-surface p-4 text-sm text-amber-950"><p>{actionsLoadError}</p><Button type="button" variant="outline" disabled={actionsLoading} onClick={() => void loadActions()}>Reintentar seguimientos</Button></div>}
+            {hasRecord && appointment.status === "completed" && !viewMode && !readOnly && <div className="space-y-2 rounded-xl border border-warning-border bg-warning-surface p-4">
               <p className="text-sm font-semibold text-amber-950">Corrección de una consulta finalizada · Versión {recordMeta?.version ?? 1}</p>
               <p className="text-xs text-amber-900">La versión anterior se conservará junto con tu identidad, la fecha y el motivo del cambio. Una nueva visita debe registrarse en una cita nueva.</p>
               <label htmlFor={correctionId} className="block text-sm font-semibold text-slate-800">Motivo de la corrección</label>
-              <textarea id={correctionId} rows={2} maxLength={1000} value={correctionReason} disabled={saving} onChange={(event) => { setCorrectionReason(event.target.value); dirtyRef.current = true; setFormDirty(true); setSaved(false); }} placeholder="Explica por qué necesitas corregir este registro…" className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm" />
+              <textarea id={correctionId} rows={2} maxLength={1000} value={correctionReason} disabled={saving} onChange={(event) => { setCorrectionReason(event.target.value); dirtyRef.current = true; setFormDirty(true); setSaved(false); }} placeholder="Explica por qué necesitas corregir este registro…" className="w-full rounded-lg border border-warning-border bg-white px-3 py-2 text-sm" />
             </div>}
 
-            {readOnly && !hasRecord ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-950">Esta consulta todavía no tiene una historia registrada. Pide al administrador que te asigne la atención si necesitas registrarla.</p> : hasRecord && viewMode ? (
+            {readOnly && !hasRecord ? <p className="rounded-xl border border-warning-border bg-warning-surface px-4 py-4 text-sm text-amber-950">Esta consulta todavía no tiene una historia registrada. Pide al administrador que te asigne la atención si necesitas registrarla.</p> : hasRecord && viewMode ? (
               <VetRecordSummary record={form} meta={recordMeta} professional={staff.find((item) => item.id === form.staffId)?.name ?? appointment.staffName ?? "Profesional sin asignar"} actions={existingActions.filter((item) => item.sourceAppointmentId === appointment.id || Boolean(recordMeta?.id && item.sourceRecordId === recordMeta.id))} onManageFollowup={readOnly ? undefined : () => { setFollowupOpen(true); requestAnimationFrame(() => jumpToSection("seguimiento")); }} />
             ) : (<fieldset disabled={readOnly || saving} className="contents">
 
@@ -524,7 +524,7 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
               <legend className="sr-only">Gestionar seguimientos</legend>
               <p className="text-sm font-semibold text-slate-800">Seguimientos de esta consulta</p>
               <p className="text-xs text-slate-500">{hasRecord ? "Cada acción se guarda por separado al pulsar “Agregar acción”." : "Guarda primero la historia clínica para registrar sus acciones de seguimiento."}</p>
-              {actionError && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800">{actionError}</p>}
+              {actionError && <p role="alert" className="rounded-lg bg-danger-surface px-3 py-2 text-xs text-danger">{actionError}</p>}
 
               {/* existing pending actions */}
               {existingActions.some((item) => item.sourceAppointmentId === appointment.id || Boolean(recordMeta?.id && item.sourceRecordId === recordMeta.id)) && (
@@ -656,10 +656,10 @@ export function VetRecordSheet({ appointment, open, onOpenChange, onSaved, previ
         </div>
 
         <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4 sm:px-8">
-          {error && <p role="alert" className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
-          {recordLoadFailed && <p role="alert" className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">No se pudo comprobar el registro de esta consulta. Cierra y vuelve a abrir antes de guardar.</p>}
+          {error && <p role="alert" className="mb-3 rounded-lg bg-danger-surface px-3 py-2 text-sm text-danger">{error}</p>}
+          {recordLoadFailed && <p role="alert" className="mb-3 rounded-lg bg-warning-surface px-3 py-2 text-sm text-amber-900">No se pudo comprobar el registro de esta consulta. Cierra y vuelve a abrir antes de guardar.</p>}
           {saved && <p role="status" className="mb-3 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900">La atención quedó guardada en la historia de esta consulta.</p>}
-          {!preview && (formDirty || actionDirty) && <p role="status" className="mb-2 text-xs font-medium text-amber-800">{formDirty ? "Hay cambios en la historia sin guardar." : "Hay una acción de seguimiento sin agregar."} {actionDirty && formDirty ? "También tienes una acción sin agregar." : ""}</p>}
+          {!preview && (formDirty || actionDirty) && <p role="status" className="mb-2 text-xs font-medium text-warning">{formDirty ? "Hay cambios en la historia sin guardar." : "Hay una acción de seguimiento sin agregar."} {actionDirty && formDirty ? "También tienes una acción sin agregar." : ""}</p>}
           <div className="mx-auto flex max-w-3xl flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-slate-500">{appointment.status === "in_progress" && !readOnly ? "Guardar consulta conserva la historia. Al terminar, vuelve al listado y pulsa Finalizar cita." : "El registro se vincula a esta cita y podrás consultarlo en la historia de la mascota."}</p>
             <div className="grid w-full grid-cols-2 gap-2 [&_button]:min-h-11 [&_button]:whitespace-normal sm:flex sm:w-auto sm:shrink-0">

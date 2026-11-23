@@ -147,7 +147,7 @@ export function CommissionsWorkspace() {
         </form>
       </section>
 
-      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
+      {error && <p role="alert" className="rounded-xl border border-danger-border bg-danger-surface px-4 py-3 text-sm text-danger">{error}</p>}
       {notice && <p role="status" className="rounded-xl border border-success-border bg-success-surface px-4 py-3 text-sm text-success">{notice}</p>}
 
       {rows && <>
@@ -253,7 +253,7 @@ function CorrectCommissionDialog({ commission, staff, staffName, onClose, onSubm
           </label>}
           <label className="block text-sm font-medium">Motivo<Textarea className="mt-1" required minLength={3} maxLength={300} value={reason} disabled={saving} onChange={event => setReason(event.target.value)} placeholder="Ej. la atención la realizó otra persona del equipo" /></label>
           <p className="text-xs text-muted-foreground">La comisión original se conserva como anulada, con su motivo; la corrección queda registrada.</p>
-          {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
+          {error && <p role="alert" className="text-sm text-danger">{error}</p>}
           <DialogFooter className="-mx-6 -mb-5 mt-2">
             <Button type="button" variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={saving || !valid}>{saving ? "Guardando…" : mode === "reassign" ? "Reasignar comisión" : "Anular comisión"}</Button>

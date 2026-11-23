@@ -51,15 +51,15 @@ export default async function BillingPage({ searchParams }: PageProps) {
         tint="bg-teal-500/15 text-teal-700"
       />
 
-      {!status.active && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">El negocio está suspendido. Puedes gestionar su suscripción; la operación se habilitará cuando se confirme un estado activo.</p>}
+      {!status.active && <p role="status" className="rounded-lg border border-warning-border bg-warning-surface p-4 text-sm">El negocio está suspendido. Puedes gestionar su suscripción; la operación se habilitará cuando se confirme un estado activo.</p>}
       {status.active && <Link href={session?.user?.isSuperAdmin ? `/dashboard?tenant=${encodeURIComponent(tenantId)}` : "/dashboard"} className="text-sm underline">Volver al panel</Link>}
       {success === "1" && status.active && ["active", "trialing"].includes(status.subscriptionStatus ?? "") && (
-        <div className="rounded-lg border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30 px-4 py-3 text-sm text-green-800 dark:text-green-300">
+        <div className="rounded-lg border border-success-border bg-success-surface px-4 py-3 text-sm text-success">
           El proveedor confirmó una suscripción habilitada.
         </div>
       )}
       {canceled === "1" && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+        <div className="rounded-lg border border-warning-border bg-warning-surface px-4 py-3 text-sm text-warning">
           El proceso de pago fue cancelado. Puedes intentarlo de nuevo cuando quieras.
         </div>
       )}

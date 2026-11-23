@@ -34,7 +34,7 @@ function FollowupRow({ entry, onUpdated }: { entry: FollowupEntry; onUpdated: ()
   return <li className="space-y-4 p-5 sm:p-6">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="flex min-w-0 flex-1 gap-3"><span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-xl">{getPetEmoji(entry.petType)}</span><div className="min-w-0 space-y-1">
-        <div className="flex flex-wrap items-center gap-2"><h3 className="[overflow-wrap:anywhere] font-semibold">{entry.petName}</h3><Badge variant="outline">{label}</Badge>{followupTiming(entry.dayOffset) && <Badge className={entry.dayOffset! <= 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-teal-200 bg-teal-50 text-teal-900"}>{followupTiming(entry.dayOffset)}</Badge>}</div>
+        <div className="flex flex-wrap items-center gap-2"><h3 className="[overflow-wrap:anywhere] font-semibold">{entry.petName}</h3><Badge variant="outline">{label}</Badge>{followupTiming(entry.dayOffset) && <Badge className={entry.dayOffset! <= 0 ? "border-warning-border bg-warning-surface text-amber-900" : "border-teal-200 bg-teal-50 text-teal-900"}>{followupTiming(entry.dayOffset)}</Badge>}</div>
         <p className="[overflow-wrap:anywhere] text-sm text-muted-foreground">{entry.ownerName ?? "Propietario sin nombre"} · {followupDate(entry.dueAt)}</p>
         {entry.notes && <p className="break-words whitespace-pre-wrap text-sm">{entry.notes}</p>}
         {entry.reminderSentAt && <p className="text-xs text-muted-foreground">Último recordatorio: {followupDate(entry.reminderSentAt)}</p>}

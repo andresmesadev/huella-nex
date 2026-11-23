@@ -186,19 +186,19 @@ export function formatClient(userId: string): string {
 export function statusBadgeClass(status: AppointmentStatus): string {
   switch (status?.toLowerCase()) {
     case "pending":
-      return "border-yellow-200 bg-yellow-100 text-yellow-800 dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-300";
+      return "border-yellow-200 bg-yellow-100 text-yellow-800";
     case "confirmed":
-      return "border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300";
+      return "border-info-border bg-blue-100 text-info";
     case "arrived":
-      return "border-violet-200 bg-violet-100 text-violet-800 dark:border-violet-900 dark:bg-violet-950 dark:text-violet-300";
+      return "border-violet-200 bg-violet-100 text-violet-800";
     case "in_progress":
-      return "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-300";
+      return "border-orange-200 bg-orange-100 text-orange-800";
     case "completed":
-      return "border-green-200 bg-green-100 text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-300";
+      return "border-success-border bg-green-100 text-success";
     case "no_show":
-      return "border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400";
+      return "border-slate-200 bg-slate-100 text-slate-600";
     case "cancelled":
-      return "border-red-200 bg-red-100 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300";
+      return "border-danger-border bg-red-100 text-danger";
     default:
       return "border-border bg-muted text-muted-foreground";
   }

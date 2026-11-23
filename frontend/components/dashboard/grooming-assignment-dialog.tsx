@@ -46,7 +46,7 @@ export function GroomingAssignmentDialog<T extends TodayAppointment = GroomingVi
     <select id="assign-groomer" value={staffId} disabled={saving || !available} onChange={(event) => setStaffId(event.target.value)} className="min-h-11 w-full rounded-lg border bg-white px-3 text-sm"><option value="">{available ? "Selecciona un profesional disponible" : "Consultando disponibilidad…"}</option>{choices.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
     {available && !choices.length && <p role="status" className="text-sm text-amber-900">No hay profesionales disponibles en este horario. Revisa sus horarios y ausencias en Administración → Equipo.</p>}
     {!staff.length && <p className="text-xs text-muted-foreground">Puedes agregar integrantes desde Administración → Equipo.</p>}
-    {error && <p role="alert" className="text-sm text-red-800">{error}</p>}</div>
+    {error && <p role="alert" className="text-sm text-danger">{error}</p>}</div>
     <DialogFooter><Button variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button><Button disabled={saving || !staffId || staffId === visit.staffId || !choices.some((item) => item.id === staffId)} onClick={() => void save()}>{saving ? "Guardando…" : "Guardar responsable"}</Button></DialogFooter>
   </DialogContent></Dialog>;
 }

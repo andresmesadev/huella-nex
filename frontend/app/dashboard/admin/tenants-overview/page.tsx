@@ -69,7 +69,7 @@ export default async function TenantsOverviewPage() {
       />
 
       {failureMessage && (
-        <div role="alert" className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+        <div role="alert" className="space-y-3 rounded-lg border border-warning-border bg-warning-surface px-4 py-3 text-sm text-amber-950">
           <p>{failureMessage}</p>
           {status === 401
             ? <Link href="/login" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-2">Iniciar sesión</Link>

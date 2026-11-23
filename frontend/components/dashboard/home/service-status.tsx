@@ -34,7 +34,7 @@ export function ServiceStatusPanel({ tenantId }: { tenantId: string }) {
     </div>
     <div aria-live="polite">
       {loading ? <p role="status" className="mt-3 text-sm text-muted-foreground">Consultando el estado de este negocio…</p> : error ?
-        <p role="alert" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-950">No se pudo comprobar el servicio. Actualiza el estado; si persiste, avisa a soporte. Si un cobro quedó sin respuesta, revisa su historial antes de repetirlo.</p> : result && <>
+        <p role="alert" className="mt-3 rounded-xl bg-warning-surface p-3 text-sm text-amber-950">No se pudo comprobar el servicio. Actualiza el estado; si persiste, avisa a soporte. Si un cobro quedó sin respuesta, revisa su historial antes de repetirlo.</p> : result && <>
           <p className="mt-2 text-xs text-muted-foreground">Consulta del {new Date(result.checkedAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })} · Hora de Colombia. No es un monitor en tiempo real.</p>
           <dl className="mt-4 grid gap-2 lg:grid-cols-3">
             <div className="grid grid-cols-2 items-center gap-2 rounded-xl bg-muted/40 p-3 lg:block"><dt className="text-sm text-muted-foreground">Dashboard manual</dt><dd className="text-sm font-semibold lg:mt-1">Responde a esta consulta</dd></div>

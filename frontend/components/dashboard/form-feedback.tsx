@@ -46,7 +46,7 @@ export function FieldError({ id, message }: { id: string; message?: string }) {
 export function FormSubmissionError({ message }: { message: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (message) ref.current?.focus(); }, [message]);
-  return message ? <div ref={ref} role="alert" tabIndex={-1} className="flex gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm text-red-800 outline-none focus-visible:ring-2 focus-visible:ring-destructive/30">
+  return message ? <div ref={ref} role="alert" tabIndex={-1} className="flex gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm text-danger outline-none focus-visible:ring-2 focus-visible:ring-destructive/30">
     <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
     <div><p className="font-semibold">No se pudo guardar</p><p className="mt-1 break-words">{message}</p><p className="mt-2">Revisa los datos y vuelve a intentar. El formulario conserva lo que escribiste.</p></div>
   </div> : null;

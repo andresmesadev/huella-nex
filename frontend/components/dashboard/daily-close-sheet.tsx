@@ -115,7 +115,7 @@ export function DailyCloseSheet() {
           )}
 
           {error && !loading && (
-            <div role="alert" className="space-y-3 py-6 text-center text-sm text-red-800">
+            <div role="alert" className="space-y-3 py-6 text-center text-sm text-danger">
               <p>{error}</p>
               <Button type="button" variant="outline" className="min-h-11" onClick={() => void load()}>Reintentar</Button>
             </div>
