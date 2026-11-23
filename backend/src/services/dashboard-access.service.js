@@ -39,7 +39,10 @@ function effectiveAccess(actor, modules) {
   if (cash) navigation.push("/dashboard/pos");
   if (capabilities.inventory_read) navigation.push("/dashboard/inventory");
   if (capabilities.finance || capabilities.inventory_read) navigation.push("/dashboard/assistants");
-  if (admin) navigation.push("/dashboard/settings", "/dashboard/staff", "/dashboard/services", "/dashboard/billing", "/dashboard/recuperacion", "/dashboard/churn", "/dashboard/opportunities", "/dashboard/reactivation", "/dashboard/revenue", "/dashboard/reports");
+  if (admin) navigation.push("/dashboard/settings", "/dashboard/staff", "/dashboard/services", "/dashboard/billing", "/dashboard/revenue", "/dashboard/reports");
+  // Seguimiento de clientes trabaja sobre citas y atenciones: un negocio solo
+  // Pet shop no tiene nada que seguir allí.
+  if (admin && services) navigation.push("/dashboard/recuperacion", "/dashboard/churn", "/dashboard/opportunities", "/dashboard/reactivation");
   // /dashboard/admin/tenants-overview no forma parte del manifiesto de un
   // establecimiento: es exclusiva de superadmin y el proxy la autoriza aparte.
   return { role, professionalRole, staffId: actor?.staffId ?? null, activeModules, accessPermissions: extras, capabilities, navigation: known ? navigation : [] };
