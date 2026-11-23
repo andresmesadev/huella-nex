@@ -148,7 +148,7 @@ export function ClientsTable() {
 
   const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
-    if (!await confirm({ description: `Eliminar al cliente "${name}"? Esta accion no se puede deshacer.`, title: "Confirmar eliminación", confirmLabel: "Eliminar", destructive: true })) return;
+    if (!await confirm({ description: `¿Eliminar al cliente "${name}"? Esta acción no se puede deshacer.`, title: "Confirmar eliminación", confirmLabel: "Eliminar", destructive: true })) return;
     setDeleting(id);
     try {
       const base = proxyUrl(`/api/dashboard/clients/${id}`);
@@ -300,6 +300,7 @@ export function ClientsTable() {
                           </button>
                           {access?.capabilities.administration && <button
                             title="Eliminar cliente"
+                            aria-label={`Eliminar a ${client.name ?? client.phone}`}
                             disabled={deleting === client.id}
                             onClick={(e) => handleDelete(e, client.id, client.name ?? client.phone)}
                             className="inline-flex h-11 w-11 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50"

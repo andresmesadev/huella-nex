@@ -196,7 +196,7 @@ export function TodaySchedule({ appointments: initial, initialReview = false, co
             <button
               onClick={() => refresh(false)}
               disabled={polling}
-              aria-label="Actualizar ahora"
+              aria-label={polling ? "Actualizando la agenda" : `Actualizar ahora (última actualización ${formatTimeSince(lastUpdated)})`}
               className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"
             >
               <RefreshCw aria-hidden="true" className={`size-4 ${polling ? "animate-spin motion-reduce:animate-none" : ""}`} />

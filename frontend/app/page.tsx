@@ -17,12 +17,12 @@ const modules = [
   { icon: CalendarDays, title: "Agenda y atención", description: "Organiza las citas por servicio y profesional. Sigue cada atención desde la llegada hasta su finalización." },
   { icon: PawPrint, title: "Clientes y mascotas", description: "Encuentra contactos, datos de cada mascota, visitas y preferencias de atención en su ficha." },
   { icon: ShoppingBag, title: "Punto de venta", description: "Cobra servicios y productos en una sola venta. Registra efectivo, transferencia o un pago combinado." },
-  { icon: Package, title: "Inventario", description: "Controla existencias, entradas, ventas y consumos para saber qué tienes y qué necesitas reponer." },
+  { icon: Package, title: "Inventario", description: "Controla existencias, entradas, ventas y consumos para saber qué tienes y qué necesitas reponer. Se habilita con Pet shop." },
   { icon: UsersRound, title: "Equipo y comisiones", description: "Configura el porcentaje de cada profesional y cuáles servicios se reparten o quedan para el negocio." },
   { icon: CircleDollarSign, title: "Caja y reportes", description: "Revisa ingresos, gastos y comisiones. Registra la base de efectivo y guarda el cierre de la jornada." },
 ];
 const sectors = [
-  { icon: HeartPulse, name: "Veterinarias", description: "Coordina consultas y servicios sin perder de vista lo que se vende, se utiliza y se cobra.", features: ["Agenda por servicio y profesional", "Clientes, mascotas y atenciones", "Productos y consumos de inventario"], tone: styles.vet },
+  { icon: HeartPulse, name: "Veterinarias", description: "Coordina consultas y servicios sin perder de vista lo que se vende, se utiliza y se cobra.", features: ["Agenda por servicio y profesional", "Historia clínica de cada paciente", "Insumos e inventario al activar Pet shop"], tone: styles.vet },
   { icon: Scissors, name: "Peluquerías caninas y felinas", description: "Desde la llegada hasta la entrega, mantén a tu equipo al tanto de cada mascota.", features: ["Seguimiento de las atenciones", "Tarifas de peluquería y domicilio", "Comisiones por profesional y servicio"], tone: styles.grooming },
   { icon: ShoppingBag, name: "Pet shops", description: "Conoce tus existencias, registra tus ventas y lleva las cuentas de cada jornada.", features: ["Venta de productos en mostrador", "Stock, entradas y reposición", "Pagos combinados y cierre de caja"], tone: styles.retail },
 ];

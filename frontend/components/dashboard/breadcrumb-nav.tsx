@@ -11,7 +11,7 @@ const PATH_LABELS: Record<string, string> = {
   calendar: "Agenda",
   consultas: "Consultas veterinarias",
   peluqueria: "Peluquería",
-  contacto: "Clientes",
+  contacto: "Clientes y mascotas",
   conversations: "WhatsApp",
   pos: "Punto de venta",
   inventory: "Inventario",
@@ -19,17 +19,19 @@ const PATH_LABELS: Record<string, string> = {
   recuperacion: "Seguimiento de clientes",
   revenue: "Ingresos",
   settings: "Administración",
-  integrations: "Integraciones",
+  integrations: "WhatsApp e IA",
   clients: "Clientes",
   pets: "Mascotas",
-  churn: "Análisis de churn",
+  churn: "Clientes inactivos",
   opportunities: "Próximas acciones",
   reactivation: "Campaña de reactivación",
-  billing: "Facturación",
-  staff: "Personal",
+  billing: "Plan y facturación",
+  staff: "Equipo",
   services: "Servicios",
   admin: "Administración",
-  tenants: "Tenants",
+  tenants: "Establecimientos",
+  "tenants-overview": "Operación centralizada",
+  reports: "Reportes",
 };
 
 export function BreadcrumbNav() {
@@ -52,7 +54,7 @@ export function BreadcrumbNav() {
         href={homeHref("/dashboard", tenant)}
         className="flex items-center gap-1 transition-colors hover:text-foreground"
       >
-        <Home className="h-3.5 w-3.5" />
+        <Home aria-hidden="true" className="h-3.5 w-3.5" />
         <span>Inicio</span>
       </Link>
 
@@ -63,9 +65,9 @@ export function BreadcrumbNav() {
 
         return (
           <span key={href} className="flex items-center gap-1">
-            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+            <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
             {isLast ? (
-              <span className="font-medium text-foreground">{label}</span>
+              <span aria-current="page" className="font-medium text-foreground">{label}</span>
             ) : (
               <Link prefetch={false} href={homeHref(href, tenant)} className="transition-colors hover:text-foreground">
                 {label}
