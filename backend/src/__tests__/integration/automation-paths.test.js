@@ -17,11 +17,11 @@ jest.mock("../../lib/prisma", () => ({
 const prisma = require("../../lib/prisma");
 const automationsRoutes = require("../../routes/dashboard/automations.routes");
 
-function buildApp() {
+function buildApp(tenant = { isSuperAdmin: false, tenantId: "tenant-a" }) {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
-    req.tenant = { isSuperAdmin: false, tenantId: "tenant-a" };
+    req.tenant = tenant;
     next();
   });
   app.use("/api/dashboard", automationsRoutes);
@@ -124,7 +124,8 @@ describe("POST /automation-templates y /automation-templates/:id/activate", () =
     prisma.eventType.findUnique.mockResolvedValue({ id: "et-1", name: "CitaCompletada", active: true });
     prisma.automationTemplate.create.mockImplementation(async ({ data }) => ({ id: "tpl-1", ...data }));
 
-    const res = await request(buildApp())
+    // El catálogo global de plantillas solo lo administra la plataforma (23/11/2026).
+    const res = await request(buildApp({ isSuperAdmin: true, tenantId: null }))
       .post("/api/dashboard/automation-templates")
       .send({
         name: "Notificar cliente al completar cita",
@@ -134,6 +135,12 @@ describe("POST /automation-templates y /automation-templates/:id/activate", () =
       });
 
     expect(res.status).toBe(201);
+  });
+
+  test("un administrador de establecimiento no registra plantillas globales (403)", async () => {
+    const res = await request(buildApp()).post("/api/dashboard/automation-templates").send({ name: "x", triggerEventTypeName: "CitaCompletada", defaultActionType: "enviar_mensaje", defaultActionConfig: {} });
+    expect(res.status).toBe(403);
+    expect(prisma.automationTemplate.create).not.toHaveBeenCalled();
   });
 
   test("activar una Plantilla inexistente responde 404", async () => {

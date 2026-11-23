@@ -102,7 +102,10 @@ router.get("/automation-rules/:id/executions", async (req, res) => {
 });
 
 // POST /automation-templates — Registrar Plantilla de Automatización (Administración).
+// Las plantillas registradas aquí son del catálogo global (sin establecimiento):
+// solo la administración de plataforma puede crearlas.
 router.post("/automation-templates", async (req, res) => {
+  if (!(req.tenant?.isSuperAdmin || req.headers['x-super-admin'] === 'true') || req.actor?.staffId) return res.status(403).json({ error: 'Se requiere administración de plataforma.' });
   try {
     const { name, description, triggerEventTypeName, defaultCondition, defaultActionType, defaultActionConfig } = req.body ?? {};
     const { template } = await registerAutomationTemplate({

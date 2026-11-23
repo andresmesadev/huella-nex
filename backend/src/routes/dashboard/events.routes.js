@@ -1,9 +1,17 @@
 const express = require("express");
 const router = express.Router();
+// Solo las escrituras del catálogo global de eventos exigen autoridad de
+// plataforma. Este router se monta sin prefijo: sin limitar la ruta, el filtro
+// bloqueaba también las escrituras de agentes, automatizaciones y excepciones de
+// agenda montadas después (corregido el 23/11/2026).
+// Express enruta sin distinguir mayúsculas: la comparación también lo es, y cada
+// escritura protegida repite el control en su propia ruta (defensa en profundidad).
+const PLATFORM_WRITES = /^\/(event-types|domain-events)(\/|$)/i;
+const isPlatformAdmin = req => (req.tenant?.isSuperAdmin || req.headers?.['x-super-admin'] === 'true') && !req.actor?.staffId;
+const requirePlatform = (req, res, next) => isPlatformAdmin(req) ? next() : res.status(403).json({ error: 'Se requiere administración de plataforma.' });
 router.use((req, res, next) => {
-  if (req.method === 'GET') return next();
-  if (!(req.tenant?.isSuperAdmin || req.headers['x-super-admin'] === 'true') || req.actor?.staffId) return res.status(403).json({ error: 'Se requiere administración de plataforma.' });
-  return next();
+  if (req.method === 'GET' || !PLATFORM_WRITES.test(req.path ?? '')) return next();
+  return requirePlatform(req, res, next);
 });
 const prisma = require("../../lib/prisma");
 // Entregable 3.0 — Infraestructura de Eventos. Rutas de Administración y
@@ -36,7 +44,7 @@ function mapEventsDomainError(res, error) {
 }
 
 // POST /event-types — Registrar Tipo de Evento en el Catálogo (Administración).
-router.post("/event-types", async (req, res) => {
+router.post("/event-types", requirePlatform, async (req, res) => {
   try {
     const { name, originContext, payloadContractDescription } = req.body ?? {};
     const { eventType } = await registerEventType({ name, originContext, payloadContractDescription });
@@ -49,7 +57,7 @@ router.post("/event-types", async (req, res) => {
 });
 
 // POST /event-types/:name/deactivate — Desactivar Tipo de Evento (Administración).
-router.post("/event-types/:name/deactivate", async (req, res) => {
+router.post("/event-types/:name/deactivate", requirePlatform, async (req, res) => {
   try {
     const { eventType } = await deactivateEventType({ name: req.params.name });
     res.json(eventType);
