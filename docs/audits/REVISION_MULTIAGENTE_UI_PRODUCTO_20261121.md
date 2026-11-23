@@ -68,6 +68,7 @@ Las etiquetas **[nuevo]** y **[conocido]** indican si el hallazgo ya figura en `
 - **P9. Reportes queda escondido dentro de «Punto de venta».** El menú no tiene una entrada de Reportes, aunque la landing promete «Caja y reportes». [nuevo]
 - **P10. Seguimiento de clientes desigual según el negocio.** «Clientes por contactar» solo existe con Peluquería, y un negocio solo Pet shop ve una vista vacía. [nuevo]
 - **P11. Capacidad y última recepción en peluquería sin aplicar.** [conocido, GROOMING_20_90]
+  - **Estado: diferido (decisión del responsable, 2026-11-23).** Es una regla de operación, no un defecto. No se construye hasta que el negocio defina: (a) si un peluquero puede atender más de una mascota a la vez y (b) la hora límite de recepción respecto al cierre. Mientras tanto, la recepción evita los cruces manualmente.
 
 ### Baja
 
