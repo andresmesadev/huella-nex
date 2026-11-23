@@ -134,3 +134,48 @@ describe("GET /escalations/pending y POST /escalations/:id/attend", () => {
     expect(res.body.status).toBe("atendida");
   });
 });
+
+// C2 (23/11/2026) — aislamiento al exponer escalaciones y límites en el dashboard.
+describe("C2 — aislamiento de rutas de agentes", () => {
+  function appFor(tenant, actor) {
+    const app = express();
+    app.use(express.json());
+    app.use((req, _res, next) => { req.tenant = tenant; req.actor = actor; next(); });
+    app.use("/api/dashboard", agentsRoutes);
+    return app;
+  }
+
+  test.each(["/digital-employees", "/escalations/pending", "/digital-employees/de-1/autonomy-limits"])(
+    "%s exige un establecimiento y no consulta nada sin él", async path => {
+      const res = await request(appFor({ isSuperAdmin: true, tenantId: null, viewAllTenants: true })).get("/api/dashboard" + path);
+      expect(res.status).toBe(400);
+      expect(prisma.escalation.findMany).not.toHaveBeenCalled();
+      expect(prisma.digitalEmployee.findMany).not.toHaveBeenCalled();
+    });
+
+  test("la escalación se atiende a nombre del actor, no del cuerpo", async () => {
+    prisma.escalation.findUnique.mockResolvedValue({ id: "esc-1", status: "pendiente", agentTask: { digitalEmployee: { tenantId: "tenant-a" } } });
+    prisma.escalation.update.mockImplementation(async ({ data }) => ({ id: "esc-1", status: "atendida", ...data }));
+    const res = await request(appFor({ tenantId: "tenant-a" }, { staffId: "staff-actor" }))
+      .post("/api/dashboard/escalations/esc-1/attend").send({ assignedStaffId: "staff-de-otro-negocio" });
+    expect(res.status).toBe(200);
+    expect(JSON.stringify(prisma.escalation.update.mock.calls[0][0])).toContain("staff-actor");
+    expect(JSON.stringify(prisma.escalation.update.mock.calls[0][0])).not.toContain("staff-de-otro-negocio");
+  });
+
+  test("los límites de un empleado de otro establecimiento no se leen (404)", async () => {
+    prisma.digitalEmployee.findUnique.mockResolvedValue({ id: "de-9", tenantId: "tenant-b", specialization: "coordinador_agenda", status: "activo" });
+    prisma.agentAutonomyLimit.findMany = jest.fn();
+    const res = await request(appFor({ tenantId: "tenant-a" })).get("/api/dashboard/digital-employees/de-9/autonomy-limits");
+    expect(res.status).toBe(404);
+    expect(prisma.agentAutonomyLimit.findMany).not.toHaveBeenCalled();
+  });
+
+  test("lee los límites configurados del empleado propio", async () => {
+    prisma.digitalEmployee.findUnique.mockResolvedValue({ id: "de-1", tenantId: "tenant-a", specialization: "coordinador_agenda", status: "activo" });
+    prisma.agentAutonomyLimit.findMany = jest.fn().mockResolvedValue([{ action: "vaccine", autoApproved: false }]);
+    const res = await request(appFor({ tenantId: "tenant-a" })).get("/api/dashboard/digital-employees/de-1/autonomy-limits");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([{ action: "vaccine", autoApproved: false }]);
+  });
+});

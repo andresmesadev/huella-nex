@@ -30,6 +30,8 @@ class PrismaEscalationRepository extends EscalationRepositoryPort {
         status: "pendiente",
         ...(tenantId ? { agentTask: { digitalEmployee: { tenantId } } } : {}),
       },
+      // C2: la pantalla muestra qué empleado generó la escalación.
+      include: { agentTask: { select: { digitalEmployee: { select: { id: true, specialization: true } } } } },
       orderBy: { createdAt: "asc" },
     });
   }

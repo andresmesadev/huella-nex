@@ -14,6 +14,7 @@ const {
   getAgentTasks,
   getAgentDecisions,
   getPendingEscalations,
+  getAutonomyLimits,
 } = require("../../contexts/agents");
 const {
   InvalidDigitalEmployeeAttributesError,
@@ -42,6 +43,15 @@ function mapAgentsDomainError(res, error) {
   }
   return null;
 }
+
+// C2 (23/11/2026): los casos de uso de agentes tratan tenantId nulo como "todos
+// los establecimientos". Ninguna ruta de este archivo forma parte de la vista
+// centralizada (6.6), así que todas exigen un establecimiento.
+const AGENT_PATHS = /^\/(digital-employees|agent-tasks|escalations)(\/|$)/i;
+router.use((req, res, next) => {
+  if (AGENT_PATHS.test(req.path) && !req.tenant?.tenantId) return res.status(400).json({ error: "Selecciona un establecimiento." });
+  next();
+});
 
 // POST /digital-employees — Registrar Empleado Digital (Administración).
 router.post("/digital-employees", async (req, res) => {
@@ -94,6 +104,18 @@ router.post("/digital-employees/:id/autonomy-limits", async (req, res) => {
     if (mapAgentsDomainError(res, error)) return;
     console.error("[Dashboard] Configure autonomy limit error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /digital-employees/:id/autonomy-limits — Consultar Límites (C2).
+router.get("/digital-employees/:id/autonomy-limits", async (req, res) => {
+  try {
+    const { limits } = await getAutonomyLimits({ digitalEmployeeId: req.params.id, tenantId: req.tenant.tenantId });
+    res.json(limits);
+  } catch (error) {
+    if (mapAgentsDomainError(res, error)) return;
+    console.error("[Dashboard] Get autonomy limits error:", error);
+    res.status(500).json({ error: "No se pudieron consultar los límites." });
   }
 });
 
@@ -151,7 +173,9 @@ router.get("/escalations/pending", async (req, res) => {
 router.post("/escalations/:id/attend", async (req, res) => {
   try {
     const { tenantId } = req.tenant;
-    const { assignedStaffId } = req.body ?? {};
+    // C2: se atiende a nombre de quien ejecuta la acción; el cuerpo no elige a
+    // otra persona (no se validaba contra el establecimiento).
+    const assignedStaffId = req.actor?.staffId ?? null;
     const { escalation } = await attendEscalation({ escalationId: req.params.id, tenantId, assignedStaffId });
     res.json(escalation);
   } catch (error) {

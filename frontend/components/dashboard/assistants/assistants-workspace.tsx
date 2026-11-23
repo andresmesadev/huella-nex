@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { ResultDetails, TASKS, TaskFields } from "./assistant-forms";
 import { WhatsappLinkPanel } from "./whatsapp-link-panel";
+import { DigitalEmployeesSupervision } from "./digital-employees-supervision";
 
 type Employee = { id: string; specialization: string; status: string; intents: string[] };
 type Action = { id: string; taskId: string; kind: string; state: string; revision: number; payload: Record<string, unknown>; preview: unknown; missingFields: string[]; expiresAt: string | null; receipt: { id: string; confirmedAt: string; result: unknown } | null; publication?: { pending: number; review: number; verified: number } };
@@ -80,6 +81,7 @@ function Workspace({ tenant, storageKey }: { tenant: string | null; storageKey: 
     <PageHeader title="Asistentes del negocio" description="Consulta Finanzas e Inventario y prepara operaciones. Tú revisas y confirmas cada gasto o entrada." icon={Bot} />
     {error && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">{error}</div>}
     <WhatsappLinkPanel tenant={tenant} />
+    {access?.capabilities.administration && <DigitalEmployeesSupervision tenant={tenant} />}
     {loading ? <div role="status" className="rounded-2xl border bg-white p-6">Cargando asistentes…</div> : <>
       {!employees.length && <section className="rounded-2xl border bg-white p-6"><h2 className="font-semibold">Aún no hay asistentes activos para estas tareas</h2><p className="mt-2 text-sm text-slate-600">Un administrador puede activarlos para este establecimiento.</p></section>}
       {access?.capabilities.administration && !cursor && Object.keys(NAMES).some(s => !employees.some(e => e.specialization === s)) && <section className="rounded-2xl border bg-white p-6"><h2 className="font-semibold">Activa los asistentes disponibles</h2><div className="mt-4 flex flex-wrap gap-3">{Object.entries(NAMES).filter(([s]) => !employees.some(e => e.specialization === s)).map(([specialization, label]) => <Button key={specialization} variant="outline" disabled={busy} onClick={() => void perform(async () => { await api("/digital-employees", "POST", { specialization }); await loadEmployees(); })}>Activar {label}</Button>)}</div></section>}

@@ -58,6 +58,8 @@ const getPendingEscalations = createGetPendingEscalationsUseCase({ escalationRep
 // mismo estatus que las demás operaciones de infraestructura del proyecto
 // (p. ej. `listDomainEventsAwaitingRetry` de 5.1).
 const getAutonomyLimit = digitalEmployeeRepository.getAutonomyLimit.bind(digitalEmployeeRepository);
+const { createGetAutonomyLimitsUseCase } = require("./application/use-cases/get-autonomy-limits.usecase");
+const getAutonomyLimits = createGetAutonomyLimitsUseCase({ digitalEmployeeRepository });
 
 // Same lifecycle rules, with a transaction-local publisher for operational assistants.
 function buildAgentAudit({ eventPublisher: publisher = eventPublisher } = {}) {
@@ -85,4 +87,5 @@ module.exports = {
   getAgentDecisions,
   getPendingEscalations,
   getAutonomyLimit,
+  getAutonomyLimits,
 };

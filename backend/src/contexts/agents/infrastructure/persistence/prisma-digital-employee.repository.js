@@ -33,6 +33,11 @@ class PrismaDigitalEmployeeRepository extends DigitalEmployeeRepositoryPort {
     });
   }
 
+  // C2: límites configurados de un empleado (lectura).
+  async listAutonomyLimits(digitalEmployeeId) {
+    return prisma.agentAutonomyLimit.findMany({ where: { digitalEmployeeId }, orderBy: { action: "asc" } });
+  }
+
   async getAutonomyLimit(digitalEmployeeId, action) {
     return prisma.agentAutonomyLimit.findUnique({
       where: { digitalEmployeeId_action: { digitalEmployeeId, action } },
