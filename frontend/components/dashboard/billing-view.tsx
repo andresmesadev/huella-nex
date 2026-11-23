@@ -35,7 +35,9 @@ const OPERATIONAL_FEATURES = [
   "Equipo con roles y permisos",
   "Caja, inventario y comprobantes operativos",
 ];
-const PENDING_AI = ["Cupo de IA por confirmar en la oferta"];
+// Diferencia entre planes: créditos del agente de IA (base aceptada el 29/10/2026,
+// ADR 033). El equipo de plataforma los asigna al habilitar la IA del negocio.
+const AI_CREDITS = { free: "100 créditos de IA de prueba, una sola vez", basic: "1.000 créditos de IA al mes", pro: "3.000 créditos de IA al mes" } as const;
 
 const PLANS: Plan[] = [
   {
@@ -46,7 +48,8 @@ const PLANS: Plan[] = [
     features: [
       "Acceso de evaluación al dashboard según habilitación",
       "Gestión operativa según módulos y permisos",
-      "IA y WhatsApp sujetos a habilitación",
+      AI_CREDITS.free,
+      "WhatsApp sujeto a habilitación",
     ],
   },
   {
@@ -55,16 +58,14 @@ const PLANS: Plan[] = [
     price: "$49.000",
     period: "mes",
     highlight: true,
-    features: OPERATIONAL_FEATURES,
-    pending: PENDING_AI,
+    features: [...OPERATIONAL_FEATURES, AI_CREDITS.basic],
   },
   {
     id: "pro",
     name: "Pro",
     price: "$89.000",
     period: "mes",
-    features: OPERATIONAL_FEATURES,
-    pending: PENDING_AI,
+    features: [...OPERATIONAL_FEATURES, AI_CREDITS.pro],
   },
   {
     id: "custom",
@@ -314,7 +315,7 @@ export function BillingView({ status }: { status: BillingStatus | null }) {
       {/* Planes */}
       <div>
         <h2 className="text-base font-semibold mb-4">Opciones de plan</h2>
-        <p className="mb-5 text-sm text-muted-foreground">Básico y Pro comparten actualmente las funciones operativas. La diferencia propuesta de cupo de IA está pendiente de habilitación y confirmación comercial.</p>
+        <p className="mb-5 text-sm text-muted-foreground">Básico y Pro incluyen las mismas funciones operativas y se diferencian por los créditos mensuales del agente de IA.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {PLANS.map((plan) => (
             <PlanCard
@@ -335,7 +336,7 @@ export function BillingView({ status }: { status: BillingStatus | null }) {
         <p>Cada suscripción corresponde a un establecimiento. Las funciones disponibles dependen de sus módulos y de los permisos de cada integrante; la historia clínica requiere el módulo Veterinaria.</p>
         <p>Los comprobantes son registros operativos. La facturación electrónica no forma parte de estos comprobantes.</p>
         <p>WhatsApp es opcional: cada negocio conecta su cuenta y número propios, paga sus cargos directamente a Meta y requiere la habilitación de la conexión.</p>
-        <p>La IA requiere habilitación y un cupo asignado. Un cambio de plan no asigna automáticamente un cupo de IA.</p>
+        <p>Los créditos de IA del plan se aplican cuando el equipo de Huella Nex habilita la IA de tu negocio; un cambio de plan no la activa por sí solo.</p>
         {status?.active && <a className="inline-block font-medium text-primary underline underline-offset-4" href={`/dashboard/settings/integrations?tenant=${encodeURIComponent(status.id)}`}>Consultar conexión y cupo asignado</a>}
       </section>
 

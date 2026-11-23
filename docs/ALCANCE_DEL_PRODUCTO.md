@@ -33,6 +33,16 @@ sedes, API para terceros o servicio ilimitado. Básico y Pro comparten hoy el
 alcance operativo; la diferencia de cupo de IA propuesta sigue condicionada a
 su habilitación y oferta definitiva. [Alcance y validación](architecture/billing-plan-description-hn05-20261029.md).
 
+**Actualización 23/11/2026 (decisión de Andrés):** las tarjetas de planes ya
+muestran la diferencia por créditos del agente de IA: Evaluación 100 de prueba
+una sola vez, Básico 1.000 al mes y Pro 3.000 al mes. Los créditos se aplican
+cuando el equipo habilita la IA del negocio; un cambio de plan no la activa por
+sí solo, porque la asignación del cupo sigue siendo manual.
+
+**Condiciones al registrarse (23/11/2026):** el registro exige aceptar las
+Condiciones y la Política de privacidad, y guarda la fecha y la versión
+aceptadas en el establecimiento (`termsAcceptedAt`, `termsVersion`).
+
 El producto mantiene una base común de software. Cada establecimiento configura
 los módulos que necesita y sus reglas operativas dentro de las posibilidades
 soportadas. Una necesidad del centro propio puede mejorar la base común;

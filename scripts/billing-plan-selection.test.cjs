@@ -198,22 +198,24 @@ test('actual plan cards do not sell unimplemented quotas, unlimited use, branche
     const card=f.card(id); return textOf(card.type(card.props));
   }).join(' ');
   assert.doesNotMatch(offer,/50 citas|\b[15] usuarios? staff|ilimitad|múltiples sedes|API de integración|soporte prioritario|más popular|gratis para siempre/i);
-  assert.match(offer,/Básico y Pro comparten actualmente las funciones operativas/);
+  assert.match(offer,/Básico y Pro incluyen las mismas funciones operativas y se diferencian por los créditos mensuales del agente de IA/);
   assert.match(offer,/módulos y de los permisos/);
   assert.match(offer,/historia clínica requiere el módulo Veterinaria/);
   assert.match(offer,/comprobantes.*operativos/);
   assert.match(offer,/facturación electrónica no forma parte/);
 });
 
-test('the offer does not pretend that a subscription automatically grants AI or a ready WhatsApp line', () => {
+test('plans differ only by AI credits and a subscription does not pretend to activate AI or a ready WhatsApp line', () => {
   const f = billingViewFixture();
   const offer = textOf(f.tree) + ['basic','pro'].map(id => textOf(f.card(id).type(f.card(id).props))).join(' ');
   assert.match(offer,/WhatsApp es opcional/);
   assert.match(offer,/cuenta y número propios/);
   assert.match(offer,/cargos directamente a Meta/);
-  assert.match(offer,/cambio de plan no asigna automáticamente un cupo de IA/);
-  assert.match(offer,/Cupo de IA por confirmar en la oferta/);
-  assert.doesNotMatch(offer,/1[.,]?000 créditos|3[.,]?000 créditos|100 créditos/);
+  // Decisión del responsable (23/11/2026): la diferencia entre planes son los créditos del agente de IA.
+  assert.match(offer,/1.000 créditos de IA al mes/);
+  assert.match(offer,/3.000 créditos de IA al mes/);
+  assert.match(offer,/un cambio de plan no la activa por sí solo/);
+  assert.doesNotMatch(offer,/créditos? ilimitad|IA ilimitad/i);
   assert.equal(f.calls.length,0);
 });
 
