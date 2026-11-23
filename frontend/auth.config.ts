@@ -9,7 +9,7 @@ export const authConfig = {
   providers: [],
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = Boolean(auth?.user);
+      const isLoggedIn = Boolean(auth?.user && !auth.user.socialIdentity);
       const isDashboard = nextUrl.pathname.startsWith("/dashboard");
       const isPrint = nextUrl.pathname.startsWith("/print");
       const isLogin = nextUrl.pathname === "/login";
@@ -57,6 +57,7 @@ export const authConfig = {
       session.user.role = (token.role ?? "admin") as TeamRole;
       session.user.staffId = (token.staffId ?? null) as string | null;
       session.user.sessionVersion = (token.sessionVersion ?? null) as number | null;
+      session.user.socialIdentity = token.socialIdentity;
       return session;
     },
   },

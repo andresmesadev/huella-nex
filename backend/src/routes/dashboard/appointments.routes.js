@@ -427,7 +427,7 @@ router.post("/appointments", async (req, res) => {
       ? require('../../services/grooming-transport.service').transportFromPetPreference({ pet, owner: user, canConfirm: canConfirmTransport, contact: req.body.transportContact })
       : undefined;
     const appointment = await createAppointment({
-      tenantId, userId, petId, serviceId, autoAssignGroomer: true, ...(staffId ? { staffId } : {}),
+      tenantId, userId, petId, serviceId, requireActiveContact: true, autoAssignGroomer: true, ...(staffId ? { staffId } : {}),
       petName: pet.name, petType: pet.type,
       serviceType: bucket,
       date: appointmentDate,
@@ -436,7 +436,7 @@ router.post("/appointments", async (req, res) => {
     });
     return res.status(201).json({ id: appointment.id, date: appointment.date, status: appointment.status });
   } catch (error) {
-    if (error.code === 'STAFF_UNAVAILABLE') return res.status(error.status).json({ error: error.message });
+    if (['STAFF_UNAVAILABLE', 'ARCHIVED_CONTACT'].includes(error.code)) return res.status(error.status).json({ error: error.message });
     if (isDuplicatePetAppointment(error)) return res.status(409).json({ error: new DuplicatePetAppointmentError().message, code: 'DUPLICATE_PET_APPOINTMENT' });
     if (error instanceof SlotAlreadyBookedError) {
       return res.status(409).json({ error: "El horario acaba de ser reservado. Elige otro." });

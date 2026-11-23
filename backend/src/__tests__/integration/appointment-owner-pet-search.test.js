@@ -21,14 +21,14 @@ test.each(['Luna', 'Carolina', '3001234567'])('quick search accepts owner, phone
   expect(response.body[0].pets).toContainEqual(recentPet);
   if (term === 'Luna') expect(response.body[0].matchingPets).toEqual([oldPet]);
   const ownerQuery = prisma.user.findMany.mock.calls[0][0];
-  expect(ownerQuery.where).toMatchObject({ tenantId: 'clinic-a', OR: expect.arrayContaining([
+  expect(ownerQuery.where).toMatchObject({ tenantId: 'clinic-a', archivedAt: null, OR: expect.arrayContaining([
     { name: { contains: term, mode: 'insensitive' } },
     { phone: { contains: term } },
-    { pets: { some: { tenantId: 'clinic-a', name: { contains: term, mode: 'insensitive' } } } },
+    { pets: { some: { tenantId: 'clinic-a', archivedAt: null, name: { contains: term, mode: 'insensitive' } } } },
   ]) });
   expect(prisma.user.findMany.mock.calls[1][0]).toMatchObject({
-    where: { tenantId: 'clinic-a', id: { in: ['owner'] } },
-    select: { pets: { where: { tenantId: 'clinic-a', name: { contains: term, mode: 'insensitive' } }, take: 5 } },
+    where: { tenantId: 'clinic-a', archivedAt: null, id: { in: ['owner'] } },
+    select: { pets: { where: { tenantId: 'clinic-a', archivedAt: null, name: { contains: term, mode: 'insensitive' } }, take: 5 } },
   });
 });
 

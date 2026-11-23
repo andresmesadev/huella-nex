@@ -5,15 +5,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const fields = value => value.split(' ');
 const INCLUDED = {
-  Tenant: 'id name slug phone email plan active createdAt updatedAt subscriptionStatus planExpiresAt contactPhone description address logoUrl businessHours activeModules commissionSplitRate',
+  Tenant: 'id name slug phone email plan active createdAt updatedAt subscriptionStatus planExpiresAt contactPhone description address logoUrl businessHours activeModules commissionSplitRate termsAcceptedAt termsVersion',
   Staff: 'id tenantId name role accessPermissions serviceScope phone email active availability generatesCommission contractType commissionRate createdAt updatedAt',
   StaffAvailability: 'id staffId type weekday startTime endTime startAt endAt reason voidedAt voidReason voidedBy replacesId createdAt',
   StaffCapability: 'id staffId serviceId active createdAt',
   Service: 'id tenantId name categoryId duration basePrice requiresAppointment appliesCommissionSplit active createdAt updatedAt',
   ServiceCategory: 'id tenantId name appliesCommissionSplit active createdAt',
   PriceRule: 'id serviceId targetType targetId price active createdAt',
-  User: 'id phone phoneAlt tenantId name email address neighborhood notes lastReminderSentAt createdAt',
-  Pet: 'id name type tenantId ownerId breed gender birthDate weight sterilized notes operationalAlerts defaultGroomingPrice defaultGroomingWithTransportPrice defaultGroomingTransportPrice defaultGroomingTransportMode groomingReminderSent createdAt',
+  User: 'id phone phoneAlt tenantId name email address neighborhood notes lastReminderSentAt archivedAt createdAt',
+  Pet: 'id name type tenantId ownerId breed gender birthDate weight sterilized notes operationalAlerts defaultGroomingPrice defaultGroomingWithTransportPrice defaultGroomingTransportPrice defaultGroomingTransportMode groomingReminderSent archivedAt createdAt',
   PetNextAction: 'id petId tenantId type notes dueAt status sourceRecordId sourceAppointmentId reminderSentAt createdAt updatedAt',
   MedicalRecord: 'id petId appointmentId staffId createdByStaffId updatedByStaffId type title detail date reason findings diagnosis treatment recommendations weight nextControlAt reminderSent version createdAt updatedAt',
   MedicalRecordRevision: 'id recordId version before after reason actorType actorStaffId actorName actorEmail createdAt',
@@ -56,7 +56,7 @@ const OMITTED_FIELDS = {
   AiUsageEntry: 'operationKey providerUsage', AiQuotaChange: 'actorHash',
 };
 const EXCLUDED = {
-  authentication: fields('OperatorAuthority OperatorProof OperatorSubject OperatorChannelRoute OperatorLinkChallenge OperatorLink OperatorAuthorization OperatorParticipant OperatorThread OperatorSession OperatorInteraction StaffCredential WhatsAppConnection WhatsAppConnectionChallenge WhatsAppConnectionEvent ApiKey ClientVerificationCode ClientSession'),
+  authentication: fields('OperatorAuthority OperatorProof OperatorSubject OperatorChannelRoute OperatorLinkChallenge OperatorLink OperatorAuthorization OperatorParticipant OperatorThread OperatorSession OperatorInteraction StaffCredential StaffSocialIdentity WhatsAppConnection WhatsAppConnectionChallenge WhatsAppConnectionEvent ApiKey ClientVerificationCode ClientSession'),
   technicalProcessing: fields('OperatorMessage OperatorInboundWork OperatorReview OperatorDelivery OperatorAudit AppointmentBookingGuard DomainEvent EventDelivery InboundJob OperationalRequest OperationalAction ActionRevision ExecutionReceipt PublicationIntent AutomationExecution'),
   derivedOrSharedCatalogue: fields('MemoryEmbedding EventType AutomationTemplate'),
 };

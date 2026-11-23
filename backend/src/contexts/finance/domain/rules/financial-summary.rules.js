@@ -17,28 +17,41 @@ function summarizeDay({ charges, expenses, commissions }) {
   const expenseTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const netAmount = incomeTotal - expenseTotal;
 
-  const byStaff = new Map();
-  for (const commission of commissions) {
-    const key = commission.staffId ?? "__unassigned__";
-    if (!byStaff.has(key)) {
-      byStaff.set(key, { staffId: commission.staffId ?? null, count: 0, staffShare: 0, businessShare: 0 });
-    }
-    const entry = byStaff.get(key);
-    entry.count += 1;
-    entry.staffShare += Number(commission.staffShare);
-    entry.businessShare += Number(commission.businessShare);
-  }
-
   return {
     incomeTotal: round2(incomeTotal),
     expenseTotal: round2(expenseTotal),
     netAmount: round2(netAmount),
-    staffBreakdown: Array.from(byStaff.values()).map((entry) => ({
-      ...entry,
-      staffShare: round2(entry.staffShare),
-      businessShare: round2(entry.businessShare),
-    })),
+    staffBreakdown: summarizeCommissions(commissions),
   };
+}
+
+function summarizeCommissions(commissions) {
+  const byStaff = new Map();
+  for (const commission of commissions) {
+    const key = commission.staffId ?? "__unassigned__";
+    if (!byStaff.has(key)) {
+      byStaff.set(key, {
+        staffId: commission.staffId ?? null, count: 0, staffShare: 0, businessShare: 0,
+        activity: { groomingAppointments: 0, otherAppointments: 0, additionalItems: 0 },
+      });
+    }
+    const entry = byStaff.get(key);
+    entry.count += 1;
+    if (commission.transactionItemId) entry.activity.additionalItems++;
+    else if (commission.appointmentId) {
+      // The database allows only one active principal commission per appointment.
+      if (commission.serviceCategory === 'grooming') entry.activity.groomingAppointments++;
+      else entry.activity.otherAppointments++;
+    }
+    entry.staffShare += Number(commission.staffShare);
+    entry.businessShare += Number(commission.businessShare);
+  }
+
+  return [...byStaff.values()].map(entry => ({
+    ...entry,
+    staffShare: round2(entry.staffShare),
+    businessShare: round2(entry.businessShare),
+  }));
 }
 
 /**
@@ -70,4 +83,4 @@ function commissionReserve(summary) {
   return { staffCommissionTotal: cents / 100, netAfterCommissions: (Math.round(Number(summary.netAmount) * 100) - cents) / 100 };
 }
 
-module.exports = { summarizeDay, summarizePeriod, commissionReserve };
+module.exports = { summarizeDay, summarizeCommissions, summarizePeriod, commissionReserve };

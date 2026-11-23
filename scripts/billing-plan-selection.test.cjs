@@ -14,6 +14,8 @@ const compiledProxy = compile('frontend/app/api/proxy/billing/route.ts');
 const requestModule = { exports: {} };
 vm.runInNewContext(compile('frontend/lib/billing-plan-request.ts'), { module: requestModule, exports: requestModule.exports });
 const { billingPlanRequest } = requestModule.exports;
+const planCatalog = {};
+vm.runInNewContext(compile('frontend/lib/plan-catalog.ts'), { exports: planCatalog });
 
 function fixture({ user = { staffId: 'staff-demo', tenantId: 'tenant-demo', role: 'admin', sessionVersion: 1 }, liveRole = 'admin', configured = { STRIPE_PRICE_ID_BASIC: 'price_basic123', STRIPE_PRICE_ID_PRO: 'price_pro456' } } = {}) {
   const calls = [], provider = [];
@@ -107,6 +109,7 @@ function billingViewFixture({ existing = false, status = 200, billingStatus = {}
       if (name === 'react') return { useState: initial => [initial, value => states.push(value)] };
       if (name === '@/lib/billing-plan-request') return requestModule.exports;
       if (name === '@/lib/product-brand') return { PRODUCT_SUPPORT_EMAIL: 'support@example.invalid' };
+      if (name === '@/lib/plan-catalog') return planCatalog;
       if (name.endsWith('/action-confirmation')) return { useActionConfirmation: () => ({ confirm: async () => true, confirmation: null }) };
       if (name.endsWith('/badge')) return { Badge: 'Badge' };
       if (name.endsWith('/button')) return { Button: 'Button' };

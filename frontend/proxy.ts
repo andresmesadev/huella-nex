@@ -13,6 +13,9 @@ const authenticatedProxy = auth(async (req, event: NextFetchEvent) => {
   const protectedPath = path.startsWith("/dashboard") || path.startsWith("/print");
   // With a custom auth callback, NextAuth's authorized=false does not perform
   // the default redirect. Enforce the session before any server API request.
+  if (protectedPath && req.auth?.user?.socialIdentity) {
+    return NextResponse.redirect(new URL("/onboarding", req.nextUrl));
+  }
   if (protectedPath && !req.auth?.user) {
     const login = new URL("/login", req.nextUrl);
     login.searchParams.set("callbackUrl", req.nextUrl.href);

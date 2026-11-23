@@ -41,7 +41,7 @@ const mapClientSummary = (user) => {
     id: user.id,
     phone: user.phone,
     name: user.name ?? extractNameFromSession(latestConversation?.sessionData),
-    petsCount: user._count.pets,
+    petsCount: user.pets?.length ?? user._count.pets,
     pets: user.pets ?? [],
     appointmentsCount: user._count.appointments,
     lastConversation: latestConversation
@@ -58,7 +58,7 @@ const mapClientSummary = (user) => {
 
 const PAGE_SIZE = 50;
 
-const listClients = async (tenantId, { page = 1, limit = PAGE_SIZE, search = "" } = {}) => {
+const listClients = async (tenantId, { page = 1, limit = PAGE_SIZE, search = "", archived = false } = {}) => {
   const take = Math.min(Number(limit) || PAGE_SIZE, 200);
   const currentPage = Math.max(Number(page) || 1, 1);
   const skip = (currentPage - 1) * take;
@@ -73,7 +73,7 @@ const listClients = async (tenantId, { page = 1, limit = PAGE_SIZE, search = "" 
     : {};
 
   const tenantFilter = tenantId ? { tenantId } : {};
-  const where = { ...tenantFilter, ...searchFilter };
+  const where = { ...tenantFilter, ...searchFilter, archivedAt: archived ? { not: null } : null };
 
   const [total, users] = await Promise.all([
     prisma.user.count({ where }),
@@ -84,7 +84,7 @@ const listClients = async (tenantId, { page = 1, limit = PAGE_SIZE, search = "" 
       orderBy: [{ name: "asc" }, { createdAt: "asc" }],
       include: {
         pets: {
-          where: tenantFilter,
+          where: archived ? tenantFilter : { ...tenantFilter, archivedAt: null },
           select: { id: true, name: true, type: true },
           orderBy: [{ name: "asc" }, { id: "asc" }],
         },

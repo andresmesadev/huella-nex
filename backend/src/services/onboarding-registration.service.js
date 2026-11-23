@@ -1,3 +1,4 @@
+const { randomBytes } = require("node:crypto");
 const prisma = require("../lib/prisma");
 const { hashPassword, normalizeEmail, validPassword } = require("./staff-credential.service");
 
@@ -16,8 +17,8 @@ function validSlug(slug) {
   return typeof slug === "string" && slug.length >= 2 && slug.length <= 63 && SLUG.test(slug);
 }
 
-function registrationInput(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(key => !FIELDS.has(key))) {
+function registrationInput(body, social = false) {
+  if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).some(key => !FIELDS.has(key) || (social && key === "password"))) {
     throw invalid("Revisa los datos del formulario.");
   }
   const text = value => typeof value === "string" ? value.trim() : "";
@@ -29,7 +30,7 @@ function registrationInput(body) {
   if (!validSlug(slug)) throw invalid("Usa entre 2 y 63 letras minúsculas, números y guiones, sin guiones al inicio o al final.", "slug");
   if (ownerName.length < 2 || ownerName.length > 100) throw invalid("Escribe tu nombre, entre 2 y 100 caracteres.", "ownerName");
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw invalid("Escribe un correo electrónico válido.", "email");
-  if (!validPassword(body.password)) throw invalid("La contraseña debe tener entre 12 y 128 caracteres.", "password");
+  if (!social && !validPassword(body.password)) throw invalid("La contraseña debe tener entre 12 y 128 caracteres.", "password");
   const activeModules = body.activeModules;
   if (!Array.isArray(activeModules) || !activeModules.length || activeModules.length > MODULES.length ||
       activeModules.some(module => !MODULES.includes(module)) || new Set(activeModules).size !== activeModules.length) {
@@ -39,12 +40,12 @@ function registrationInput(body) {
   return { name, slug, ownerName, email, password: body.password, activeModules };
 }
 
-async function registerTenantAdministrator(body) {
-  const input = registrationInput(body);
+async function registerTenantAdministrator(body, socialIdentity = null) {
+  const input = registrationInput(body, Boolean(socialIdentity));
   if (process.env.ADMIN_EMAIL && normalizeEmail(process.env.ADMIN_EMAIL) === input.email) {
     throw Object.assign(new Error("El correo ya tiene un acceso reservado."), { status: 409 });
   }
-  const passwordHash = await hashPassword(input.password);
+  const passwordHash = await hashPassword(socialIdentity ? randomBytes(48).toString("base64url") : input.password);
   // Nested writes are atomic. No caller-supplied role or tenant is accepted.
   return prisma.tenant.create({
     data: {
@@ -57,7 +58,9 @@ async function registerTenantAdministrator(body) {
       staff: { create: {
         name: input.ownerName, email: input.email, role: "admin",
         serviceScope: "selected", generatesCommission: false,
-        credential: { create: { email: input.email, passwordHash } },
+        credential: { create: { email: input.email, passwordHash,
+          ...(socialIdentity ? { socialIdentities: { create: socialIdentity } } : {}),
+        } },
       } },
     },
     select: { id: true, name: true, slug: true, plan: true },

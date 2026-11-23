@@ -77,7 +77,7 @@ const { requireInternalToken } = require("./middleware/requireInternalToken");
 const { apiKeyAuth } = require("./middleware/apiKeyAuth");
 const publicApiRoutes = require("./routes/public-api.routes");
 app.use("/api/dashboard", dashboardProxyRateLimit, resolveTenant, require('./middleware/provider-execution-scope').providerExecutionScope, dashboardRateLimit, dashboardRoutes);
-app.use("/api/internal", publicRateLimit, requireInternalToken, require("./routes/staff-auth.routes"));
+app.use("/api/internal", publicRateLimit, requireInternalToken, require("./routes/staff-auth.routes"), require("./routes/social-auth.routes"));
 app.use("/api/internal/operator-authority", publicRateLimit, requireInternalToken, require("./routes/operator-authority.routes"));
 // Superficies públicas sin autenticación — rate limit obligatorio (hallazgo A5)
 app.use("/api/billing", publicRateLimit, requireInternalToken, billingRouter);

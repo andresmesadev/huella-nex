@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const { activePet, lockContactArchive } = require("./contact-archive.service");
 const logger = require("../lib/logger");
 const { findPetByNameAndOwner, findOrCreatePet } = require("./pet.service");
 const { resetGroomingReminderForPet } = require("./reminder.service");
@@ -297,6 +298,14 @@ const createAppointment = async (data) => {
         const lockKey = `${appointmentData.tenantId}:${appointmentData.availabilityBucket}`;
         const slotMs = reservationSlotMinutes(appointmentData.availabilityBucket) * 60000;
         appointment = await prisma.$transaction(async (tx) => {
+          if (data.requireActiveContact) {
+            await lockContactArchive(tx, tenantId);
+            const contact = await tx.pet.findFirst({
+              where: { id: petId, tenantId, ownerId: userId, ...activePet },
+              select: { id: true },
+            });
+            if (!contact) throw Object.assign(new Error("El cliente o la mascota está archivado."), { code: "ARCHIVED_CONTACT", status: 409 });
+          }
           await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey})::bigint)::text AS locked`;
           const assignedId = staffId || (autoAssignGroomer ? await require('./staff-scheduling.service').uniqueGroomer(tx, { tenantId, date: appointmentData.date, serviceId, serviceType }) : null);
           if (assignedId) {

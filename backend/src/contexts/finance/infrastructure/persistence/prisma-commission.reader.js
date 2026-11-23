@@ -17,6 +17,8 @@ class PrismaCommissionReader extends CommissionReaderPort {
         businessShare: true,
         completedAt: true,
         appointmentId: true,
+        transactionItemId: true,
+        serviceCategory: true,
       },
     });
   }

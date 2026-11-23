@@ -13,6 +13,7 @@ router.use(require("./dashboard/grooming.routes"));
 router.use(require("./dashboard/grooming-transport.routes"));
 router.use(require("./dashboard/pets.routes"));
 router.use(require("./dashboard/clients.routes"));
+router.use(require("./dashboard/contact-archive.routes"));
 router.use(require("./dashboard/services.routes"));
 router.use(require("./dashboard/staff.routes"));
 router.use(require("./dashboard/metrics.routes"));

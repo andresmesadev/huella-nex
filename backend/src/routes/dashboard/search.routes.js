@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../lib/prisma");
+const { activeClient, activePet } = require("../../services/contact-archive.service");
 
 // GET /search?q=texto — busca propietarios y mascotas dentro del tenant
 router.get("/search", async (req, res) => {
@@ -17,6 +18,7 @@ router.get("/search", async (req, res) => {
       prisma.user.findMany({
         where: {
           ...tenantFilter,
+          ...activeClient,
           OR: [
             { name: { contains: q, mode: "insensitive" } },
             { phone: { contains: q } },
@@ -29,6 +31,7 @@ router.get("/search", async (req, res) => {
       prisma.pet.findMany({
         where: {
           ...tenantFilter,
+          ...activePet,
           name: { contains: q, mode: "insensitive" },
         },
         take,

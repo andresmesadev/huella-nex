@@ -16,6 +16,8 @@ const resultModule = {};
 vm.runInNewContext(compile('frontend/lib/onboarding-result.ts'), {
   exports: resultModule, require: name => { assert.equal(name, './product-brand'); return brand; },
 });
+const planCatalog = {};
+vm.runInNewContext(compile('frontend/lib/plan-catalog.ts'), { exports: planCatalog });
 const compiledPage = compile('frontend/app/onboarding/page.tsx');
 function textOf(node) {
   if (node == null || typeof node === 'boolean') return '';
@@ -29,7 +31,7 @@ function nodes(node) {
 
 // Execute the real page and handlers with stateful hooks and simulated I/O.
 // No browser, database, storage, credentials service or outbound mail is used.
-function fixture({ provisioning = 'ready', responseBody, malformed = false, login = { ok: true }, hold = false } = {}) {
+function fixture({ provisioning = 'ready', responseBody, malformed = false, login = { ok: true }, hold = false, isAvailable = () => true, socialIdentity = null } = {}) {
   const state = [], refs = [], effects = [], timers = new Map(), exports = {};
   const requests = [], signIns = [], navigation = [], pendingEffects = [];
   let stateCursor, refCursor, effectCursor, dirty = true, tree, timerId = 0, release;
@@ -62,13 +64,16 @@ function fixture({ provisioning = 'ready', responseBody, malformed = false, logi
       if (name === 'react/jsx-runtime') return { jsx: node, jsxs: node, Fragment: 'Fragment' };
       if (name === 'next/link') return { default: 'a' };
       if (name === 'next/navigation') return { useRouter: () => ({ replace: url => navigation.push(url), refresh: () => navigation.push('refresh') }) };
-      if (name === 'next-auth/react') return { signIn: async (provider, input) => {
+      if (name === 'next-auth/react') return { useSession: () => ({ data: socialIdentity ? { user: { socialIdentity } } : null, status: socialIdentity ? 'authenticated' : 'unauthenticated', update: async () => ({ user: { staffId: 'fixture-staff', tenantId: 'fixture-tenant' } }) }), signIn: async (provider, input) => {
         signIns.push({ provider, input });
         if (login instanceof Error) throw login;
         return login;
       } };
       if (name === 'lucide-react') return new Proxy({}, { get: (_, key) => String(key) });
       if (name === '@/components/onboarding/registration-shell') return { RegistrationShell: 'Shell' };
+      if (name === '@/components/auth/social-sign-in-buttons') return { SocialSignInButtons: 'Providers' };
+      if (name === '@/lib/social-identity') return { SOCIAL_PROVIDER_LABELS: { google: 'Google' } };
+      if (name === '@/lib/plan-catalog') return planCatalog;
       if (name.endsWith('registration.module.css')) return { default: new Proxy({}, { get: (_, key) => String(key) }) };
       if (name === '@/lib/onboarding-result') return resultModule;
       if (name === '@/components/brand/legal-links') return { LegalLinks: 'LegalLinks' };
@@ -76,8 +81,8 @@ function fixture({ provisioning = 'ready', responseBody, malformed = false, logi
     },
     fetch: async (url, options) => {
       requests.push({ url, options });
-      if (url.includes('/verify/')) return { ok: true, json: async () => ({ available: true }) };
-      assert.equal(url, '/api/onboarding/register');
+      if (url.includes('/verify/')) return { ok: true, json: async () => ({ available: isAvailable(url.split('/').at(-1)) }) };
+      assert.equal(url, socialIdentity ? '/api/onboarding/social-register' : '/api/onboarding/register');
       if (gate) await gate;
       return { ok: true, status: 201, json: async () => {
         if (malformed) throw new Error('invalid JSON');
@@ -99,23 +104,99 @@ function fixture({ provisioning = 'ready', responseBody, malformed = false, logi
   function find(predicate) { const found = nodes(tree).find(predicate); assert.ok(found, 'Element missing'); return found; }
   async function field(id, value) { find(node => node.props?.id === id).props.onChange({ target: { value } }); await flush(); }
   const submit = () => find(node => node.type === 'form').props.onSubmit({ preventDefault() {} });
-  async function prepare(modules = ['veterinary']) {
-    await flush(); await field('business-name', 'Centro demo');
+
+  async function prepareAccount() {
+    await flush();
+    await field('owner-name', 'Admin demo'); await field('owner-email', ' ADMIN@EXAMPLE.INVALID ');
+    if (!socialIdentity) {
+      await field('owner-password', 'Password synthetic 123'); await field('confirm-password', 'Password synthetic 123');
+    }
+    await submit(); await flush();
+  }
+  async function prepareBusiness(modules) {
+    await field('business-name', 'Centro demo');
     for (const activity of ['veterinary', 'grooming', 'retail']) {
       const checkbox = find(node => node.type === 'input' && node.props.value === activity);
       if (checkbox.props.checked !== modules.includes(activity)) { checkbox.props.onChange({ target: { checked: modules.includes(activity) } }); await flush(); }
     }
     await submit(); await flush();
-    await field('owner-name', 'Admin demo'); await field('owner-email', ' ADMIN@EXAMPLE.INVALID ');
-    await field('owner-password', 'Password synthetic 123'); await field('confirm-password', 'Password synthetic 123');
+  }
+  async function selectPlan(id) {
+    find(node => node.props?.name === 'plan' && node.props.value === id).props.onChange();
+    await flush();
+  }
+  async function prepare(modules = ['veterinary'], plan = 'free') {
+    await prepareAccount();
+    await prepareBusiness(modules);
+    await selectPlan(plan);
     await submit(); await flush();
   }
-  return { prepare, submit, flush, release: () => release?.(), requests, signIns, navigation, state,
+  return { prepare, prepareAccount, prepareBusiness, selectPlan, submit, flush, field, find, release: () => release?.(), requests, signIns, navigation, state,
     get tree() { return tree; }, get text() { return textOf(tree); },
     links: () => nodes(tree).filter(node => node.type === 'a'),
-    registrations: () => requests.filter(request => request.url === '/api/onboarding/register'),
+    registrations: () => requests.filter(request => ['/api/onboarding/register', '/api/onboarding/social-register'].includes(request.url)),
   };
 }
+
+test('new businesses choose their activities explicitly', async () => {
+  const f = fixture(); await f.prepareAccount();
+  const activities = nodes(f.tree).filter(node => node.props?.name === 'activities');
+  assert.equal(activities.length, 3);
+  assert.ok(activities.every(node => node.props.checked === false));
+  await f.field('business-name', 'Peluquería demo');
+  await f.submit(); await f.flush();
+  assert.match(f.text, /Cuéntanos sobre tu negocio/);
+  assert.equal(f.find(node => node.props?.type === 'submit').props.disabled, true);
+  f.find(node => node.props?.value === 'grooming').props.onChange({ target: { checked: true } });
+  await f.flush(); await f.submit(); await f.flush();
+  assert.match(f.text, /Elige un plan/);
+});
+
+test('a taken identifier opens its editor and leaves it open while correcting', async () => {
+  const f = fixture({ isAvailable: slug => slug !== 'peluqueria-demo' }); await f.prepareAccount();
+  await f.field('business-name', 'Peluquería demo');
+  const editor = f.find(node => node.props?.id === 'business-slug');
+  assert.equal(editor.props['aria-invalid'], true);
+  assert.match(f.text, /está en uso/);
+  await f.field('business-slug', 'peluqueria-demo-2');
+  assert.equal(f.find(node => node.props?.id === 'business-slug').props.value, 'peluqueria-demo-2');
+  assert.match(f.text, /Identificador disponible/);
+});
+
+test('chooses a plan before review and carries only its preference to the welcome page', async () => {
+  const f = fixture(); await f.flush();
+  assert.match(f.text, /Crea tu cuenta/);
+  assert.equal(nodes(f.tree).filter(node => node.props?.id === 'business-name').length, 0);
+  await f.prepareAccount(); await f.prepareBusiness(['grooming']);
+  assert.match(f.text, /Elige un plan/);
+  assert.equal(f.find(node => node.props?.type === 'submit').props.disabled, true);
+  await f.selectPlan('basic'); await f.submit(); await f.flush();
+  assert.match(f.text, /Revisa tu registro/);
+  assert.match(f.text, /Plan elegido\s+Básico/);
+  assert.equal(f.registrations().length, 0);
+  f.find(node => node.type === 'button' && textOf(node).trim() === 'Atrás').props.onClick();
+  await f.flush();
+  assert.equal(f.find(node => node.props?.name === 'plan' && node.props.value === 'basic').props.checked, true);
+  await f.submit(); await f.flush(); await f.submit(); await f.flush();
+  assert.deepEqual(f.navigation, ['/onboarding/success?plan=basic', 'refresh']);
+  assert.equal(f.registrations().length, 1);
+  const creation = JSON.parse(f.registrations()[0].options.body);
+  assert.equal(Object.hasOwn(creation, 'plan'), false);
+  assert.ok(f.requests.every(request => !request.url.includes('/billing')));
+});
+
+test('confirmed social identity enters through the account step and continues without a password', async () => {
+  const f = fixture({ socialIdentity: { provider: 'google', emailHint: 'provider@example.invalid' } });
+  await f.flush();
+  assert.match(f.text, /Confirma tus datos de contacto/);
+  assert.equal(f.find(node => node.props?.id === 'owner-email').props.value, 'provider@example.invalid');
+  assert.equal(nodes(f.tree).filter(node => node.props?.id === 'owner-password').length, 0);
+  await f.prepare(['grooming'], 'custom'); await f.submit(); await f.flush();
+  assert.equal(f.registrations().length, 1);
+  assert.equal(f.registrations()[0].url, '/api/onboarding/social-register');
+  assert.equal(Object.hasOwn(JSON.parse(f.registrations()[0].options.body), 'password'), false);
+  assert.deepEqual(f.navigation, ['/onboarding/success?plan=custom', 'refresh']);
+});
 
 test('ready registration signs in and preserves the normal welcome route', async () => {
   const f = fixture(); await f.prepare(); await f.submit(); await f.flush();
@@ -189,6 +270,7 @@ for (const provisioning of ['ready', 'pending']) test(`public proxy preserves th
     exports: proxy, Response, URL, AbortSignal, process: { env: {} },
     require(name) {
       if (name === '@/lib/api') return { apiUrl: path => 'https://backend.example.invalid' + path };
+      if (name === '@/auth') return { auth: () => { assert.fail('Password registration must not use a social session'); } };
       if (name === '@/lib/operator-channel/admin-auth') return { canonicalAdminEmail: email => email.toLowerCase().trim() };
       throw new Error('Unexpected public proxy dependency: ' + name);
     },

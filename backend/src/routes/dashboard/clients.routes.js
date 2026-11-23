@@ -7,6 +7,7 @@ const { validMoney } = require("../../services/grooming-transport.service");
 const { resolveAppointmentTotal } = require("../../services/domain/price-resolver.service");
 const { operationalPet } = require("../../services/dashboard-access.service");
 const operationalClient = c => ({ id: c.id, name: c.name, phone: c.phone, phoneAlt: c.phoneAlt ?? null, email: c.email ?? null, address: c.address ?? null, neighborhood: c.neighborhood ?? null, createdAt: c.createdAt, petsCount: c.petsCount ?? c.pets?.length ?? 0, appointmentsCount: c.appointmentsCount ?? c.appointments?.length ?? 0, lastActivityAt: c.lastActivityAt ?? c.createdAt, conversationsCount: c.conversationsCount ?? 0, latestConversationId: c.latestConversationId ?? null, pets: c.pets?.map(operationalPet), _count: c._count ? { pets: c._count.pets, appointments: c._count.appointments } : undefined, appointments: c.appointments?.map(a => ({ id: a.id, date: a.date, status: a.status, serviceType: a.serviceType, petName: a.petName, petType: a.petType, service: a.service ? { name: a.service.name } : null, pet: a.pet ? { id: a.pet.id, name: a.pet.name } : null })), conversations: [] });
+const { activeClient } = require("../../services/contact-archive.service");
 const ERRORS = require("../../constants/errors");
 const validNeighborhood = value => value == null || (typeof value === 'string' && value.trim().length <= 200);
 const {
@@ -23,32 +24,36 @@ router.get("/clients", async (req, res) => {
   try {
     const { tenantId } = req.tenant;
     const { search, limit, page } = req.query;
+    const archived = req.query.status === "archived";
+    if (archived && !req.access?.capabilities.administration) return res.status(403).json({ error: "Solo administración puede ver las fichas archivadas." });
 
     // Autocomplete compartido por agenda y POS: propietario, teléfono o mascota.
-    if (search && typeof search === "string" && search.trim().length >= 2 && parseInt(limit) <= 20) {
+    if (!archived && search && typeof search === "string" && search.trim().length >= 2 && parseInt(limit) <= 20) {
       const tenantFilter = tenantId ? { tenantId } : {};
+      const petFilter = { ...tenantFilter, archivedAt: null };
       const term = search.trim();
       const take = Math.min(parseInt(limit) || 8, 20);
       const users = await prisma.user.findMany({
         where: {
           ...tenantFilter,
+          ...activeClient,
           OR: [
             { name: { contains: term, mode: "insensitive" } },
             { phone: { contains: term } },
-            { pets: { some: { ...tenantFilter, name: { contains: term, mode: "insensitive" } } } },
+            { pets: { some: { ...petFilter, name: { contains: term, mode: "insensitive" } } } },
           ],
         },
         take,
         orderBy: { createdAt: "desc" },
         include: {
-          pets: { where: tenantFilter, select: { id: true, name: true, type: true }, orderBy: { createdAt: "desc" }, take: 5 },
+          pets: { where: petFilter, select: { id: true, name: true, type: true }, orderBy: { createdAt: "desc" }, take: 5 },
         },
       });
       // Buscar también fuera de las cinco mascotas recientes, con límite por propietario.
       const petMatches = users.length ? await prisma.user.findMany({
-        where: { ...tenantFilter, id: { in: users.map(u => u.id) } },
+        where: { ...tenantFilter, ...activeClient, id: { in: users.map(u => u.id) } },
         select: { id: true, pets: {
-          where: { ...tenantFilter, name: { contains: term, mode: "insensitive" } },
+          where: { ...petFilter, name: { contains: term, mode: "insensitive" } },
           select: { id: true, name: true, type: true },
           orderBy: { createdAt: "desc" }, take: 5,
         } },
@@ -61,7 +66,7 @@ router.get("/clients", async (req, res) => {
       }));
     }
 
-    const result = await listClients(tenantId, { page, limit, search });
+    const result = await listClients(tenantId, { page, limit, search, archived });
     if (req.actor?.type && req.actor.type !== "admin") {
       return res.json({ ...result, data: result.data.map(operationalClient) });
     }

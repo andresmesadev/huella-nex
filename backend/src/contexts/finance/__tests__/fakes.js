@@ -170,7 +170,7 @@ function createFakeCompletedAppointmentsReader(initial = []) {
 function createFakeCommissionReader(initial = []) {
   return {
     async listByDateRange(tenantId, dateStart, dateEnd) {
-      return initial.filter((r) => (!tenantId || r.tenantId === tenantId) && inRange(r.completedAt, dateStart, dateEnd));
+      return initial.filter((r) => (r.status ?? 'active') === 'active' && (!tenantId || r.tenantId === tenantId) && inRange(r.completedAt, dateStart, dateEnd));
     },
   };
 }

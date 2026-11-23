@@ -14,71 +14,7 @@ function supportMailto(subject: string) {
   return `mailto:${PRODUCT_SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}`;
 }
 
-// ── Plan definitions ──────────────────────────────────────────
-
-type PlanId = "free" | "basic" | "pro" | "custom";
-
-type Plan = {
-  id: PlanId;
-  name: string;
-  price: string;
-  period: string;
-  features: string[];
-  /** Condiciones aún no confirmadas: se muestran aparte, sin marca de incluido. */
-  pending?: string[];
-  highlight?: boolean;
-};
-
-const OPERATIONAL_FEATURES = [
-  "Gestión operativa de un establecimiento",
-  "Agenda, clientes y mascotas según módulos habilitados",
-  "Equipo con roles y permisos",
-  "Caja, inventario y comprobantes operativos",
-];
-// Diferencia entre planes: créditos del agente de IA (base aceptada el 29/10/2026,
-// ADR 033). El equipo de plataforma los asigna al habilitar la IA del negocio.
-const AI_CREDITS = { free: "100 créditos de IA de prueba, una sola vez", basic: "1.000 créditos de IA al mes", pro: "3.000 créditos de IA al mes" } as const;
-
-const PLANS: Plan[] = [
-  {
-    id: "free",
-    name: "Evaluación",
-    price: "$0",
-    period: "evaluación",
-    features: [
-      "Acceso de evaluación al dashboard según habilitación",
-      "Gestión operativa según módulos y permisos",
-      AI_CREDITS.free,
-      "WhatsApp sujeto a habilitación",
-    ],
-  },
-  {
-    id: "basic",
-    name: "Básico",
-    price: "$49.000",
-    period: "mes",
-    highlight: true,
-    features: [...OPERATIONAL_FEATURES, AI_CREDITS.basic],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "$89.000",
-    period: "mes",
-    features: [...OPERATIONAL_FEATURES, AI_CREDITS.pro],
-  },
-  {
-    id: "custom",
-    name: "Personalizado",
-    price: "A convenir",
-    period: "cotización",
-    features: [
-      "Alcance acordado según las necesidades de tu negocio",
-      "Propuesta y condiciones antes de contratar",
-      "Precio definido mediante cotización",
-    ],
-  },
-];
+import { PLANS, type Plan, type PlanId } from "@/lib/plan-catalog";
 
 // ── Status helpers ────────────────────────────────────────────
 
@@ -121,7 +57,7 @@ function PlanCard({
   loading: boolean;
 }) {
   return (
-    <div className={`relative flex flex-col rounded-xl border p-5 gap-4
+    <div id={"plan-" + plan.id} className={`relative flex scroll-mt-28 flex-col rounded-xl border p-5 gap-4 target:ring-2 target:ring-primary
       ${plan.highlight ? "border-primary" : ""}
       ${isCurrent ? "bg-muted/40" : "bg-background"}`}
     >

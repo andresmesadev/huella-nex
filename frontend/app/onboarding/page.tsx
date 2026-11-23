@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { SocialSignInButtons } from "@/components/auth/social-sign-in-buttons";
+import { SOCIAL_PROVIDER_LABELS, type SocialProvider } from "@/lib/social-identity";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, HeartPulse, Scissors, ShoppingBag, ShieldCheck, LoaderCircle } from "lucide-react";
 import { RegistrationShell } from "@/components/onboarding/registration-shell";
 import { LegalLinks } from "@/components/brand/legal-links";
 import styles from "@/components/onboarding/registration.module.css";
+import { PLANS, getPlan, planDetailsHref, type PlanId } from "@/lib/plan-catalog";
 import { onboardingProvisioning, onboardingNotice, onboardingSupportHref, type OnboardingProvisioning } from "@/lib/onboarding-result";
 
 const ACTIVITIES = [
@@ -15,7 +18,13 @@ const ACTIVITIES = [
   { id: "grooming", label: "Peluquería", icon: Scissors },
   { id: "retail", label: "Pet shop", icon: ShoppingBag },
 ];
-const STEPS = ["Tu negocio", "Tu acceso", "Revisar"];
+const STEPS = ["Tu cuenta", "Tu negocio", "Plan", "Revisión"];
+const PLAN_DESCRIPTIONS: Record<PlanId, string> = {
+  free: "Conoce el sistema y configura tu negocio sin contratar.",
+  basic: "Agenda, clientes y caja según las actividades que elegiste.",
+  pro: "Funciones operativas del Básico. El cupo de IA está por confirmar.",
+  custom: "Adaptamos el sistema a la forma de trabajar de tu negocio.",
+};
 type FormState = { name: string; slug: string; ownerName: string; email: string; password: string; activeModules: string[] };
 type Availability = { slug: string; status: "checking" | "available" | "taken" | "error" };
 
@@ -25,9 +34,18 @@ function toSlug(name: string) {
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { data: session, status: sessionStatus, update } = useSession();
+  const socialIdentity = session?.user.socialIdentity;
+  const [registeredWith, setRegisteredWith] = useState<SocialProvider | null>(null);
+  const socialProvider = socialIdentity?.provider ?? registeredWith;
+  const [socialEmail, setSocialEmail] = useState<string | null>(null);
+  const [socialName, setSocialName] = useState<string | null>(null);
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormState>({ name: "", slug: "", ownerName: "", email: "", password: "", activeModules: ["veterinary"] });
+  const [planId, setPlanId] = useState<PlanId | null>(null);
+  const selectedPlan = getPlan(planId);
+  const [form, setForm] = useState<FormState>({ name: "", slug: "", ownerName: "", email: "", password: "", activeModules: [] });
   const [customSlug, setCustomSlug] = useState(false);
+  const [editSlug, setEditSlug] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [retry, setRetry] = useState(0);
@@ -42,9 +60,17 @@ export default function OnboardingPage() {
   const submitting = useRef(false);
   const created = useRef(false);
   const title = useRef<HTMLHeadingElement>(null);
+  const focusSlugEditor = useRef(false);
   const validSlug = form.slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug);
+  const registrationEmail = socialProvider ? (socialEmail ?? socialIdentity?.emailHint ?? form.email) : form.email;
+  const hasEmail = registrationEmail.trim().length > 0;
+  const registrationName = socialProvider ? (socialName ?? socialIdentity?.nameHint ?? form.ownerName) : form.ownerName;
   const status = availability?.slug === form.slug ? availability.status : "checking";
   const notice = registered ? onboardingNotice(provisioning) : null;
+  const validName = form.name.trim().length >= 2;
+  const mustEditSlug = validName && (!validSlug || status === "taken" || errorField === "slug");
+  const showSlugEditor = mustEditSlug || editSlug;
+  const canContinueBusiness = validName && validSlug && status === "available" && form.activeModules.length > 0;
 
   useEffect(() => { title.current?.focus(); }, [step]);
   useEffect(() => {
@@ -76,37 +102,84 @@ export default function OnboardingPage() {
     if (submitting.current || created.current) return;
     setError(null); setErrorField(null);
     if (step === 1) {
-      if (!form.activeModules.length || !validSlug || status !== "available") return;
+      if (registrationName.trim().length < 2) {
+        setError("Escribe tu nombre para continuar.");
+        setErrorField("ownerName");
+        return;
+      }
+      if (!hasEmail) {
+        setError("Escribe tu correo electrónico para continuar.");
+        setErrorField("email");
+        return;
+      }
+      if (!socialIdentity) {
+        if (form.password.length < 12 || form.password.length > 128) {
+          setError("Usa una contraseña de entre 12 y 128 caracteres.");
+          setErrorField("password");
+          return;
+        }
+        if (form.password !== confirmPassword) {
+          setError("Las contraseñas no coinciden. Escríbelas de nuevo.");
+          setErrorField("confirmPassword");
+          return;
+        }
+      }
       setStep(2); return;
     }
     if (step === 2) {
-      if (form.password !== confirmPassword) { setError("Las contraseñas no coinciden. Escríbelas de nuevo."); setErrorField("confirmPassword"); return; }
+      if (!canContinueBusiness) return;
       setStep(3); return;
     }
+    if (step === 3) {
+      if (selectedPlan) setStep(4);
+      return;
+    }
+    if (!selectedPlan) return;
     submitting.current = true; setBusy(true);
     try {
-      const response = await fetch("/api/onboarding/register", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, name: form.name.trim(), ownerName: form.ownerName.trim(), email: form.email.trim().toLowerCase(), acceptTerms }),
+      const registration = {
+        name: form.name.trim(), ownerName: registrationName.trim(), slug: form.slug,
+        email: registrationEmail.trim().toLowerCase(), activeModules: form.activeModules,
+        ...(!socialIdentity ? { password: form.password } : {}),
+        acceptTerms,
+      };
+      const response = await fetch(socialIdentity ? "/api/onboarding/social-register" : "/api/onboarding/register", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(registration),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        if (data?.field) { setStep(["name", "slug", "activeModules"].includes(data.field) ? 1 : data.field === "acceptTerms" ? 3 : 2); setErrorField(data.field); }
+        if (data?.field) { setStep(["name", "slug", "activeModules"].includes(data.field) ? 2 : data.field === "acceptTerms" ? 3 : 1); setErrorField(data.field); }
         throw new Error(data?.error || "No pudimos confirmar el registro. Intenta iniciar sesión antes de repetirlo.");
       }
       // Commit succeeded: any sign-in failure must never repeat registration.
       created.current = true;
+      setRegisteredWith(socialIdentity?.provider ?? null);
+      if (socialIdentity) {
+        setSocialEmail(registration.email);
+        setSocialName(registration.ownerName);
+      }
       setRegistered(true);
       const preparation = onboardingProvisioning(data?.provisioning);
       setProvisioning(preparation);
       const password = form.password;
       setForm(current => ({ ...current, password: "" })); setConfirmPassword("");
       try {
-        const result = await signIn("credentials", { email: form.email.trim().toLowerCase(), password, redirect: false });
-        if (!result || result.error || result.ok !== true) throw new Error("signin");
+        if (socialIdentity) {
+          const updated = await update({});
+          if (!updated?.user.staffId || !updated.user.tenantId || updated.user.socialIdentity) throw new Error("signin");
+        } else {
+          const result = await signIn("credentials", { email: registration.email, password, redirect: false });
+          if (!result || result.error || result.ok !== true) throw new Error("signin");
+        }
         setSignedIn(true);
-        if (preparation === "ready") { router.replace("/onboarding/success"); router.refresh(); }
-      } catch { setError("Tu cuenta ya está creada. Inicia sesión con tu correo y contraseña para continuar."); }
+        if (preparation === "ready") {
+          const planQuery = selectedPlan.id === "free" ? "" : "?plan=" + selectedPlan.id;
+          router.replace("/onboarding/success" + planQuery);
+          router.refresh();
+        }
+      } catch {
+        setError(socialProvider ? "Tu cuenta ya está creada. Vuelve a ingresar con " + SOCIAL_PROVIDER_LABELS[socialProvider] + "." : "Tu cuenta ya está creada. Inicia sesión con tu correo y contraseña para continuar.");
+      }
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "No pudimos confirmar el registro. Intenta iniciar sesión antes de repetirlo.");
     } finally { submitting.current = false; setBusy(false); }
@@ -119,12 +192,23 @@ export default function OnboardingPage() {
           <span className={`${styles.progressNumber} ${step > index + 1 ? styles.complete : ""}`}>{step > index + 1 ? <Check size={13} aria-label="Completado" /> : index + 1}</span>{label}
         </li>)}
       </ol>
-      <p className={styles.stepLabel}>Paso {step} de 3</p>
-      <h2 ref={title} tabIndex={-1} className={styles.title}>{step === 1 ? "Cuéntanos sobre tu negocio" : step === 2 ? "Crea tu acceso de administrador" : registered ? "Tu cuenta ya está creada" : "Todo listo para comenzar"}</h2>
-      <p className={styles.description}>{registered ? "Continúa con tu cuenta existente. No necesitas repetir el registro." : step === 1 ? "Un espacio propio para tu veterinaria, peluquería o pet shop." : step === 2 ? "Usarás este correo y contraseña para ingresar y administrar tu negocio." : "Revisa tus datos antes de crear la cuenta."}</p>
+      <h2 ref={title} tabIndex={-1} className={styles.title}>
+        {step === 1 ? (socialProvider ? "Confirma tus datos de contacto" : "Crea tu cuenta") :
+          step === 2 ? "Cuéntanos sobre tu negocio" :
+          step === 3 ? "Elige un plan" :
+          registered ? "Tu cuenta ya está creada" : "Revisa tu registro"}
+      </h2>
+      <p className={styles.description}>
+        {registered ? "Usa tu cuenta para continuar." :
+          step === 1 ? (socialProvider ? "Con estos datos podremos contactarte sobre tu cuenta." : "Elige cómo quieres acceder a tu negocio.") :
+          step === 2 ? "Escribe el nombre de tu negocio y elige a qué se dedica." :
+          step === 3 ? "Puedes empezar con Evaluación o elegir el plan que te interesa." :
+          "Confirma tus datos, las actividades de tu negocio y el plan que elegiste."}
+      </p>
 
+      {step === 1 && socialIdentity && <p className={styles.notice}>Te identificaste con {SOCIAL_PROVIDER_LABELS[socialIdentity.provider]}. Revisa tus datos para continuar.</p>}
       <form onSubmit={submit} className={styles.form}>
-        {step === 1 && <>
+        {step === 2 && <>
           <div className={styles.field}>
             <label htmlFor="business-name">Nombre del negocio</label>
             <input id="business-name" name="organization" autoComplete="organization" placeholder="Ej. Mi negocio de mascotas" value={form.name} minLength={2} maxLength={120} required aria-invalid={errorField === "name"} onChange={event => {
@@ -133,42 +217,94 @@ export default function OnboardingPage() {
             }} />
           </div>
           <fieldset className={styles.fieldGroup} aria-describedby="activities-hint">
-            <legend className={styles.legend}>¿Qué servicios ofrece tu negocio?</legend>
+            <legend className={styles.legend}>¿A qué se dedica tu negocio?</legend>
             <div className={styles.moduleOptions}>{ACTIVITIES.map(({ id, label, icon: Icon }) => <label key={id} className={styles.moduleOption}>
               <input type="checkbox" name="activities" value={id} checked={form.activeModules.includes(id)} onChange={event => {
-                setError(null); setForm(current => ({ ...current, activeModules: event.target.checked ? [...current.activeModules, id] : current.activeModules.filter(item => item !== id) }));
+                setError(null); setErrorField(null); setForm(current => ({ ...current, activeModules: event.target.checked ? [...current.activeModules, id] : current.activeModules.filter(item => item !== id) }));
               }} /><Icon size={23} aria-hidden="true" />{label}
             </label>)}</div>
-            <p id="activities-hint" className={styles.hint} style={{ marginTop: 9 }}>Puedes elegir varias actividades y ajustarlas después.</p>
-            {!form.activeModules.length && <p className={`${styles.status} ${styles.error}`}>Selecciona al menos una actividad.</p>}
+            <p id="activities-hint" className={styles.hint} style={{ marginTop: 9 }}>Elige al menos una actividad. Puedes seleccionar varias y ajustarlas después en Configuración.</p>
           </fieldset>
-          <div>
-            <details className={styles.customize} open={errorField === "slug" || undefined}>
-              <summary>Personalizar el identificador del negocio</summary>
-              <div className={styles.field}><label htmlFor="business-slug">Identificador del negocio</label><input id="business-slug" name="slug" value={form.slug} required minLength={2} maxLength={63} pattern="[a-z0-9]+(-[a-z0-9]+)*" autoCapitalize="none" spellCheck={false} aria-describedby="slug-hint slug-status" aria-invalid={status === "taken" || errorField === "slug"} onChange={event => {
-                setCustomSlug(true); change("slug", event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
-              }} /><p id="slug-hint" className={styles.hint}>Es un nombre único para distinguir tu negocio. Usa letras, números y guiones.</p></div>
-            </details>
-            {form.slug && <p className={styles.slugPreview}>Tu identificador: <strong>{form.slug}</strong></p>}
+          {validName && <div className={styles.customize}>
+            {showSlugEditor ? (
+              <div className={styles.field}>
+                <label htmlFor="business-slug">Identificador del negocio</label>
+                <input id="business-slug" name="slug" value={form.slug}
+                  ref={input => {
+                    if (input && focusSlugEditor.current) {
+                      focusSlugEditor.current = false;
+                      input.focus();
+                    }
+                  }} required minLength={2} maxLength={63} pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                  autoCapitalize="none" spellCheck={false} aria-describedby="slug-hint slug-status" aria-invalid={status === "taken" || errorField === "slug"}
+                  onChange={event => {
+                    setEditSlug(true);
+                    setCustomSlug(true);
+                    change("slug", event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+                  }} />
+                <p id="slug-hint" className={styles.hint}>Usa al menos dos letras o números. Puedes separarlos con guiones.</p>
+              </div>
+            ) : (
+              <div className={styles.slugPreview}>
+                <span>Identificador <strong>{form.slug}</strong></span>
+                <button type="button" className={styles.editSlug} aria-label="Editar el identificador del negocio" onClick={() => {
+                  focusSlugEditor.current = true;
+                  setEditSlug(true);
+                }}>Editar</button>
+              </div>
+            )}
             <div id="slug-status" role="status" className={styles.status}>
-              {validSlug && (status === "checking" ? "Comprobando disponibilidad…" : status === "available" ? <span className={styles.available}>Disponible para tu negocio</span> : status === "taken" ? <span className={styles.error}>Ese identificador ya está en uso. Personalízalo para continuar.</span> : <span className={styles.error}>No pudimos comprobarlo.<button className={styles.retry} type="button" onClick={() => { setAvailability(null); setRetry(value => value + 1); }}>Reintentar</button></span>)}
+              {validSlug && (status === "checking" ? "Comprobando disponibilidad…" : status === "available" ? <span className={styles.available}>Identificador disponible.</span> : status === "taken" ? <span className={styles.error}>Ese identificador está en uso. Cámbialo para continuar.</span> : <span className={styles.error}>No pudimos comprobar la disponibilidad.<button className={styles.retry} type="button" onClick={() => { setAvailability(null); setRetry(value => value + 1); }}>Reintentar</button></span>)}
             </div>
-          </div>
+          </div>}
         </>}
-        {step === 2 && <>
-          <div className={styles.field}><label htmlFor="owner-name">Tu nombre</label><input id="owner-name" name="name" autoComplete="name" placeholder="Nombre y apellido" required minLength={2} maxLength={100} value={form.ownerName} aria-invalid={errorField === "ownerName"} onChange={event => change("ownerName", event.target.value)} /></div>
-          <div className={styles.field}><label htmlFor="owner-email">Correo electrónico</label><input id="owner-email" name="email" type="email" autoComplete="username" autoCapitalize="none" placeholder="nombre@tunegocio.com" required maxLength={254} value={form.email} aria-invalid={errorField === "email"} aria-describedby="email-hint" onChange={event => change("email", event.target.value)} /><p id="email-hint" className={styles.hint}>Usa un correo real al que tengas acceso.</p></div>
+        {step === 1 && <>
+          <div className={styles.field}>
+            <label htmlFor="owner-name">Tu nombre</label>
+            <input id="owner-name" name="name" autoComplete="name" placeholder="Nombre y apellido" required minLength={2} maxLength={100}
+              value={registrationName} aria-invalid={errorField === "ownerName"} onChange={event => {
+                if (socialProvider) { setSocialName(event.target.value); setError(null); setErrorField(null); }
+                else change("ownerName", event.target.value);
+              }} />
+          </div>
+          <div className={styles.field}><label htmlFor="owner-email">Correo electrónico</label><input id="owner-email" name="email" type="email" autoComplete="username" autoCapitalize="none" placeholder="nombre@tunegocio.com" required maxLength={254} value={registrationEmail} aria-invalid={errorField === "email"} aria-describedby="email-hint" onChange={event => {
+            const email = event.target.value;
+            if (socialProvider) { setSocialEmail(email); setError(null); setErrorField(null); }
+            else {
+              change("email", email);
+              if (!email.trim()) setShowPassword(false);
+            }
+          }} /><p id="email-hint" className={styles.hint}>Usa un correo real al que tengas acceso.</p></div>
+          {!socialProvider && hasEmail && <>
           <div className={styles.field}><label htmlFor="owner-password">Contraseña</label><div className={styles.passwordWrap}><input id="owner-password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={12} maxLength={128} required value={form.password} aria-describedby="password-hint" aria-invalid={errorField === "password"} onChange={event => change("password", event.target.value)} /><button type="button" className={styles.passwordToggle} onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={showPassword}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div><p id="password-hint" className={styles.hint}>Entre 12 y 128 caracteres. Puedes usar una frase fácil de recordar.</p></div>
           <div className={styles.field}><label htmlFor="confirm-password">Confirma tu contraseña</label><input id="confirm-password" name="confirmPassword" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} aria-invalid={errorField === "confirmPassword"} onChange={event => { setConfirmPassword(event.target.value); setError(null); setErrorField(null); }} /></div>
+          </>}
         </>}
-        {step === 3 && <>
+        {step === 3 && (
+          <fieldset className={styles.fieldGroup} aria-describedby="plan-hint">
+            <legend className={styles.legend}>Opciones de plan</legend>
+            <div className={styles.planOptions}>
+              {PLANS.map(plan => (
+                <label key={plan.id} className={styles.planOption}>
+                  <input type="radio" name="plan" value={plan.id} checked={planId === plan.id} onChange={() => setPlanId(plan.id)} />
+                  <strong>{plan.name}</strong>
+                  <span className={styles.planPrice}>{plan.price}{(plan.id === "basic" || plan.id === "pro") && " COP/mes"}</span>
+                  <span className={styles.planDescription}>{PLAN_DESCRIPTIONS[plan.id]}</span>
+                </label>
+              ))}
+            </div>
+            <p id="plan-hint" className={styles.hint}>Los precios son de referencia. Si eliges un plan de pago, podrás revisar el importe y confirmar la contratación en Facturación.</p>
+          </fieldset>
+        )}
+        {step === 4 && selectedPlan && <>
           <dl className={styles.review}>
+            <div><dt>Tu cuenta</dt><dd>{registrationName}<span>{registrationEmail.trim().toLowerCase()}</span></dd></div>
             <div><dt>Negocio</dt><dd>{form.name}<span>{form.slug}</span></dd></div>
             <div><dt>Actividades</dt><dd>{ACTIVITIES.filter(activity => form.activeModules.includes(activity.id)).map(activity => activity.label).join(", ")}</dd></div>
-            <div><dt>Administrador</dt><dd>{form.ownerName}<span>{form.email.trim().toLowerCase()}</span></dd></div>
+            <div><dt>Plan elegido</dt><dd>{selectedPlan.name}</dd></div>
           </dl>
-          {!registered && <><div className={styles.planNote}><ShieldCheck size={21} aria-hidden="true" /><div><strong>Empieza con acceso de evaluación</strong><p>Crear tu cuenta no genera un cobro. Podrás revisar y contratar un plan desde Facturación.</p></div></div>
-          <p className={styles.notice}>Esta cuenta administrará un negocio nuevo. Si ya tienes uno registrado, <Link href="/login">ingresa con tu cuenta</Link>.</p>
+          {!registered && <><div className={styles.planNote}><ShieldCheck size={21} aria-hidden="true" /><div><strong>Crear tu cuenta es gratis</strong><p>{selectedPlan.id === "free" ? "Tu negocio empezará con acceso de evaluación." : "Tu negocio empezará con acceso de evaluación. Después podrás revisar el plan elegido en Facturación."}</p></div></div>
+          <p className={styles.notice}>Si tu negocio ya está registrado, <Link href="/login">ingresa con tu cuenta</Link>.</p>
           <label className={styles.terms}>
             <input type="checkbox" name="acceptTerms" required checked={acceptTerms} aria-invalid={errorField === "acceptTerms"} onChange={event => { setAcceptTerms(event.target.checked); setError(null); setErrorField(null); }} />
             <span>He leído y acepto las <a href="/terminos" target="_blank" rel="noopener">Condiciones</a> y la <a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a> de Huella Nex.</span>
@@ -180,15 +316,17 @@ export default function OnboardingPage() {
           <a href={onboardingSupportHref(form.slug)}>Solicitar revisión por correo</a>
           <p>La conexión de WhatsApp y la habilitación de IA se configuran por separado.</p>
         </section>}
-        {error && <div className={styles.alert} role="alert"><p>{error}</p>{step === 3 && <Link href="/login">Ir a iniciar sesión</Link>}</div>}
+        {error && <div className={styles.alert} role="alert"><p>{error}</p>{step === 4 && <Link href="/login">Ir a iniciar sesión</Link>}</div>}
         <div className={styles.actions}>
           {step > 1 && !registered && <button className={styles.secondary} type="button" disabled={busy} onClick={() => move(step - 1)}><ArrowLeft size={16} aria-hidden="true" />Atrás</button>}
-          {registered && !busy ? <Link className={styles.primary} href={signedIn ? "/dashboard" : "/login"}>{signedIn ? "Entrar a mi negocio" : "Iniciar sesión"}<ArrowRight size={16} aria-hidden="true" /></Link> : <button className={styles.primary} type="submit" disabled={busy || (step === 1 && (!validSlug || status !== "available" || !form.activeModules.length || form.name.trim().length < 2))}>
-            {busy ? <><LoaderCircle size={17} aria-hidden="true" />Creando tu acceso…</> : <>{step === 3 ? "Crear mi cuenta" : step === 2 ? "Revisar mis datos" : "Continuar"}<ArrowRight size={17} aria-hidden="true" /></>}
+          {registered && !busy ? <Link className={styles.primary} href={signedIn ? "/dashboard" : "/login"}>{signedIn ? "Entrar a mi negocio" : "Iniciar sesión"}<ArrowRight size={16} aria-hidden="true" /></Link> : <button className={styles.primary} type="submit" disabled={busy || (step === 2 && !canContinueBusiness) || (step === 3 && !selectedPlan)}>
+            {busy ? <><LoaderCircle size={17} aria-hidden="true" />Creando tu acceso…</> : <>{step === 4 ? "Crear mi cuenta" : step === 3 ? "Revisar registro" : "Continuar"}<ArrowRight size={17} aria-hidden="true" /></>}
           </button>}
         </div>
-        {step === 2 && <p className={styles.notice}>Serás administrador de este establecimiento. Después podrás crear los accesos de tu equipo.</p>}
+        {registered && signedIn && selectedPlan && selectedPlan.id !== "free" && <p className={styles.notice}><Link href={planDetailsHref(selectedPlan.id)}>Revisar plan {selectedPlan.name}</Link></p>}
+        {step === 1 && <p className={styles.notice}>Con esta cuenta podrás configurar el negocio y dar acceso a tu equipo.</p>}
       </form>
+      {step === 1 && sessionStatus !== "loading" && !socialIdentity && <SocialSignInButtons mode="register" />}
       <LegalLinks className="mt-6" />
     </RegistrationShell>
   );

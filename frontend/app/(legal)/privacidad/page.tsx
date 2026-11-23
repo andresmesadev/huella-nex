@@ -26,13 +26,15 @@ export default function PrivacyPage() {
       <ul>
         <li>Datos de contacto, cuenta, rol y sesión para autenticar usuarios, gestionar permisos y atender solicitudes de soporte.</li>
         <li>Datos de clientes y personal vinculados a citas, mascotas, servicios, cobros y otras operaciones para que el establecimiento pueda administrar su actividad.</li>
+        <li>Si eliges acceder con Google, recibimos el identificador de tu cuenta de Google, tu correo y datos básicos de perfil. Asociamos el identificador a tu cuenta de Huella Nex para reconocerla al iniciar sesión y usamos el nombre y el correo verificado para facilitar el registro. El acceso a Google se limita a esos datos de identidad.</li>
+        <li>Si eliges acceder con Microsoft, recibimos el identificador de tu cuenta, datos básicos de perfil y tu correo si Microsoft lo proporciona. Asociamos el identificador a tu cuenta de Huella Nex para reconocerla al iniciar sesión y usamos el nombre y el correo, cuando están disponibles, para facilitar el registro. El acceso a Microsoft se limita a esos datos de identidad.</li>
         <li>Cuando se autoriza Meta, la aplicación puede recibir información de perfil autorizada, identificadores de la cuenta comercial y del número de WhatsApp, y credenciales de integración. La conexión utiliza esos datos para identificar la cuenta autorizada y mantener la comunicación con Meta.</li>
         <li>Cuando el canal de WhatsApp está habilitado, se procesan el teléfono del remitente, los mensajes, las referencias a archivos de audio y los estados de entrega para mostrar conversaciones y permitir su atención. En el modo manual, una persona del equipo responde y puede reproducir las notas de voz.</li>
         <li>Registros técnicos y de auditoría para proteger el servicio, comprobar actuaciones autorizadas y resolver fallos.</li>
       </ul>
 
       <h2>Proveedores, acceso y conservación</h2>
-      <p>Usamos proveedores de alojamiento y respaldo, correo de soporte y, para el canal autorizado, Meta y WhatsApp. Los servicios de IA pueden intervenir en funciones que el establecimiento habilite. Cada proveedor recibe la información necesaria para su función y puede procesarla desde los países en los que presta el servicio.</p>
+      <p>Usamos proveedores de alojamiento y respaldo, correo de soporte, Google y Microsoft para el inicio de sesión que el usuario elige y Meta y WhatsApp para el canal autorizado. Los servicios de IA pueden intervenir en funciones que el establecimiento habilite. Cada proveedor recibe la información necesaria para su función y puede procesarla desde los países en los que presta el servicio.</p>
       <p>El acceso se limita según el establecimiento y los permisos del usuario. Las credenciales de conexión con Meta se guardan cifradas. Conservamos los registros mientras sean necesarios para las finalidades descritas y, cuando corresponda, durante el tiempo exigido para obligaciones legales o para atender reclamaciones. Al finalizar esos motivos se revisa su supresión o anonimización. Los respaldos cifrados tienen su propio ciclo de rotación.</p>
 
       <h2>Tus derechos</h2>
