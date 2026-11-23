@@ -3,7 +3,10 @@ const { hashPassword, normalizeEmail, validPassword } = require("./staff-credent
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MODULES = ["veterinary", "grooming", "retail"];
-const FIELDS = new Set(["name", "slug", "ownerName", "email", "password", "activeModules"]);
+const FIELDS = new Set(["name", "slug", "ownerName", "email", "password", "activeModules", "acceptTerms"]);
+// Versión vigente de Condiciones y Política de privacidad (misma fecha que
+// publican las páginas legales). Se guarda con la aceptación del registro.
+const TERMS_VERSION = () => process.env.HUELLA_NEX_LEGAL_EFFECTIVE_DATE?.trim() || "sin-version";
 
 function invalid(message, field) {
   return Object.assign(new Error(message), { status: 400, field });
@@ -32,6 +35,7 @@ function registrationInput(body) {
       activeModules.some(module => !MODULES.includes(module)) || new Set(activeModules).size !== activeModules.length) {
     throw invalid("Selecciona al menos una actividad del negocio.", "activeModules");
   }
+  if (body.acceptTerms !== true) throw invalid("Para crear la cuenta debes aceptar las Condiciones y la Política de privacidad.", "acceptTerms");
   return { name, slug, ownerName, email, password: body.password, activeModules };
 }
 
@@ -46,6 +50,7 @@ async function registerTenantAdministrator(body) {
     data: {
       name: input.name, slug: input.slug, email: input.email,
       plan: "free", activeModules: input.activeModules,
+      termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION(),
       // A new business chooses its own opening hours instead of inheriting
       // the legacy 11–17 fallback used by existing establishments.
       businessHours: Object.fromEntries(["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map(day => [day, { active: false, open: "", close: "" }])),

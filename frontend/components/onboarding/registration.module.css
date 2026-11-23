@@ -35,3 +35,4 @@
 .actions>*{min-width:0;white-space:normal;overflow-wrap:anywhere}
 .workspace{overflow-wrap:anywhere}
 @media(max-width:380px){.header{padding:14px 16px;gap:12px}.layout{padding-left:12px;padding-right:12px}.workspace{padding:22px 16px}.actions{flex-wrap:wrap}.moduleOptions{gap:5px}.progress{gap:5px}.progress li{flex-direction:column;align-items:flex-start;gap:5px}}
+.terms{display:flex;align-items:flex-start;gap:10px;min-height:44px;font-size:13px;line-height:1.6;color:var(--ink,inherit);cursor:pointer}.terms input{flex-shrink:0;width:20px;height:20px;margin:2px 0 0;accent-color:var(--green)}.terms a{font-weight:650;color:var(--green);text-decoration:underline;text-underline-offset:3px}

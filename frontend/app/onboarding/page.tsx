@@ -28,6 +28,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>({ name: "", slug: "", ownerName: "", email: "", password: "", activeModules: ["veterinary"] });
   const [customSlug, setCustomSlug] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [retry, setRetry] = useState(0);
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -86,11 +87,11 @@ export default function OnboardingPage() {
     try {
       const response = await fetch("/api/onboarding/register", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, name: form.name.trim(), ownerName: form.ownerName.trim(), email: form.email.trim().toLowerCase() }),
+        body: JSON.stringify({ ...form, name: form.name.trim(), ownerName: form.ownerName.trim(), email: form.email.trim().toLowerCase(), acceptTerms }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        if (data?.field) { setStep(["name", "slug", "activeModules"].includes(data.field) ? 1 : 2); setErrorField(data.field); }
+        if (data?.field) { setStep(["name", "slug", "activeModules"].includes(data.field) ? 1 : data.field === "acceptTerms" ? 3 : 2); setErrorField(data.field); }
         throw new Error(data?.error || "No pudimos confirmar el registro. Intenta iniciar sesión antes de repetirlo.");
       }
       // Commit succeeded: any sign-in failure must never repeat registration.
@@ -167,7 +168,11 @@ export default function OnboardingPage() {
             <div><dt>Administrador</dt><dd>{form.ownerName}<span>{form.email.trim().toLowerCase()}</span></dd></div>
           </dl>
           {!registered && <><div className={styles.planNote}><ShieldCheck size={21} aria-hidden="true" /><div><strong>Empieza con acceso de evaluación</strong><p>Crear tu cuenta no genera un cobro. Podrás revisar y contratar un plan desde Facturación.</p></div></div>
-          <p className={styles.notice}>Esta cuenta administrará un negocio nuevo. Si ya tienes uno registrado, <Link href="/login">ingresa con tu cuenta</Link>.</p></>}
+          <p className={styles.notice}>Esta cuenta administrará un negocio nuevo. Si ya tienes uno registrado, <Link href="/login">ingresa con tu cuenta</Link>.</p>
+          <label className={styles.terms}>
+            <input type="checkbox" name="acceptTerms" required checked={acceptTerms} aria-invalid={errorField === "acceptTerms"} onChange={event => { setAcceptTerms(event.target.checked); setError(null); setErrorField(null); }} />
+            <span>He leído y acepto las <a href="/terminos" target="_blank" rel="noopener">Condiciones</a> y la <a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a> de Huella Nex.</span>
+          </label></>}
         </>}
         {notice && <section className={styles.pendingNotice} role="status" aria-label="Preparación de la cuenta">
           <h3>{notice.title}</h3><p>{notice.description}</p>

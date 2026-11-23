@@ -141,6 +141,7 @@ async function main() {
     await page.getByRole('button', { name: 'Revisar mis datos', exact: true }).click();
     await page.screenshot({ path: path.join(output, '03-revision-desktop.png'), fullPage: true });
     const registrationResponse = page.waitForResponse(response => response.url() === base + '/api/onboarding/register');
+    await page.getByRole('checkbox', { name: /acepto las Condiciones/ }).check();
     await page.getByRole('button', { name: 'Crear mi cuenta', exact: true }).click();
     const created = await registrationResponse;
     assert.equal(created.status(), 201, await created.text());
@@ -172,7 +173,7 @@ async function main() {
     assert.equal(forged.status, 403);
     check('first dashboard entry works with SINGLE_TENANT_ID present; forged or selected foreign tenant grants no access');
     const { registerTenantAdministrator } = require('../backend/src/services/onboarding-registration.service');
-    const registration = { name: 'Otra clínica', slug: 'another-clinic', email: 'another@example.test', ownerName: 'Otra administradora', password, activeModules: ['retail'] };
+    const registration = { name: 'Otra clínica', slug: 'another-clinic', email: 'another@example.test', ownerName: 'Otra administradora', password, activeModules: ['retail'], acceptTerms: true };
     await registerTenantAdministrator(registration);
     const before = await prisma.tenant.count();
     await assert.rejects(registerTenantAdministrator({ ...registration, slug: 'must-rollback' }), error => error.code === 'P2002');
@@ -217,6 +218,7 @@ async function main() {
       return route.fulfill({ status: 401, json: { url: base + '/login?error=CredentialsSignin' } });
     });
     const countBeforeFallback = await prisma.tenant.count();
+    await mobile.getByRole('checkbox', { name: /acepto las Condiciones/ }).check();
     await mobile.getByRole('button', { name: 'Crear mi cuenta', exact: true }).click();
     await mobile.getByRole('heading', { name: 'Tu cuenta ya está creada', exact: true }).waitFor();
     try { await mobile.getByRole('region', { name: 'Registro de cuenta' }).getByRole('alert').waitFor({ timeout: 10000 }); }

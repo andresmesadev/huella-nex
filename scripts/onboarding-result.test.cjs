@@ -71,6 +71,7 @@ function fixture({ provisioning = 'ready', responseBody, malformed = false, logi
       if (name === '@/components/onboarding/registration-shell') return { RegistrationShell: 'Shell' };
       if (name.endsWith('registration.module.css')) return { default: new Proxy({}, { get: (_, key) => String(key) }) };
       if (name === '@/lib/onboarding-result') return resultModule;
+      if (name === '@/components/brand/legal-links') return { LegalLinks: 'LegalLinks' };
       throw new Error('Unexpected dependency: ' + name);
     },
     fetch: async (url, options) => {

@@ -10,7 +10,7 @@ const { verifyPassword } = require("../../services/staff-credential.service");
 const { registrationInput } = require("../../services/onboarding-registration.service");
 const { provisionDefaultDigitalEmployees } = require("../../services/tenant-provisioning.service");
 const router = require("../../routes/onboarding.routes");
-const input = { name: "Clínica X", slug: "clinica-x", ownerName: "Nombre de prueba", email: "owner@example.test", password: "Una frase de prueba 123", activeModules: ["veterinary"] };
+const input = { name: "Clínica X", slug: "clinica-x", ownerName: "Nombre de prueba", email: "owner@example.test", password: "Una frase de prueba 123", activeModules: ["veterinary"], acceptTerms: true };
 const tenant = { id: "tenant-1", name: input.name, slug: input.slug, plan: "free", phone: "private-channel", stripeCustomerId: "private-customer", secret: "internal" };
 
 function app() {
@@ -31,6 +31,8 @@ test("creates an administrator atomically with normalized email, real hash and n
   expect(write.select).toEqual({ id: true, name: true, slug: true, plan: true });
   expect(write.data).not.toHaveProperty("phone");
   expect(write.data.plan).toBe("free");
+  expect(write.data.termsAcceptedAt).toBeInstanceOf(Date);
+  expect(typeof write.data.termsVersion).toBe("string");
   expect(Object.keys(write.data.businessHours)).toHaveLength(7);
   expect(Object.values(write.data.businessHours).every(day => day.active === false && day.open === "" && day.close === "")).toBe(true);
   const staff = write.data.staff.create;
@@ -70,6 +72,7 @@ test.each([
   { name: " " }, { name: "x".repeat(121) }, { slug: "-bad" }, { slug: "bad-" }, { slug: "bad/slug" },
   { ownerName: " " }, { email: "invalid@" }, { password: "short" }, { password: "x".repeat(129) },
   { activeModules: [] }, { activeModules: ["invented"] }, { activeModules: ["retail", "retail"] },
+  { acceptTerms: false }, { acceptTerms: "true" }, { acceptTerms: undefined },
   { tenantId: "foreign" }, { userId: "foreign" }, { role: "superadmin" }, { plan: "pro" }, { phone: "forged-channel" },
 ])("invalid input is rejected before persistence: %j", async patch => {
   const result = await request(app()).post("/api/onboarding/register").send({ ...input, ...patch });

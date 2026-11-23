@@ -28,7 +28,7 @@ module.exports = async function verifyBusinessCycles({ prisma, base, browser, pa
 
   async function business(module, label) {
     const email = `${module}-${randomUUID()}@example.test`;
-    const tenant = await registerTenantAdministrator({ name: label, slug: 'qa-cycle-' + randomUUID(), ownerName: 'Administrador ficticio', email, password, activeModules: [module] });
+    const tenant = await registerTenantAdministrator({ name: label, slug: 'qa-cycle-' + randomUUID(), ownerName: 'Administrador ficticio', email, password, activeModules: [module], acceptTerms: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     await reviewFixture.guardBrowser(context);
     const page = await context.newPage(), errors = [];

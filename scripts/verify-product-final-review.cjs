@@ -27,7 +27,7 @@ module.exports = async function verify({ prisma, base, browser, context, page, p
   const businesses = [];
   for (const activity of ['veterinary', 'grooming', 'retail']) {
     const tenant = await registerTenantAdministrator({ name: `Demostración ${activity}`, slug: `qa-final-${activity}`,
-      ownerName: 'Administrador de demostración', email: `qa-final-${activity}@example.invalid`, password, activeModules: [activity] });
+      ownerName: 'Administrador de demostración', email: `qa-final-${activity}@example.invalid`, password, activeModules: [activity], acceptTerms: true });
     await provisionDefaultDigitalEmployees(tenant.id);
     const browserContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     await reviewFixture.guardBrowser(browserContext);
@@ -141,6 +141,7 @@ module.exports = async function verify({ prisma, base, browser, context, page, p
     await partial.getByLabel('Contraseña', { exact: true }).fill(password);
     await partial.getByLabel('Confirma tu contraseña', { exact: true }).fill(password);
     await partial.getByRole('button', { name: 'Revisar mis datos', exact: true }).click();
+    await partial.getByRole('checkbox', { name: /acepto las Condiciones/ }).check();
     await partial.getByRole('button', { name: 'Crear mi cuenta', exact: true }).click();
     await partial.getByRole('heading', { name: kind === 'unknown' ? 'No pudimos comprobar la preparación de tus asistentes' : 'La preparación de tus asistentes quedó pendiente', exact: true }).waitFor();
     if (kind === 'login-failure') await partial.getByRole('region', { name: 'Registro de cuenta' }).getByRole('alert').waitFor();
