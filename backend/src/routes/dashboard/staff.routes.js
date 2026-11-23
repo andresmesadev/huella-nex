@@ -15,6 +15,7 @@ const {
   generateSettlement,
   listSettlements,
   voidCommission,
+  listCommissions,
 } = require("../../contexts/staff");
 const {
   InvalidStaffAttributesError,
@@ -450,17 +451,43 @@ router.get("/settlements", async (req, res) => {
 
 // ── Comisiones — ADR 009: anulación con reemplazo, comando único atómico ─────
 
+// Día civil de Colombia (UTC−5) como inicio y fin exclusivo del rango.
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+const civilStart = ymd => `${ymd}T00:00:00-05:00`;
+const civilEndExclusive = ymd => { const d = new Date(`${ymd}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + 1); return `${d.toISOString().slice(0, 10)}T00:00:00-05:00`; };
+
+// GET /commissions?from=YYYY-MM-DD&to=YYYY-MM-DD&staffId= — C3, solo lectura.
+router.get("/commissions", async (req, res) => {
+  try {
+    const { from, to, staffId } = req.query;
+    if (!YMD.test(from ?? "") || !YMD.test(to ?? "") || from > to) return res.status(400).json({ error: "Indica un rango de fechas válido (desde y hasta)." });
+    if ((Date.parse(to) - Date.parse(from)) / 86400000 > 93) return res.status(400).json({ error: "El rango no puede superar 93 días." });
+    const result = await listCommissions({ tenantId: req.tenant.tenantId ?? null, staffId: typeof staffId === "string" && staffId ? staffId : null, from: civilStart(from), to: civilEndExclusive(to) });
+    res.json(result);
+  } catch (error) {
+    if (mapStaffDomainError(res, error)) return;
+    console.error("[Dashboard] List commissions error:", error);
+    res.status(503).json({ error: "No se pudieron consultar las comisiones." });
+  }
+});
+
 // POST /commissions/:id/void — body: { reason, replacement?: { resolvedPrice, staffId? } }
 router.post("/commissions/:id/void", async (req, res) => {
   try {
     const { tenantId } = req.tenant;
     const { reason, replacement } = req.body ?? {};
+    // Decisión de alcance C3 (23/11/2026): desde el dashboard solo se reasigna
+    // el profesional o se anula sin reemplazo; el precio no cambia por aquí.
+    if (replacement && (typeof replacement !== "object" || "resolvedPrice" in replacement)) {
+      return res.status(400).json({ error: "El precio de una comisión se corrige desde el recibo, no desde aquí." });
+    }
+    if (typeof reason !== "string" || reason.trim().length < 3) return res.status(400).json({ error: "Escribe el motivo de la corrección." });
 
     const result = await voidCommission({
       tenantId: tenantId ?? null,
       commissionId: req.params.id,
-      reason,
-      replacement: replacement ?? null,
+      reason: reason.trim(),
+      replacement: replacement ? { staffId: replacement.staffId ?? null, keepPrice: true } : null,
     });
 
     res.json({ voided: result.voided, replacement: result.replacement });

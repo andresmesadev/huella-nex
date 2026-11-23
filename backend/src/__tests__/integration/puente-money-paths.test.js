@@ -242,15 +242,28 @@ describe("POST /commissions/:id/void — ADR 009: comando único atómico", () =
     prisma.commission.update.mockImplementation(async ({ data }) => ({ id: "c1", status: "voided", ...data }));
     prisma.commission.create.mockImplementation(async ({ data }) => ({ id: "c2", ...data }));
 
+    // C3 (23/11/2026): desde el dashboard el reemplazo conserva el precio; los
+    // cambios de precio van por la corrección del recibo (ADR 025).
+    const res = await request(buildApp())
+      .post("/api/dashboard/commissions/c1/void")
+      .send({ reason: "profesional mal asignado", replacement: {} });
+
+    expect(res.status).toBe(200);
+    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(res.body.replacement.resolvedPrice).toBe(50000);
+    expect(res.body.replacement.staffShare).toBe(25000);
+    expect(res.body.replacement.replacesCommissionId).toBe("c1");
+  });
+
+  test("rechaza un cambio de precio por esta ruta, sin tocar la comisión (C3)", async () => {
     const res = await request(buildApp())
       .post("/api/dashboard/commissions/c1/void")
       .send({ reason: "precio mal resuelto", replacement: { resolvedPrice: 60000 } });
 
-    expect(res.status).toBe(200);
-    expect(prisma.$transaction).toHaveBeenCalled();
-    expect(res.body.replacement.resolvedPrice).toBe(60000);
-    expect(res.body.replacement.staffShare).toBe(30000);
-    expect(res.body.replacement.replacesCommissionId).toBe("c1");
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/recibo/);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.commission.update).not.toHaveBeenCalled();
   });
 
   test("rechaza si el día ya tiene Cierre oficial (409, frontera D4a)", async () => {

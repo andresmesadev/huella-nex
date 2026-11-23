@@ -4,6 +4,7 @@ import { Wallet } from "lucide-react";
 
 import { PageHeader } from "@/components/dashboard/page-header";
 import { PosTabs, type PosTab } from "@/components/dashboard/pos/pos-tabs";
+import { CommissionsWorkspace } from "@/components/dashboard/pos/commissions-workspace";
 import { SaleForm, type AppointmentCheckout } from "@/components/dashboard/pos/sale-form";
 import Link from "next/link";
 import { ExpenseWorkspace } from "@/components/dashboard/pos/expense-workspace";
@@ -28,7 +29,7 @@ type PageProps = {
   }>;
 };
 
-const VALID_TABS: PosTab[] = ["venta", "caja", "egreso", "historial", "reportes"];
+const VALID_TABS: PosTab[] = ["venta", "caja", "egreso", "historial", "reportes", "comisiones"];
 
 function isValidTab(t: string | undefined): t is PosTab {
   return VALID_TABS.includes(t as PosTab);
@@ -79,6 +80,7 @@ export default async function PosPage({ searchParams }: PageProps) {
     egreso:    { title: "Gastos", description: "Registra gastos y consulta sus antecedentes y anulaciones." },
     historial: { title: "Historial de cobros", description: "Consulta ventas, cobros de citas y comprobantes. Las anulaciones conservan el registro original." },
     reportes:  { title: "Reportes",       description: "Revisa ingresos, citas y servicios." },
+    comisiones: { title: "Comisiones y liquidaciones", description: "Consulta las comisiones por profesional, corrige su asignación, genera liquidaciones y cierra períodos financieros." },
   };
 
   const { title, description } = tabTitles[tab];
@@ -119,6 +121,12 @@ export default async function PosPage({ searchParams }: PageProps) {
       {tab === "egreso" && (
         <Suspense fallback={<LoadingSkeleton />}>
           <ExpenseWorkspace key={`${draftScope ?? tenant ?? "no-expense-scope"}:${JSON.stringify(reportDetail)}`} scope={draftScope} defaultResponsible={(await auth())?.user.name ?? ""} reportDetail={reportDetail?.kind === "expense" ? reportDetail : undefined} />
+        </Suspense>
+      )}
+
+      {tab === "comisiones" && (
+        <Suspense fallback={<LoadingSkeleton />}>
+          <CommissionsWorkspace />
         </Suspense>
       )}
 

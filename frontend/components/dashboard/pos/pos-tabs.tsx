@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ShoppingCart, Wallet, TrendingDown, History, BarChart3 } from "lucide-react";
+import { ShoppingCart, Wallet, TrendingDown, History, BarChart3, HandCoins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardAccess } from "@/components/dashboard/dashboard-access-provider";
 import { readReportDetail, reportReturnUrl } from "@/lib/pos-reports";
 
-export type PosTab = "venta" | "caja" | "egreso" | "historial" | "reportes";
+export type PosTab = "venta" | "caja" | "egreso" | "historial" | "reportes" | "comisiones";
 
 const TABS: { id: PosTab; label: string; icon: React.ElementType }[] = [
   { id: "venta",    label: "Cobrar",  icon: ShoppingCart },
@@ -15,6 +15,7 @@ const TABS: { id: PosTab; label: string; icon: React.ElementType }[] = [
   { id: "egreso",   label: "Gastos",       icon: TrendingDown },
   { id: "historial",label: "Historial de cobros",    icon: History },
   { id: "reportes", label: "Reportes",     icon: BarChart3 },
+  { id: "comisiones", label: "Comisiones y liquidaciones", icon: HandCoins },
 ];
 
 export function PosTabs({ active }: { active: PosTab }) {

@@ -38,6 +38,22 @@ class PrismaCommissionRepository extends CommissionRepositoryPort {
     });
   }
 
+  // C3: estado de comisiones de un establecimiento (activas y anuladas) para
+  // un rango. El tenant es obligatorio: nunca se consulta sin establecimiento.
+  async listForStatement({ tenantId, staffId = null, from, to, limit }, ctx) {
+    if (!tenantId) throw new Error("listForStatement requiere tenantId");
+    return (ctx?.tx ?? prisma).commission.findMany({
+      where: { tenantId, ...(staffId ? { staffId } : {}), completedAt: { gte: from, lt: to } },
+      include: {
+        staff: { select: { name: true } },
+        service: { select: { name: true } },
+        appointment: { select: { petName: true, serviceType: true, service: { select: { name: true } } } },
+      },
+      orderBy: [{ completedAt: "desc" }, { createdAt: "desc" }],
+      take: limit,
+    });
+  }
+
   // ADR 009-D3: anulación + reemplazo, atómicos en una única transacción.
   async voidAndReplace(commissionId, { voidedAt, voidReason, replacement }, ctx) {
     const execute = async (tx) => {

@@ -49,7 +49,7 @@ const authenticatedProxy = auth(async (req, event: NextFetchEvent) => {
     const access: DashboardAccess = await response.json();
     const permitted = path.startsWith("/print") ? access.capabilities.administration || access.capabilities.clinical
       : access.navigation.some(href => path === href || (href !== "/dashboard" && path.startsWith(href + "/")));
-    const restrictedCashTab = path === "/dashboard/pos" && !access.capabilities.finance && ["egreso", "historial", "reportes"].includes(req.nextUrl.searchParams.get("tab") ?? "");
+    const restrictedCashTab = path === "/dashboard/pos" && !access.capabilities.finance && ["egreso", "historial", "reportes", "comisiones"].includes(req.nextUrl.searchParams.get("tab") ?? "");
     if (!permitted || restrictedCashTab) {
       const home = req.nextUrl.clone(); home.pathname = "/dashboard"; home.search = "";
       return NextResponse.redirect(home);

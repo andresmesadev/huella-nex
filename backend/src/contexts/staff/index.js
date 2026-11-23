@@ -96,6 +96,14 @@ const voidCommission = createVoidCommissionUseCase({
 });
 const { createCorrectCheckoutCommissionUseCase } = require('./application/use-cases/correct-checkout-commission.usecase');
 const { PrismaBusinessDayGate } = require('../shared/persistence/prisma-business-day-gate');
+// C3 — Consultar comisiones (lectura, aislada por establecimiento).
+const { createListCommissionsUseCase } = require('./application/use-cases/list-commissions.usecase');
+const listCommissions = createListCommissionsUseCase({
+  commissionRepository,
+  staffRepository,
+  settlementCoverageReader: new PrismaSettlementCoverageReader(),
+  dailyCloseReader: new PrismaDailyCloseReader(),
+});
 const correctCheckoutCommission = createCorrectCheckoutCommissionUseCase({ commissionRepository, voidCommission, businessDayGate: new PrismaBusinessDayGate(), staffFinanceGate: new PrismaStaffFinanceGate() });
 const { createRecordSaleServiceCommissionUseCase } = require('./application/use-cases/record-sale-service-commission.usecase');
 const { PrismaSaleServiceReader } = require('./infrastructure/persistence/prisma-sale-service.reader');
@@ -160,6 +168,7 @@ module.exports = {
   },
   publishAvailabilityEvent: (name, payload) => eventPublisher.publish(name, payload),
   voidCommission,
+  listCommissions,
   registerStaff,
   updateStaff,
   deactivateStaff,

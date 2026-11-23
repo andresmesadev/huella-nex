@@ -59,7 +59,9 @@ function createVoidCommissionUseCase({ commissionRepository, settlementCoverageR
         if (!target || target.tenantId !== commission.tenantId || !target.active) throw new InvalidCommissionInputError('Profesional de reemplazo no válido.');
         if (await settlementCoverageReader.findActiveCovering(targetStaffId, commission.completedAt, ctx)) throw new CommissionInActiveSettlementError(commissionId, 'replacement');
       }
-      const correctedPrice = Number(replacement.resolvedPrice);
+      // keepPrice (C3): reasignación sin cambio de precio. Los cambios de precio
+      // van por la corrección de conceptos del recibo (ADR 025).
+      const correctedPrice = replacement.keepPrice ? Number(commission.resolvedPrice) : Number(replacement.resolvedPrice);
       if (!Number.isFinite(correctedPrice) || correctedPrice < 0) {
         throw new InvalidCommissionInputError("resolvedPrice del reemplazo no puede ser nulo ni negativo.");
       }
@@ -71,7 +73,7 @@ function createVoidCommissionUseCase({ commissionRepository, settlementCoverageR
         ...(commission.transactionItemId ? { transactionItemId: commission.transactionItemId, serviceId: commission.serviceId } : {}),
         staffId: replacement.staffId ?? commission.staffId ?? null,
         resolvedPrice: correctedPrice,
-        priceSource: "manual_override",
+        priceSource: replacement.keepPrice ? commission.priceSource : "manual_override",
         splitRate,
         staffShare,
         businessShare,
