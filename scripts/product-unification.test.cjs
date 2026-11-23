@@ -33,6 +33,6 @@ test('Operation help follows actual capabilities for 4 roles, 7 module combinati
 test('Cleanup keeps the current home and shared types; replaced screens remain aliases', () => {
   for (const alias of ['clients', 'pets', 'services', 'staff', 'reports']) assert.match(fs.readFileSync(`frontend/app/dashboard/${alias}/page.tsx`, 'utf8'), /redirect\(canonicalDashboardHref/);
   assert.match(fs.readFileSync('frontend/app/dashboard/page.tsx', 'utf8'), /HomeWorkspace/);
-  assert.match(fs.readFileSync('frontend/components/dashboard/home/fetchers.ts', 'utf8'), /export type UpcomingReminder/);
-  for (const file of ['home/operational-home.tsx', 'home/sections.tsx', 'daily-metrics-cards.tsx', 'services-manager.tsx']) assert.equal(fs.existsSync('frontend/components/dashboard/' + file), false);
+  assert.match(fs.readFileSync('frontend/components/dashboard/home/workspace.tsx', 'utf8'), /type UpcomingReminder/);
+  for (const file of ['home/fetchers.ts', 'home/operational-home.tsx', 'home/sections.tsx', 'daily-metrics-cards.tsx', 'services-manager.tsx']) assert.equal(fs.existsSync('frontend/components/dashboard/' + file), false);
 });

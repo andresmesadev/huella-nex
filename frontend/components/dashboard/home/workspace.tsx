@@ -9,7 +9,15 @@ import type { InventoryProduct } from "@/lib/inventory";
 import { clinicalPending, financialDay, homeAppointments, homeHasMissingSources, homeHref, homeSources, orderHomeTasks, pendingLabel, type HomeTaskKind } from "@/lib/home-workspace";
 import { followupTiming } from "@/lib/home-adaptability";
 import { formatPosMoney } from "@/lib/pos-checkout";
-import type { UpcomingReminder } from "./fetchers";
+type UpcomingReminder = {
+  id: string;
+  petId: string;
+  type: string;
+  notes: string | null;
+  dueAt: string;
+  petName: string;
+  petType: string | null;
+};
 import { HomeJourney } from "./journey";
 import { RefreshHome } from "./refresh-home";
 import { AttentionList } from "./attention-list";
