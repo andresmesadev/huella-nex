@@ -2,26 +2,37 @@
 import { useState } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { proxyUrl } from "@/lib/api";
 import { tenantQuery, useTenant } from "@/lib/use-tenant";
 import { type DashboardPet, formatPetType } from "@/lib/pets";
 import { ProtectedDialog, useDialogEditGuard } from "./protected-dialog";
+type SaveMessage = { ok: boolean; text: string };
+
+// Éxito y error se distinguen por texto, color y prioridad del anuncio.
+function SaveFeedback({ message }: { message: SaveMessage | null }) {
+  if (!message) return null;
+  return message.ok
+    ? <p role="status" className="text-sm font-medium text-success">{message.text}</p>
+    : <p role="alert" className="text-sm font-medium text-red-800">{message.text}</p>;
+}
+
 export function OperationalAlerts({ pet, onSaved }: { pet: DashboardPet; onSaved?: (text: string) => void }) {
-  const [text, setText] = useState(pet.operationalAlerts ?? ""), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
+  const [text, setText] = useState(pet.operationalAlerts ?? ""), [busy, setBusy] = useState(false), [message, setMessage] = useState<SaveMessage | null>(null);
   const tenant = useTenant();
   const [saved, setSaved] = useState(pet.operationalAlerts ?? "");
   useDialogEditGuard(text !== saved, busy);
   async function save() {
-    setBusy(true); setMessage("");
+    setBusy(true); setMessage(null);
     try {
       const response = await fetch(proxyUrl("/api/dashboard/pets/" + pet.id + tenantQuery(tenant)), { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operationalAlerts: text }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "No se pudo guardar");
-      setSaved(text); setMessage("Alertas operativas guardadas."); onSaved?.(text);
-    } catch (cause) { setMessage(cause instanceof Error ? cause.message : "No se pudo guardar"); }
+      setSaved(text); setMessage({ ok: true, text: "Alertas operativas guardadas." }); onSaved?.(text);
+    } catch (cause) { setMessage({ ok: false, text: cause instanceof Error ? cause.message : "No se pudo guardar. Revisa la conexión e intenta de nuevo." }); }
     finally { setBusy(false); }
   }
-  return <section className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/50 p-4"><h3 className="font-semibold">Alertas para el manejo</h3><p className="text-sm text-muted-foreground">Indicaciones que debe conocer el equipo al recibir o cuidar a la mascota. El diagnóstico y el tratamiento se registran en la historia clínica.</p><label className="block text-sm"><span className="sr-only">Alertas operativas de {pet.name}</span><textarea aria-label={`Alertas operativas de ${pet.name}`} className="mt-2 w-full rounded-lg border bg-white p-3" rows={3} maxLength={2000} placeholder="Ej. Se asusta con el secador; evitar sujetar por la pata derecha." value={text} onChange={event => setText(event.target.value)} /></label><Button type="button" size="sm" disabled={busy} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar alertas"}</Button>{message && <p role="status" className="text-sm">{message}</p>}</section>;
+  return <section className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/50 p-4"><h3 className="font-semibold">Alertas para el manejo</h3><p className="text-sm text-muted-foreground">Indicaciones que debe conocer el equipo al recibir o cuidar a la mascota. El diagnóstico y el tratamiento se registran en la historia clínica.</p><label className="block text-sm"><span className="sr-only">Alertas operativas de {pet.name}</span><textarea aria-label={`Alertas operativas de ${pet.name}`} className="mt-2 w-full rounded-lg border bg-white p-3" rows={3} maxLength={2000} placeholder="Ej. Se asusta con el secador; evitar sujetar por la pata derecha." value={text} onChange={event => setText(event.target.value)} /></label><Button type="button" size="sm" disabled={busy} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar alertas"}</Button><SaveFeedback message={message} /></section>;
 }
 export function OperationalPetSheet({ pet, open, onOpenChange, onUpdated, readOnly = true }: { readOnly?: boolean; pet: DashboardPet | null; open: boolean; onOpenChange: (open: boolean) => void; onUpdated?: () => void }) {
   return <ProtectedDialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>Ficha de {pet?.name}</DialogTitle><DialogDescription>Datos de identificación y manejo de la mascota.</DialogDescription></DialogHeader>
@@ -29,7 +40,7 @@ export function OperationalPetSheet({ pet, open, onOpenChange, onUpdated, readOn
   </DialogContent></ProtectedDialog>;
 }
 function OperationalPetBasics({ pet, onUpdated }: { pet: DashboardPet; onUpdated?: () => void }) {
-  const [name, setName] = useState(pet.name), [breed, setBreed] = useState(pet.breed ?? ""), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
+  const [name, setName] = useState(pet.name), [breed, setBreed] = useState(pet.breed ?? ""), [busy, setBusy] = useState(false), [message, setMessage] = useState<SaveMessage | null>(null);
   const tenant = useTenant();
   const [saved, setSaved] = useState({ name: pet.name, breed: pet.breed ?? "" });
   useDialogEditGuard(name !== saved.name || breed !== saved.breed, busy);
@@ -39,9 +50,9 @@ function OperationalPetBasics({ pet, onUpdated }: { pet: DashboardPet; onUpdated
       const response = await fetch(proxyUrl("/api/dashboard/pets/" + pet.id + tenantQuery(tenant)), { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, breed }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "No se pudo guardar");
-      setSaved({ name, breed }); setMessage("Datos básicos guardados."); onUpdated?.();
-    } catch (cause) { setMessage(cause instanceof Error ? cause.message : "No se pudo guardar"); }
+      setSaved({ name, breed }); setMessage({ ok: true, text: "Datos básicos guardados." }); onUpdated?.();
+    } catch (cause) { setMessage({ ok: false, text: cause instanceof Error ? cause.message : "No se pudo guardar. Revisa la conexión e intenta de nuevo." }); }
     finally { setBusy(false); }
   }
-  return <section className="space-y-3 rounded-xl border p-4"><h3 className="font-semibold">Datos básicos</h3><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nombre<input className="mt-1 block w-full rounded-lg border p-3" value={name} onChange={event => setName(event.target.value)} /></label><label className="text-sm">Raza<input className="mt-1 block w-full rounded-lg border p-3" value={breed} onChange={event => setBreed(event.target.value)} /></label></div><Button size="sm" disabled={busy || !name.trim()} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar datos"}</Button>{message && <p role="status" className="text-sm">{message}</p>}</section>;
+  return <section className="space-y-3 rounded-xl border p-4"><h3 className="font-semibold">Datos básicos</h3><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nombre<Input className="mt-1 h-11" value={name} onChange={event => setName(event.target.value)} /></label><label className="text-sm">Raza<Input className="mt-1 h-11" value={breed} onChange={event => setBreed(event.target.value)} /></label></div><Button size="sm" disabled={busy || !name.trim()} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar datos"}</Button><SaveFeedback message={message} /></section>;
 }
