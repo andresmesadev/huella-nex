@@ -1,5 +1,11 @@
 const express = require("express");
 const router = express.Router();
+// Igual que en Staff: sin establecimiento estas lecturas mezclarían negocios.
+const TENANT_PATHS = /^\/(financial-periods|financial-history)(\/|$)/i;
+router.use((req, res, next) => {
+  if (TENANT_PATHS.test(req.path ?? "") && !req.tenant?.tenantId) return res.status(400).json({ error: "Selecciona un establecimiento." });
+  next();
+});
 // Entregable Puente — Finanzas: Períodos Financieros e Historial (casos 5, 7, 8).
 const { generateFinancialPeriod, getFinancialPeriod, getFinancialHistory } = require("../../contexts/finance");
 const { commissionReserve } = require('../../contexts/finance/domain/rules/financial-summary.rules');

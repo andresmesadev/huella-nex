@@ -33,7 +33,9 @@ class PrismaCommissionRepository extends CommissionRepositoryPort {
         staffId,
         tenantId: tenantId ?? null,
         status: "active",
-        completedAt: { gte: new Date(periodStart), lt: new Date(periodEnd) },
+        // Fin inclusivo, igual que la cobertura de liquidaciones
+        // (prisma-settlement-coverage.reader: periodStart <= at <= periodEnd).
+        completedAt: { gte: new Date(periodStart), lte: new Date(periodEnd) },
       },
     });
   }

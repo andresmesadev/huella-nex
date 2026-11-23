@@ -169,46 +169,6 @@ router.get('/reports/breakdown', async (req, res) => {
   }
 });
 
-// ── GET /reports/upcoming-reminders ──────────────────────────────────────────
-// Próximas fechas críticas: vacunas, desparasitaciones, peluquería (nextControlAt)
-router.get("/reports/upcoming-reminders", async (req, res) => {
-  try {
-    const { tenantId } = req.tenant;
-    const days = Math.min(parseInt(req.query.days ?? "30") || 30, 90);
-    const now = new Date();
-    const until = new Date(now.getTime() + days * 86_400_000);
-
-    const records = await prisma.medicalRecord.findMany({
-      where: {
-        pet: { tenantId },
-        nextControlAt: { gte: now, lte: until },
-        reminderSent: false,
-        type: { in: ["vaccine", "deworming", "grooming"] },
-      },
-      include: {
-        pet: { select: { name: true, owner: { select: { name: true, phone: true } } } },
-      },
-      orderBy: { nextControlAt: "asc" },
-      take: 50,
-    });
-
-    const TYPE_LABELS = { vaccine: "Vacuna", deworming: "Desparasitación", grooming: "Peluquería" };
-
-    res.json(records.map((r) => ({
-      id: r.id,
-      type: r.type,
-      typeLabel: TYPE_LABELS[r.type] ?? r.type,
-      title: r.title,
-      nextControlAt: r.nextControlAt,
-      petName: r.pet?.name ?? "—",
-      ownerName: r.pet?.owner?.name ?? "—",
-      ownerPhone: r.pet?.owner?.phone ?? "—",
-    })));
-  } catch (error) {
-    console.error("[Reports] upcoming-reminders error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 // ── GET /reports/clients-retention ───────────────────────────────────────────
 // Actividad: clientes nuevos y cantidad de citas, no una medida de retención.

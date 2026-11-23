@@ -78,27 +78,6 @@ router.get('/cash/appointments/:id/checkout', async (req, res) => {
       ] });
   } catch (error) { console.error('[Cash] Checkout read failed:', error.message); return res.status(503).json({ error: 'No se pudo preparar el cobro de la cita.' }); }
 });
-router.get("/workspace", async (req, res) => {
-  try {
-    const date = getBogotaYmd(), start = bogotaDayStart(date), end = new Date(start.getTime() + 86400000);
-    const rows = req.access.capabilities.agenda ? await prisma.appointment.findMany({
-      where: { tenantId: req.tenant.tenantId, date: { gte: start, lt: end } },
-      include: APPOINTMENT_INCLUDE, orderBy: { date: "asc" }, take: 200,
-    }) : [];
-    const appointments = rows.filter(row => moduleAllowsAppointment(req.access, row) &&
-      (!["vet", "groomer"].includes(req.access.role) || serviceModule(row) === (req.access.role === "vet" ? "veterinary" : "grooming")))
-      .map(row => { const mapped = mapAppointmentRow(row); return req.access.capabilities.cash || req.access.capabilities.appointmentPrice ? mapped : redactAppointmentPrices(mapped); });
-    return res.json({ date, appointments, counts: {
-      waiting: appointments.filter(a => a.status === "arrived").length,
-      inProgress: appointments.filter(a => a.status === "in_progress").length,
-      completed: appointments.filter(a => a.status === "completed").length,
-      scheduled: appointments.filter(a => ["pending", "confirmed"].includes(a.status)).length,
-    } });
-  } catch (error) {
-    console.error("[Workspace] Read failed:", error.message);
-    return res.status(503).json({ error: "No se pudo cargar tu jornada" });
-  }
-});
 router.get("/cash/operational", async (req, res) => {
   try {
     // A system charge already counts as income under ADR 007. A missing actor

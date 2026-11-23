@@ -115,68 +115,6 @@ function normalizePhone(raw) {
   return p;
 }
 
-router.post("/clients/import", async (req, res) => {
-  try {
-    const { tenantId } = req.tenant;
-    const { contacts } = req.body ?? {};
-
-    if (!Array.isArray(contacts) || contacts.length === 0) {
-      return res.status(400).json({ error: "Se requiere un array de contactos no vacío" });
-    }
-    if (contacts.length > 500) {
-      return res.status(400).json({ error: "Máximo 500 contactos por importación" });
-    }
-
-    const results = [];
-    let created = 0, updated = 0, invalid = 0;
-
-    for (const c of contacts) {
-      const phone = normalizePhone(c.phone);
-      if (!phone) {
-        results.push({ name: c.name ?? "", phone: null, status: "invalid", reason: "Teléfono inválido" });
-        invalid++;
-        continue;
-      }
-
-      try {
-        const where = tenantId ? { phone, tenantId } : { phone };
-        const existing = await prisma.user.findFirst({ where });
-
-        if (existing) {
-          const patch = {};
-          if (!existing.name    && c.name?.trim())    patch.name    = c.name.trim();
-          if (!existing.address && c.address?.trim()) patch.address = c.address.trim();
-          if (!existing.notes   && c.notes?.trim())   patch.notes   = c.notes.trim();
-          if (Object.keys(patch).length) {
-            await prisma.user.update({ where: { id: existing.id }, data: patch });
-          }
-          results.push({ name: c.name ?? existing.name ?? "", phone, status: "updated" });
-          updated++;
-        } else {
-          await prisma.user.create({
-            data: {
-              phone,
-              name:    c.name?.trim()    || null,
-              address: c.address?.trim() || null,
-              notes:   c.notes?.trim()   || null,
-              ...(tenantId ? { tenantId } : {}),
-            },
-          });
-          results.push({ name: c.name ?? "", phone, status: "created" });
-          created++;
-        }
-      } catch {
-        results.push({ name: c.name ?? "", phone, status: "invalid", reason: "Error al guardar" });
-        invalid++;
-      }
-    }
-
-    res.json({ created, updated, invalid, results });
-  } catch (error) {
-    console.error("[Dashboard] Import contacts error:", error.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 // ── Importar contactos COMPLETOS (propietario + mascotas + historial peluquería) ──
 
@@ -668,20 +606,6 @@ router.post("/campaigns/reactivation", async (req, res) => {
   }
 });
 
-// ── Automatizaciones — envío masivo por tipo de acción (TAREA 14) ────────────
-router.post("/campaigns/next-actions", async (req, res) => {
-  try {
-    const { tenantId } = req.tenant;
-    const { type } = req.body ?? {};
-    if (!type) return res.status(400).json({ error: "type es requerido" });
-    const result = await sendNextActionReminders({ tenantId, type });
-    res.json(result);
-  } catch (error) {
-    console.error("[Dashboard] Next-action campaign error:", error.message);
-    if (error.message.includes("inválido")) return res.status(400).json({ error: error.message });
-    res.status(500).json({ error: ERRORS.INTERNAL });
-  }
-});
 
 router.delete("/clients/:id", async (req, res) => {
   try {

@@ -54,16 +54,13 @@ describe("Entregable 6.3 — tenantId propagado en rutas antes desprotegidas", (
     expect(response.status).toBe(201);
     expect(registerStaff).toHaveBeenCalledWith({ tenantId: TENANT_ID, name: 'Dra. Beta', role: 'vet', phone: null, email: null, accessPermissions: ['administration'] });
   });
-  test("PUT /staff/:id/availability propaga tenantId", async () => {
-    changeAvailability.mockResolvedValue({ availability: { id: "a-1" } });
-
-    await request(buildApp())
-      .put("/api/dashboard/staff/s-1/availability")
-      .send({ type: "base_schedule", schedule: { weekday: 1, startTime: "08:00", endTime: "17:00" } });
-
-    expect(changeAvailability).toHaveBeenCalledWith(
-      's-1', TENANT_ID, expect.objectContaining({ type: 'base_schedule' })
-    );
+  // 23/11/2026: los PUT legados de disponibilidad y capacidades se retiraron (el
+  // dashboard usa PATCH /staff/:id y PUT /staff/:id/services). No deben responder.
+  test.each(["availability", "capabilities"])("PUT /staff/:id/%s ya no existe", async (path) => {
+    const response = await request(buildApp()).put(`/api/dashboard/staff/s-1/${path}`).send({});
+    expect(response.status).toBe(404);
+    expect(changeAvailability).not.toHaveBeenCalled();
+    expect(saveServiceScope).not.toHaveBeenCalled();
   });
 
   test("POST /staff/:id/absences propaga tenantId", async () => {
@@ -78,15 +75,4 @@ describe("Entregable 6.3 — tenantId propagado en rutas antes desprotegidas", (
     );
   });
 
-  test("PUT /staff/:id/capabilities propaga tenantId", async () => {
-    saveServiceScope.mockResolvedValue({ capabilities: [], added: [], removed: [] });
-
-    await request(buildApp())
-      .put("/api/dashboard/staff/s-1/capabilities")
-      .send({ serviceIds: ["svc-1"] });
-
-    expect(saveServiceScope).toHaveBeenCalledWith(
-      's-1', TENANT_ID, { scope: 'selected', serviceIds: ['svc-1'] }
-    );
-  });
 });

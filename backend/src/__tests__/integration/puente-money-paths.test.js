@@ -316,3 +316,19 @@ describe("POST /financial-periods — atomicidad (hallazgo A2)", () => {
     expect(res.status).toBe(409);
   });
 });
+
+// 23/11/2026 — sin establecimiento, las rutas de liquidaciones, comisiones,
+// equipo y finanzas no se ejecutan (evita mezclar negocios en la vista 6.6).
+describe("rutas de dinero sin establecimiento", () => {
+  test.each([["get", "/api/dashboard/settlements"], ["post", "/api/dashboard/settlements"], ["get", "/api/dashboard/commissions?from=2026-11-01&to=2026-11-02"], ["post", "/api/dashboard/staff"], ["get", "/api/dashboard/financial-history?from=2026-11-01&to=2026-11-02"]])(
+    "%s %s responde 400", async (method, path) => {
+      const app = express();
+      app.use(express.json());
+      app.use((req, _res, next) => { req.tenant = { isSuperAdmin: true, tenantId: null, viewAllTenants: true }; req.actor = { type: "admin" }; next(); });
+      app.use("/api/dashboard", require("../../routes/dashboard/staff.routes"));
+      app.use("/api/dashboard", require("../../routes/dashboard/financial-periods.routes"));
+      const res = await request(app)[method](path).send({});
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/establecimiento/);
+    });
+});

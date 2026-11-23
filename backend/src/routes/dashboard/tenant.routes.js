@@ -198,24 +198,6 @@ router.put("/tenant/config", async (req, res) => {
   }
 });
 
-router.get("/stats", async (req, res) => {
-  try {
-    const tenantId = resolveTenantId(req);
-    const where = tenantId ? { tenantId } : {};
-
-    const [users, pets, appointments, conversations] = await Promise.all([
-      prisma.user.count({ where }),
-      prisma.pet.count({ where }),
-      prisma.appointment.count({ where }),
-      prisma.conversation.count({ where }),
-    ]);
-
-    res.json({ users, pets, appointments, conversations });
-  } catch (error) {
-    console.error("[Dashboard] Stats error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 /**
  * Entregable 6.6 (Fase 6) — Operación Centralizada, Fase A: capacidad

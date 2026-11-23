@@ -1,5 +1,13 @@
 const express = require("express");
 const router = express.Router();
+// Los casos de uso de Staff tratan tenantId nulo como "todos los establecimientos"
+// (o crean registros sin establecimiento). Ninguna de estas rutas forma parte de
+// la vista centralizada (6.6): todas exigen un establecimiento (23/11/2026).
+const TENANT_PATHS = /^\/(staff|settlements|commissions)(\/|$)/i;
+router.use((req, res, next) => {
+  if (TENANT_PATHS.test(req.path ?? "") && !req.tenant?.tenantId) return res.status(400).json({ error: "Selecciona un establecimiento." });
+  next();
+});
 const prisma = require("../../lib/prisma");
 const { staffEditorError } = require("../../services/staff-editor-validation.service");
 const { withStaffLock, assignmentReason, saveWeeklySchedule, changeAvailability, staffReview, correctAbsence, readServiceScope, saveServiceScope } = require('../../services/staff-scheduling.service');
@@ -338,20 +346,6 @@ router.delete("/staff/:id", async (req, res) => {
 
 // ── Disponibilidad, ausencias y capacidades (2.2) — Entregable Puente ────────
 
-// PUT /staff/:id/availability — body: { type, schedule?, range? }
-router.put("/staff/:id/availability", async (req, res) => {
-  try {
-    const { tenantId } = req.tenant;
-    const { type, schedule, range } = req.body ?? {};
-    const { availability } = await changeAvailability(req.params.id, tenantId, { type, schedule, range });
-    res.json({ availability });
-  } catch (error) {
-    if (error.code === 'STAFF_UNAVAILABLE') return res.status(error.status).json({ error: error.message });
-    if (mapStaffDomainError(res, error)) return;
-    console.error("[Dashboard] Update availability error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 // POST /staff/:id/absences — body: { startAt, endAt, reason }
 router.post("/staff/:id/absences", async (req, res) => {
@@ -369,20 +363,6 @@ router.post("/staff/:id/absences", async (req, res) => {
   }
 });
 
-// PUT /staff/:id/capabilities — body: { serviceIds: string[] }
-router.put("/staff/:id/capabilities", async (req, res) => {
-  try {
-    const { tenantId } = req.tenant;
-    const { serviceIds } = req.body ?? {};
-    const result = await saveServiceScope(req.params.id, tenantId, { scope:'selected', serviceIds });
-    res.json(result);
-  } catch (error) {
-    if (error.code === 'STAFF_UNAVAILABLE') return res.status(error.status).json({ error: error.message });
-    if (mapStaffDomainError(res, error)) return;
-    console.error("[Dashboard] Manage capabilities error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 router.post('/staff/:id/absences/:absenceId/change', async (req,res) => {
   try {
