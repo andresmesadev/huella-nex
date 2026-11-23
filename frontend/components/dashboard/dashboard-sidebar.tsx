@@ -24,7 +24,6 @@ import {
   Package,
   Bot,
   Building2,
-  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 
@@ -57,7 +56,6 @@ const SECTIONS: NavSection[] = [
     heading: "Gestión",
     items: [
       { href: "/dashboard/pos", label: "Punto de venta", icon: Wallet, alsoActiveOn: ["/dashboard/revenue"] },
-      { href: "/dashboard/reports", label: "Reportes", icon: BarChart3 },
       { href: "/dashboard/inventory", label: "Inventario", icon: Package },
       { href: "/dashboard/assistants", label: "Asistentes", icon: Bot },
       { href: "/dashboard/recuperacion", label: "Seguimiento de clientes", icon: HeartPulse, alsoActiveOn: ["/dashboard/churn", "/dashboard/opportunities", "/dashboard/reactivation"] },
