@@ -35,7 +35,7 @@ test("Social enrollment is isolated by provider, issuer and subject", async t =>
   const slug = "social-auth-" + seed;
   const makeRegistration = suffix => ({
     name: "Social fixture " + suffix, slug: slug + "-" + suffix, ownerName: "Fixture owner",
-    email: slug + "-" + suffix + "@example.test", activeModules: ["grooming"],
+    email: slug + "-" + suffix + "@example.test", activeModules: ["grooming"], acceptTerms: true,
   });
   const subject = "fixture-" + seed;
   const [google, microsoft, apple] = [
