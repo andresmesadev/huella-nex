@@ -22,6 +22,7 @@ export function DailyClosePanel({ date, tenant }: { date: string; tenant?: strin
   const [retained, setRetained] = useState('');
   useEffect(() => { const refresh = () => setReload(value => value + 1); window.addEventListener('cash-opening-updated', refresh); return () => window.removeEventListener('cash-opening-updated', refresh); }, []);
   const [names, setNames] = useState<Record<string, string>>({});
+  const [namesFailed, setNamesFailed] = useState(false);
   const [period, setPeriod] = useState<CommissionPeriod>("day");
   const [range, setRange] = useState(commissionPeriod(date, "day"));
   const [periodDays, setPeriodDays] = useState<CloseDay[]>([]);
@@ -43,9 +44,9 @@ export function DailyClosePanel({ date, tenant }: { date: string; tenant?: strin
     void readDay().then(value => { if (current) { setDay(value); setError(""); } }).catch(cause => { if (current) setError(cause.message); });
     void fetch(proxyUrl(`/api/dashboard/cash/opening?date=${date}${scope}`), { cache: 'no-store' }).then(async response => { const body = await response.json(); if (!response.ok) throw new Error(body.error ?? 'No se pudo consultar la base.'); return readCashOpening(body, date); }).then(value => { if (current) setCash(value); }).catch(cause => { if (current) { setCash(null); setError(cause.message); } });
     void fetch(proxyUrl(`/api/dashboard/staff${tenant ? `?tenantId=${encodeURIComponent(tenant)}` : ""}`), { cache: "no-store" })
-      .then(async response => response.ok ? response.json() : []).then(rows => {
-        if (current && Array.isArray(rows)) setNames(Object.fromEntries(rows.map(row => [row.id, row.name])));
-      }).catch(() => {});
+      .then(async response => { if (!response.ok) throw new Error("staff"); return response.json(); }).then(rows => {
+        if (current && Array.isArray(rows)) { setNames(Object.fromEntries(rows.map(row => [row.id, row.name]))); setNamesFailed(false); }
+      }).catch(() => { if (current) setNamesFailed(true); });
     return () => { current = false; };
   }, [allowed, date, tenant, reload, readDay, scope]);
 
@@ -92,6 +93,7 @@ export function DailyClosePanel({ date, tenant }: { date: string; tenant?: strin
     {!day && !error && <p role="status" className="text-sm">Consultando cierre…</p>}
     {error && <div role="alert" className="space-y-2 text-sm text-red-800"><p>{error}</p><Button type="button" variant="outline" disabled={saving} onClick={() => setReload(value => value + 1)}>Comprobar estado del cierre</Button></div>}
     {day && <><div className="grid gap-3 sm:grid-cols-2"><div className="rounded-lg border bg-background p-4"><p className="text-sm">Parte de los profesionales generada en el día</p><strong className="mt-1 block wrap-anywhere text-xl tabular-nums">{formatPosMoney(day.staffCommissionTotal)}</strong></div><div className="rounded-lg border border-primary/20 bg-background p-4"><p className="text-sm font-semibold">Saldo tras reservar comisiones</p><strong className="mt-1 block wrap-anywhere text-2xl text-primary tabular-nums">{formatPosMoney(day.netAfterCommissions)}</strong><p className="mt-1 text-xs text-muted-foreground">Ingresos recibidos − gastos registrados − comisiones generadas</p></div></div>
+      {namesFailed && day.staffBreakdown.length > 0 && <p role="status" className="text-sm text-warning">No se pudieron cargar los nombres del equipo; los profesionales aparecen como «Profesional». <button type="button" className="font-semibold underline underline-offset-2" onClick={() => setReload(value => value + 1)}>Reintentar</button></p>}
       {day.staffBreakdown.length > 0 && <ul className="divide-y text-sm">{day.staffBreakdown.map(row => <li key={row.staffId ?? "unassigned"} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3"><span className="min-w-0 flex-1 wrap-anywhere">{staffLabel(row.staffId)} · {row.count} servicios</span><strong className="shrink-0 tabular-nums">{formatPosMoney(row.staffShare)}</strong></li>)}</ul>}
       <p className="text-xs text-muted-foreground">La reserva se descuenta automáticamente del resultado. No registra una entrega de dinero al profesional ni sustituye la conciliación de sus pagos.</p>
     </>}

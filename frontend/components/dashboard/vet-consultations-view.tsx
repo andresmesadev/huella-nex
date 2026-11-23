@@ -105,6 +105,7 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
   const setCareFilter = (care: string | ((current: string) => string)) => continuity.update({ care: typeof care === "function" ? care(careFilter) : care });
   const [weekRefresh, setWeekRefresh] = useState(0);
   const [weekAppointments, setWeekAppointments] = useState(appointments);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [weekError, setWeekError] = useState<string | null>(null);
   const [failedDate, setFailedDate] = useState<string | null>(null);
@@ -156,8 +157,12 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
       if (tenantId) params.set("tenantId", tenantId);
       void fetch(proxyUrl(`/api/dashboard/appointments/week?${params}`), { cache: "no-store", signal: controller.signal })
         .then(async (response) => response.ok ? response.json() as Promise<{ appointments?: TodayAppointment[] }> : null)
-        .then((payload) => { if (!controller.signal.aborted && Array.isArray(payload?.appointments)) setWeekAppointments(payload.appointments); })
-        .catch(() => {});
+        .then((payload) => {
+          if (controller.signal.aborted) return;
+          if (Array.isArray(payload?.appointments)) { setWeekAppointments(payload.appointments); setRefreshFailed(false); }
+          else setRefreshFailed(true);
+        })
+        .catch(() => { if (!controller.signal.aborted) setRefreshFailed(true); });
     }, 60_000);
     return () => { controller.abort(); clearInterval(timer); };
   }, [anchor, preview, searchQuery, tenantId]);
@@ -312,6 +317,7 @@ export function VetConsultationsView({ appointments, preview = false, tenantId, 
     <div className="space-y-6">
       {confirmation}
       {initialAppointmentId && !requestedAppointment && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">No se pudo abrir esa consulta. Comprueba el establecimiento y la fecha, o busca al paciente en las consultas anteriores.</div>}
+      {refreshFailed && <p role="status" className="rounded-xl border border-warning-border bg-warning-surface px-4 py-3 text-sm text-warning">No se pudo actualizar la lista de consultas. Puede que falten cambios recientes; se volverá a intentar en un minuto.</p>}
       <section aria-labelledby="consultas-lista" className="overflow-hidden rounded-2xl border border-border bg-white">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
           <div>
